@@ -34,3 +34,5 @@ firestore-debug.log
 *.njsproj
 *.sln
 *.sw?
+scripts/serviceAccountKey.json
+scripts/cre-backup-*.json
