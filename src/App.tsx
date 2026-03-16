@@ -9,7 +9,7 @@ import { ProjectDetailPage } from '@/pages/ProjectDetailPage'
 import { AnalyticsPage } from '@/pages/AnalyticsPage'
 import { ChecklistPage } from '@/pages/ChecklistPage'
 import { TeamPage } from '@/pages/TeamPage'
-import { PlaceholderPage } from '@/pages/PlaceholderPage'
+import { SettingsPage } from '@/pages/SettingsPage'
 
 // Auth listener lives at the top level so it's always active,
 // even when the user is on the /login route.
@@ -69,7 +69,7 @@ export default function App() {
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="team" element={<TeamPage />} />
             <Route path="checklist" element={<ChecklistPage />} />
-            <Route path="settings" element={<PlaceholderPage title="Settings" />} />
+            <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Routes>
       </AuthProvider>

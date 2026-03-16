@@ -11,6 +11,7 @@ import {
 import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { EditProjectModal } from '@/components/EditProjectModal'
+import { BudgetTab } from '@/components/BudgetTab'
 import type { Task, TaskStatus } from '@/types'
 
 // ─── Stage gate progress ──────────────────────────────────────────────────────
@@ -386,25 +387,7 @@ export function ProjectDetailPage() {
         </div>
       )}
 
-      {tab === 'budget' && (
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
-          <p className="text-slate-400 text-xs uppercase tracking-wide font-medium mb-4">Budget Summary</p>
-          <div className="space-y-3">
-            <BudgetRow label="Total Approved Budget" value={fmt(project.totalBudget)} bold />
-            <BudgetRow label="Committed Cost" value={fmt(project.committedCost)} />
-            <BudgetRow label="Forecast Cost" value={fmt(project.forecastCost)} />
-            <BudgetRow label="Actual Cost" value={fmt(project.actualCost)} />
-            <div className="border-t border-slate-700 pt-3">
-              <BudgetRow
-                label="Variance (Budget vs Forecast)"
-                value={fmt(Math.abs(budgetVariance))}
-                accent={budgetVariance < 0 ? 'red' : 'green'}
-                bold
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      {tab === 'budget' && <BudgetTab project={project} />}
 
       {tab === 'team' && (
         <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
@@ -449,22 +432,6 @@ function InfoRow({ label, value }: { label: string; value: string }) {
     <div className="flex justify-between gap-4 text-sm">
       <span className="text-slate-500 shrink-0">{label}</span>
       <span className="text-slate-200 text-right">{value}</span>
-    </div>
-  )
-}
-
-function BudgetRow({ label, value, bold, accent }: {
-  label: string; value: string; bold?: boolean; accent?: 'red' | 'green'
-}) {
-  return (
-    <div className="flex justify-between items-center text-sm">
-      <span className={clsx(bold ? 'text-slate-200 font-medium' : 'text-slate-400')}>{label}</span>
-      <span className={clsx(
-        bold ? 'font-semibold' : '',
-        accent === 'red' ? 'text-red-400' : accent === 'green' ? 'text-emerald-400' : 'text-slate-200'
-      )}>
-        {value}
-      </span>
     </div>
   )
 }

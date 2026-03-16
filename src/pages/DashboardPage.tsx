@@ -1,6 +1,7 @@
 import { useProjects } from '@/hooks/useProjects'
 import { AlertTriangle, CheckCircle, DollarSign, FolderOpen } from 'lucide-react'
 import { clsx } from 'clsx'
+import { useNavigate } from 'react-router-dom'
 
 function StatCard({
   label,
@@ -33,6 +34,7 @@ function StatCard({
 
 export function DashboardPage() {
   const { projects, loading } = useProjects()
+  const navigate = useNavigate()
 
   const active = projects.filter((p) => p.isActive)
   const atRisk = projects.filter((p) =>
@@ -96,9 +98,9 @@ export function DashboardPage() {
       <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700">
           <h2 className="text-slate-100 font-semibold">Active Projects</h2>
-          <a href="/projects" className="text-blue-400 hover:text-blue-300 text-sm">
+          <button onClick={() => navigate('/projects')} className="text-blue-400 hover:text-blue-300 text-sm">
             View all →
-          </a>
+          </button>
         </div>
         {active.length === 0 ? (
           <div className="text-center py-16 text-slate-500">
