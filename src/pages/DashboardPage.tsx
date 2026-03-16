@@ -61,7 +61,7 @@ export function DashboardPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
         <StatCard
           label="Active Projects"
           value={active.length}
@@ -93,7 +93,7 @@ export function DashboardPage() {
       </div>
 
       {/* Recent Projects Table */}
-      <div className="bg-slate-800 border border-slate-700 rounded-xl">
+      <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700">
           <h2 className="text-slate-100 font-semibold">Active Projects</h2>
           <a href="/projects" className="text-blue-400 hover:text-blue-300 text-sm">
@@ -107,7 +107,9 @@ export function DashboardPage() {
             <p className="text-sm mt-1">Import your data or create a new project.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Desktop table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-slate-500 text-xs uppercase tracking-wide">
@@ -125,25 +127,21 @@ export function DashboardPage() {
                     <tr
                       key={project.id}
                       className={clsx(
-                        'border-t border-slate-700 hover:bg-slate-750 transition-colors cursor-pointer',
-                        i % 2 === 0 ? '' : 'bg-slate-850'
+                        'border-t border-slate-700 hover:bg-slate-800 transition-colors cursor-pointer',
+                        i % 2 !== 0 ? 'bg-slate-900/40' : ''
                       )}
                     >
                       <td className="px-6 py-3">
                         <p className="text-slate-100 font-medium">{project.projectName}</p>
                         <p className="text-slate-500 text-xs">{project.projectNumber} · {project.city}, {project.state}</p>
                       </td>
-                      <td className="px-6 py-3">
-                        <StatusBadge status={project.status} />
-                      </td>
+                      <td className="px-6 py-3"><StatusBadge status={project.status} /></td>
                       <td className="px-6 py-3">
                         <span className="text-slate-300 bg-slate-700 px-2 py-0.5 rounded text-xs font-medium">
                           {project.profile}
                         </span>
                       </td>
-                      <td className="px-6 py-3 text-right text-slate-300">
-                        {formatCurrency(project.totalBudget)}
-                      </td>
+                      <td className="px-6 py-3 text-right text-slate-300">{formatCurrency(project.totalBudget)}</td>
                       <td className={clsx('px-6 py-3 text-right font-medium', overBudget ? 'text-red-400' : 'text-emerald-400')}>
                         {formatCurrency(project.forecastCost)}
                         {overBudget && <span className="ml-1 text-xs">↑</span>}
@@ -154,6 +152,31 @@ export function DashboardPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile card list */}
+          <div className="md:hidden divide-y divide-slate-700">
+            {active.slice(0, 8).map((project) => {
+              const overBudget = project.forecastCost > project.totalBudget
+              return (
+                <div key={project.id} className="px-4 py-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-slate-100 font-medium text-sm truncate">{project.projectName}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <StatusBadge status={project.status} />
+                      <span className="text-slate-500 text-xs">{project.city}, {project.state}</span>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-slate-300 text-sm">{formatCurrency(project.totalBudget)}</p>
+                    <p className={clsx('text-xs font-medium', overBudget ? 'text-red-400' : 'text-emerald-400')}>
+                      {formatCurrency(project.forecastCost)}
+                    </p>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          </>
         )}
       </div>
     </div>

@@ -14,4 +14,10 @@ body {
 
 #root {
   min-height: 100vh;
+  min-height: 100dvh; /* dynamic viewport height for mobile browsers */
+}
+
+/* Fixed bottom nav clears iOS home indicator */
+nav.fixed.bottom-0 {
+  padding-bottom: env(safe-area-inset-bottom);
 }
