@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useProject } from '@/hooks/useProject'
 import { useTasks } from '@/hooks/useTasks'
+import { useProjectTeam } from '@/hooks/useProjectTeam'
 import { useState } from 'react'
 import { clsx } from 'clsx'
 import {
@@ -165,6 +166,7 @@ export function ProjectDetailPage() {
   const navigate = useNavigate()
   const { project, loading: projLoading } = useProject(id)
   const { tasks, loading: tasksLoading } = useTasks(id)
+  const { team } = useProjectTeam(id)
   const [tab, setTab] = useState<Tab>('overview')
   const [statusFilter, setStatusFilter] = useState<string>('all')
 
@@ -400,18 +402,28 @@ export function ProjectDetailPage() {
         <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-4">
             <Users size={16} className="text-slate-400" />
-            <p className="text-slate-400 text-xs uppercase tracking-wide font-medium">Project Team</p>
+            <p className="text-slate-400 text-xs uppercase tracking-wide font-medium">
+              Project Team ({team.length})
+            </p>
           </div>
-          {(project.teamMembers?.length ?? 0) === 0 ? (
+          {team.length === 0 ? (
             <p className="text-slate-500 text-sm text-center py-8">No team members added yet.</p>
           ) : (
             <div className="space-y-3">
-              {project.teamMembers.map((m, i) => (
-                <div key={i} className="flex items-center gap-3 p-3 bg-slate-900/50 rounded-lg">
-                  <div className="w-8 h-8 rounded-full bg-blue-700 flex items-center justify-center text-white text-sm font-bold shrink-0">
-                    {m.charAt(0).toUpperCase()}
+              {team.map((m) => (
+                <div key={m.id} className="flex items-center gap-3 p-3 bg-slate-900/50 rounded-lg">
+                  <div className="w-10 h-10 rounded-full bg-blue-700 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                    {m.name.charAt(0).toUpperCase()}
                   </div>
-                  <span className="text-slate-200 text-sm">{m}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-slate-200 text-sm font-medium">{m.name}</p>
+                    <p className="text-slate-500 text-xs">{m.role} · {m.company}</p>
+                  </div>
+                  {m.email && (
+                    <a href={`mailto:${m.email}`} className="text-blue-400 hover:text-blue-300 text-xs shrink-0 hidden sm:block">
+                      {m.email}
+                    </a>
+                  )}
                 </div>
               ))}
             </div>

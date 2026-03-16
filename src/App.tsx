@@ -6,6 +6,7 @@ import { LoginPage } from '@/pages/LoginPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { ProjectsPage } from '@/pages/ProjectsPage'
 import { ProjectDetailPage } from '@/pages/ProjectDetailPage'
+import { AnalyticsPage } from '@/pages/AnalyticsPage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
 
 // Auth listener lives at the top level so it's always active,
@@ -63,7 +64,7 @@ export default function App() {
             <Route index element={<DashboardPage />} />
             <Route path="projects" element={<ProjectsPage />} />
             <Route path="projects/:id" element={<ProjectDetailPage />} />
-            <Route path="analytics" element={<PlaceholderPage title="Analytics" />} />
+            <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="team" element={<PlaceholderPage title="Team" />} />
             <Route path="checklist" element={<PlaceholderPage title="Master Checklist" />} />
             <Route path="settings" element={<PlaceholderPage title="Settings" />} />

@@ -3,12 +3,14 @@ import { FolderOpen, Plus, Search } from 'lucide-react'
 import { useState } from 'react'
 import { clsx } from 'clsx'
 import { useNavigate } from 'react-router-dom'
+import { NewProjectModal } from '@/components/NewProjectModal'
 
 export function ProjectsPage() {
   const { projects, loading } = useProjects()
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [showNew, setShowNew] = useState(false)
 
   const filtered = projects.filter((p) => {
     const matchSearch =
@@ -32,7 +34,10 @@ export function ProjectsPage() {
           <h1 className="text-2xl font-bold text-slate-100">Projects</h1>
           <p className="text-slate-400 text-sm mt-1">{projects.length} total projects</p>
         </div>
-        <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+        <button
+          onClick={() => setShowNew(true)}
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+        >
           <Plus size={16} />
           New Project
         </button>
@@ -133,6 +138,7 @@ export function ProjectsPage() {
           ))}
         </div>
       )}
+      {showNew && <NewProjectModal onClose={() => setShowNew(false)} />}
     </div>
   )
 }
