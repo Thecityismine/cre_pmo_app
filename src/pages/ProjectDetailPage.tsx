@@ -13,6 +13,7 @@ import { db } from '@/lib/firebase'
 import { EditProjectModal } from '@/components/EditProjectModal'
 import { BudgetTab } from '@/components/BudgetTab'
 import { AITab } from '@/components/AITab'
+import { DocumentsTab } from '@/components/DocumentsTab'
 import type { Task, TaskStatus } from '@/types'
 
 // ─── Stage gate progress ──────────────────────────────────────────────────────
@@ -161,7 +162,7 @@ function TaskGroup({ category, tasks }: { category: string; tasks: Task[] }) {
 }
 
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
-type Tab = 'overview' | 'checklist' | 'budget' | 'team' | 'ai'
+type Tab = 'overview' | 'checklist' | 'budget' | 'team' | 'ai' | 'docs'
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export function ProjectDetailPage() {
@@ -212,6 +213,7 @@ export function ProjectDetailPage() {
     { id: 'checklist', label: `Checklist (${totalDone}/${tasks.length})` },
     { id: 'budget', label: 'Budget' },
     { id: 'team', label: 'Team' },
+    { id: 'docs', label: 'Docs' },
     { id: 'ai', label: '✦ AI' },
   ]
 
@@ -390,6 +392,8 @@ export function ProjectDetailPage() {
       )}
 
       {tab === 'budget' && <BudgetTab project={project} />}
+
+      {tab === 'docs' && <DocumentsTab project={project} />}
 
       {tab === 'ai' && <AITab project={project} tasks={tasks} />}
 
