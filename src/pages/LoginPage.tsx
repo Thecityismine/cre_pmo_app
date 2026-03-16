@@ -1,23 +1,63 @@
 import { useState } from 'react'
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth'
-import { auth } from '@/lib/firebase'
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+  updateProfile,
+} from 'firebase/auth'
+import { doc, setDoc } from 'firebase/firestore'
+import { auth, db } from '@/lib/firebase'
 
 const googleProvider = new GoogleAuthProvider()
 
 export function LoginPage() {
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [displayName, setDisplayName] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  const friendlyError = (code: string) => {
+    const map: Record<string, string> = {
+      'auth/user-not-found':       'No account found. Switch to "Create account" below.',
+      'auth/wrong-password':       'Incorrect password.',
+      'auth/invalid-credential':   'Incorrect email or password.',
+      'auth/email-already-in-use': 'An account with this email already exists. Sign in instead.',
+      'auth/weak-password':        'Password must be at least 6 characters.',
+      'auth/invalid-email':        'Please enter a valid email address.',
+      'auth/popup-closed-by-user': 'Google sign-in was cancelled.',
+      'auth/network-request-failed': 'Network error — check your connection.',
+    }
+    return map[code] ?? `Error: ${code}`
+  }
+
+  const createUserProfile = async (uid: string, email: string, name: string) => {
+    await setDoc(doc(db, 'users', uid), {
+      uid,
+      email,
+      displayName: name,
+      role: 'project-manager',
+      createdAt: new Date().toISOString(),
+    })
+  }
 
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
     try {
-      await signInWithEmailAndPassword(auth, email, password)
+      if (mode === 'signin') {
+        await signInWithEmailAndPassword(auth, email, password)
+      } else {
+        const cred = await createUserWithEmailAndPassword(auth, email, password)
+        await updateProfile(cred.user, { displayName })
+        await createUserProfile(cred.user.uid, email, displayName)
+      }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Login failed')
+      const code = (err as { code?: string }).code ?? ''
+      setError(friendlyError(code))
     } finally {
       setLoading(false)
     }
@@ -27,9 +67,13 @@ export function LoginPage() {
     setLoading(true)
     setError('')
     try {
-      await signInWithPopup(auth, googleProvider)
+      const cred = await signInWithPopup(auth, googleProvider)
+      // Create profile if first time
+      const { uid, email, displayName } = cred.user
+      await createUserProfile(uid, email ?? '', displayName ?? 'User')
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Google login failed')
+      const code = (err as { code?: string }).code ?? ''
+      setError(friendlyError(code))
     } finally {
       setLoading(false)
     }
@@ -78,6 +122,19 @@ export function LoginPage() {
 
           {/* Email form */}
           <form onSubmit={handleEmail} className="space-y-4">
+            {mode === 'signup' && (
+              <div>
+                <label className="block text-slate-400 text-xs font-medium mb-1.5">Full Name</label>
+                <input
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  required
+                  className="w-full bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2.5 border border-slate-600 focus:outline-none focus:border-blue-500"
+                  placeholder="Jorge Medina"
+                />
+              </div>
+            )}
             <div>
               <label className="block text-slate-400 text-xs font-medium mb-1.5">Email</label>
               <input
@@ -96,6 +153,7 @@ export function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                minLength={6}
                 className="w-full bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2.5 border border-slate-600 focus:outline-none focus:border-blue-500"
                 placeholder="••••••••"
               />
@@ -105,9 +163,30 @@ export function LoginPage() {
               disabled={loading}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2.5 rounded-lg transition-colors disabled:opacity-50"
             >
-              {loading ? 'Signing in...' : 'Sign in'}
+              {loading
+                ? (mode === 'signin' ? 'Signing in...' : 'Creating account...')
+                : (mode === 'signin' ? 'Sign in' : 'Create account')}
             </button>
           </form>
+
+          {/* Toggle mode */}
+          <p className="text-center text-sm text-slate-500">
+            {mode === 'signin' ? (
+              <>
+                No account yet?{' '}
+                <button onClick={() => { setMode('signup'); setError('') }} className="text-blue-400 hover:text-blue-300">
+                  Create one
+                </button>
+              </>
+            ) : (
+              <>
+                Already have an account?{' '}
+                <button onClick={() => { setMode('signin'); setError('') }} className="text-blue-400 hover:text-blue-300">
+                  Sign in
+                </button>
+              </>
+            )}
+          </p>
         </div>
 
         <p className="text-center text-slate-600 text-xs mt-6">
