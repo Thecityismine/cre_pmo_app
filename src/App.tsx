@@ -1,13 +1,22 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
+import { useAuthStore } from '@/store/authStore'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { LoginPage } from '@/pages/LoginPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { ProjectsPage } from '@/pages/ProjectsPage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
 
+// Auth listener lives at the top level so it's always active,
+// even when the user is on the /login route.
+function AuthProvider({ children }: { children: React.ReactNode }) {
+  useAuth()
+  return <>{children}</>
+}
+
 function RequireAuth({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth()
+  const user = useAuthStore((s) => s.user)
+  const loading = useAuthStore((s) => s.loading)
 
   if (loading) {
     return (
@@ -21,26 +30,44 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+function RedirectIfAuthed({ children }: { children: React.ReactNode }) {
+  const user = useAuthStore((s) => s.user)
+  const loading = useAuthStore((s) => s.loading)
+
+  if (loading) return null
+  if (user) return <Navigate to="/" replace />
+  return <>{children}</>
+}
+
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route
-          element={
-            <RequireAuth>
-              <AppLayout />
-            </RequireAuth>
-          }
-        >
-          <Route index element={<DashboardPage />} />
-          <Route path="projects" element={<ProjectsPage />} />
-          <Route path="analytics" element={<PlaceholderPage title="Analytics" />} />
-          <Route path="team" element={<PlaceholderPage title="Team" />} />
-          <Route path="checklist" element={<PlaceholderPage title="Master Checklist" />} />
-          <Route path="settings" element={<PlaceholderPage title="Settings" />} />
-        </Route>
-      </Routes>
+      <AuthProvider>
+        <Routes>
+          <Route
+            path="/login"
+            element={
+              <RedirectIfAuthed>
+                <LoginPage />
+              </RedirectIfAuthed>
+            }
+          />
+          <Route
+            element={
+              <RequireAuth>
+                <AppLayout />
+              </RequireAuth>
+            }
+          >
+            <Route index element={<DashboardPage />} />
+            <Route path="projects" element={<ProjectsPage />} />
+            <Route path="analytics" element={<PlaceholderPage title="Analytics" />} />
+            <Route path="team" element={<PlaceholderPage title="Team" />} />
+            <Route path="checklist" element={<PlaceholderPage title="Master Checklist" />} />
+            <Route path="settings" element={<PlaceholderPage title="Settings" />} />
+          </Route>
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   )
 }

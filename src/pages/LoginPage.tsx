@@ -57,7 +57,9 @@ export function LoginPage() {
       }
     } catch (err: unknown) {
       const code = (err as { code?: string }).code ?? ''
-      setError(friendlyError(code))
+      const msg = (err as { message?: string }).message ?? ''
+      console.error('Sign-in error:', code, msg)
+      setError(friendlyError(code) || msg || 'Sign-in failed. Check browser console for details.')
     } finally {
       setLoading(false)
     }
@@ -73,7 +75,9 @@ export function LoginPage() {
       await createUserProfile(uid, email ?? '', displayName ?? 'User')
     } catch (err: unknown) {
       const code = (err as { code?: string }).code ?? ''
-      setError(friendlyError(code))
+      const msg = (err as { message?: string }).message ?? ''
+      console.error('Google sign-in error:', code, msg)
+      setError(friendlyError(code) || msg)
     } finally {
       setLoading(false)
     }
