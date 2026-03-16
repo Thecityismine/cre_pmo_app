@@ -2,9 +2,11 @@ import { useProjects } from '@/hooks/useProjects'
 import { FolderOpen, Plus, Search } from 'lucide-react'
 import { useState } from 'react'
 import { clsx } from 'clsx'
+import { useNavigate } from 'react-router-dom'
 
 export function ProjectsPage() {
   const { projects, loading } = useProjects()
+  const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
 
@@ -83,7 +85,8 @@ export function ProjectsPage() {
           {filtered.map((project) => (
             <div
               key={project.id}
-              className="bg-slate-800 border border-slate-700 rounded-xl p-5 hover:border-slate-500 transition-colors cursor-pointer"
+              onClick={() => navigate(`/projects/${project.id}`)}
+              className="bg-slate-800 border border-slate-700 rounded-xl p-5 hover:border-blue-500 hover:bg-slate-800/80 transition-colors cursor-pointer"
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1 min-w-0">

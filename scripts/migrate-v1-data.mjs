@@ -14,12 +14,15 @@
  */
 
 import { readFileSync, existsSync } from 'fs'
+import { resolve, dirname } from 'path'
+import { fileURLToPath } from 'url'
 import { createRequire } from 'module'
 
+const __dirname = dirname(fileURLToPath(import.meta.url))
 const require = createRequire(import.meta.url)
 
 // ─── Service account ──────────────────────────────────────────────────────────
-const SA_PATH = './scripts/serviceAccountKey.json'
+const SA_PATH = resolve(__dirname, 'serviceAccountKey.json')
 if (!existsSync(SA_PATH)) {
   console.error('\n❌ Missing scripts/serviceAccountKey.json')
   console.error('   1. Go to Firebase Console → Project Settings → Service Accounts')
@@ -37,13 +40,13 @@ try {
   process.exit(1)
 }
 
-const serviceAccount = require('./serviceAccountKey.json')
+const serviceAccount = JSON.parse(readFileSync(SA_PATH, 'utf-8'))
 admin.initializeApp({ credential: admin.credential.cert(serviceAccount) })
 const db = admin.firestore()
 const now = new Date().toISOString()
 
 // ─── Load backup ──────────────────────────────────────────────────────────────
-const BACKUP = './scripts/cre-backup-2026-03-16.json'
+const BACKUP = resolve(__dirname, 'cre-backup-2026-03-16.json')
 if (!existsSync(BACKUP)) {
   console.error('\n❌ Missing', BACKUP)
   process.exit(1)

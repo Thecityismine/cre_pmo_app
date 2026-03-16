@@ -36,3 +36,4 @@ firestore-debug.log
 *.sw?
 scripts/serviceAccountKey.json
 scripts/cre-backup-*.json
+scripts/portfolio-f86b9-*.json
