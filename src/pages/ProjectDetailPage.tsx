@@ -6,10 +6,11 @@ import { useState } from 'react'
 import { clsx } from 'clsx'
 import {
   ArrowLeft, MapPin, DollarSign, Users, CheckSquare,
-  Calendar, TrendingUp, ChevronDown, ChevronRight,
+  Calendar, TrendingUp, ChevronDown, ChevronRight, Pencil,
 } from 'lucide-react'
 import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
+import { EditProjectModal } from '@/components/EditProjectModal'
 import type { Task, TaskStatus } from '@/types'
 
 // ─── Stage gate progress ──────────────────────────────────────────────────────
@@ -169,6 +170,7 @@ export function ProjectDetailPage() {
   const { team } = useProjectTeam(id)
   const [tab, setTab] = useState<Tab>('overview')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [showEdit, setShowEdit] = useState(false)
 
   if (projLoading) {
     return (
@@ -226,6 +228,12 @@ export function ProjectDetailPage() {
             <h1 className="text-xl md:text-2xl font-bold text-slate-100 truncate">{project.projectName}</h1>
             <span className="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded font-medium">{project.profile}</span>
             <StatusPill status={project.status} />
+            <button
+              onClick={() => setShowEdit(true)}
+              className="ml-auto flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-600 px-3 py-1.5 rounded-lg transition-colors shrink-0"
+            >
+              <Pencil size={13} /> Edit
+            </button>
           </div>
           <div className="flex items-center gap-1.5 text-slate-400 text-sm">
             <MapPin size={13} />
@@ -430,6 +438,8 @@ export function ProjectDetailPage() {
           )}
         </div>
       )}
+
+      {showEdit && <EditProjectModal project={project} onClose={() => setShowEdit(false)} />}
     </div>
   )
 }

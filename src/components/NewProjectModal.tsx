@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { collection, addDoc } from 'firebase/firestore'
+import { collection, addDoc, getDocs, writeBatch, doc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { useAuthStore } from '@/store/authStore'
 import { X } from 'lucide-react'
@@ -54,7 +54,7 @@ export function NewProjectModal({ onClose }: Props) {
     setError('')
     try {
       const now = new Date().toISOString()
-      await addDoc(collection(db, 'projects'), {
+      const projectRef = await addDoc(collection(db, 'projects'), {
         projectName:          form.projectName.trim(),
         projectNumber:        form.projectNumber.trim(),
         profile:              form.profile,
@@ -86,6 +86,41 @@ export function NewProjectModal({ onClose }: Props) {
         updatedAt:            now,
         createdBy:            user?.uid ?? '',
       })
+
+      // Seed master tasks for this project
+      const masterSnap = await getDocs(collection(db, 'masterTasks'))
+      if (!masterSnap.empty) {
+        const BATCH_LIMIT = 400
+        const tasks = masterSnap.docs
+        for (let i = 0; i < tasks.length; i += BATCH_LIMIT) {
+          const batch = writeBatch(db)
+          tasks.slice(i, i + BATCH_LIMIT).forEach((masterDoc) => {
+            const m = masterDoc.data()
+            const taskRef = doc(collection(db, 'tasks'))
+            batch.set(taskRef, {
+              projectId:            projectRef.id,
+              title:                m.title ?? m.task ?? '',
+              description:          m.notes ?? '',
+              status:               'not-started',
+              priority:             m.defaultPriority ?? 'medium',
+              phase:                m.phase ?? m.subdivision ?? '',
+              category:             m.category ?? m.subdivision ?? 'General',
+              assignedTo:           m.assignedTeam ?? m.team ?? '',
+              dueDate:              '',
+              completedDate:        '',
+              notes:                m.notes ?? '',
+              order:                Number(m.order ?? 0),
+              isFromMasterChecklist: true,
+              masterTaskId:         masterDoc.id,
+              subtasks:             m.subtasks ?? [],
+              createdAt:            now,
+              updatedAt:            now,
+            })
+          })
+          await batch.commit()
+        }
+      }
+
       onClose()
     } catch (err: unknown) {
       setError((err as Error).message ?? 'Failed to create project.')
