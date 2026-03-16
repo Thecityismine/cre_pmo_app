@@ -1,273 +1,327 @@
 /**
  * CRE PMO V1 → V2 Migration Script
+ * Reads: scripts/cre-backup-2026-03-16.json
+ * Writes to: Firebase Firestore (portfolio-f86b9)
  *
- * Usage:
- *   1. Export your JSON backup from the V1 app (Settings → Export Data)
- *   2. Place the file at: scripts/v1-backup.json
- *   3. Set your Firebase credentials in .env.local
- *   4. Run: node scripts/migrate-v1-data.mjs
+ * Run:
+ *   node scripts/migrate-v1-data.mjs
  *
- * What this migrates:
- *   - Projects → /projects/{id}
- *   - Tasks per project → /tasks/{id}
- *   - Contacts → /contacts/{id}
- *   - Master tasks → /masterTasks/{id}
+ * Prerequisites:
+ *   1. Download Firebase service account key:
+ *      Firebase Console → Project Settings → Service Accounts → Generate new private key
+ *      Save as: scripts/serviceAccountKey.json  (NEVER commit this file)
+ *   2. npm install firebase-admin --save-dev
  */
 
-import { readFileSync } from 'fs'
-import { initializeApp, cert } from 'firebase-admin/app'
-import { getFirestore } from 'firebase-admin/firestore'
+import { readFileSync, existsSync } from 'fs'
 import { createRequire } from 'module'
 
 const require = createRequire(import.meta.url)
 
-// ─── Load service account ────────────────────────────────────────────────────
-// Download from Firebase Console → Project Settings → Service Accounts → Generate new private key
-// Place at: scripts/serviceAccountKey.json (NEVER commit this file)
-let serviceAccount
-try {
-  serviceAccount = require('./serviceAccountKey.json')
-} catch {
-  console.error('❌ Missing scripts/serviceAccountKey.json')
-  console.error('   Download from Firebase Console → Project Settings → Service Accounts')
+// ─── Service account ──────────────────────────────────────────────────────────
+const SA_PATH = './scripts/serviceAccountKey.json'
+if (!existsSync(SA_PATH)) {
+  console.error('\n❌ Missing scripts/serviceAccountKey.json')
+  console.error('   1. Go to Firebase Console → Project Settings → Service Accounts')
+  console.error('   2. Click "Generate new private key" → Download JSON')
+  console.error('   3. Rename it to serviceAccountKey.json and place it in scripts/')
   process.exit(1)
 }
 
-initializeApp({ credential: cert(serviceAccount) })
-const db = getFirestore()
-
-// ─── Load V1 backup ──────────────────────────────────────────────────────────
-let v1Data
+let admin
 try {
-  const raw = readFileSync('./scripts/v1-backup.json', 'utf-8')
-  v1Data = JSON.parse(raw)
+  admin = require('firebase-admin')
 } catch {
-  console.error('❌ Missing scripts/v1-backup.json')
-  console.error('   Export your data from the V1 app first.')
+  console.error('\n❌ firebase-admin not installed')
+  console.error('   Run: npm install firebase-admin --save-dev')
   process.exit(1)
 }
 
+const serviceAccount = require('./serviceAccountKey.json')
+admin.initializeApp({ credential: admin.credential.cert(serviceAccount) })
+const db = admin.firestore()
 const now = new Date().toISOString()
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-function sanitize(val, fallback = '') {
-  return val !== undefined && val !== null ? val : fallback
+// ─── Load backup ──────────────────────────────────────────────────────────────
+const BACKUP = './scripts/cre-backup-2026-03-16.json'
+if (!existsSync(BACKUP)) {
+  console.error('\n❌ Missing', BACKUP)
+  process.exit(1)
 }
 
-function mapStatus(v1Status) {
-  const statusMap = {
-    'Pre-Project': 'pre-project',
-    'Initiate': 'initiate',
-    'Planning': 'planning',
-    'Design': 'design',
-    'Construction': 'construction',
-    'Handover': 'handover',
-    'Closeout': 'closeout',
-    'Defect Period': 'defect-period',
-    'Closed': 'closed',
-    'Active': 'construction',
-    'On Hold': 'planning',
-  }
-  return statusMap[v1Status] ?? 'planning'
-}
+const raw = JSON.parse(readFileSync(BACKUP, 'utf-8'))
+console.log(`\n📦 Backup: v${raw.version} — exported ${raw.exportDate}`)
+console.log(`   Projects:     ${raw.projects?.length ?? 0}`)
+console.log(`   Contacts:     ${raw.contacts?.length ?? 0}`)
+console.log(`   Master Tasks: ${raw.masterTasks?.length ?? 0}\n`)
 
-function mapTaskStatus(v1Status) {
-  const map = {
-    'Complete': 'complete',
-    'In Progress': 'in-progress',
-    'Not Started': 'not-started',
-    'On Hold': 'on-hold',
-    'Blocked': 'blocked',
-    'N/A': 'n-a',
-    true: 'complete',
-    false: 'not-started',
-  }
-  return map[v1Status] ?? 'not-started'
-}
-
+// ─── Batch writer ─────────────────────────────────────────────────────────────
 async function batchWrite(collectionName, docs) {
-  const BATCH_SIZE = 400  // Firestore limit is 500 per batch
-  let count = 0
-
-  for (let i = 0; i < docs.length; i += BATCH_SIZE) {
+  if (docs.length === 0) return
+  const LIMIT = 400
+  let written = 0
+  for (let i = 0; i < docs.length; i += LIMIT) {
     const batch = db.batch()
-    const chunk = docs.slice(i, i + BATCH_SIZE)
-
-    for (const { id, data } of chunk) {
-      const ref = id ? db.collection(collectionName).doc(id) : db.collection(collectionName).doc()
+    for (const { id, data } of docs.slice(i, i + LIMIT)) {
+      const ref = id
+        ? db.collection(collectionName).doc(String(id))
+        : db.collection(collectionName).doc()
       batch.set(ref, data, { merge: true })
     }
-
     await batch.commit()
-    count += chunk.length
-    console.log(`  ✓ Wrote ${count}/${docs.length} ${collectionName}`)
+    written += Math.min(LIMIT, docs.length - i)
   }
+  console.log(`  ✓ ${collectionName}: ${written} docs`)
 }
 
-// ─── Main migration ───────────────────────────────────────────────────────────
-async function migrate() {
-  console.log('🚀 Starting CRE PMO V1 → V2 migration...\n')
-
-  const projects = Array.isArray(v1Data?.projects) ? v1Data.projects :
-                   Array.isArray(v1Data) ? v1Data : []
-
-  if (projects.length === 0) {
-    console.warn('⚠️  No projects found in backup. Check the JSON structure.')
-    console.log('   Top-level keys:', Object.keys(v1Data ?? {}))
-    process.exit(0)
+// ─── Status mapping ───────────────────────────────────────────────────────────
+function mapStatus(s) {
+  const m = {
+    'active':       'construction',
+    'Active':       'construction',
+    'archived':     'closed',
+    'Archived':     'closed',
+    'on-hold':      'planning',
+    'On Hold':      'planning',
+    'completed':    'closeout',
+    'Completed':    'closeout',
+    'pre-project':  'pre-project',
+    'Pre-Project':  'pre-project',
+    'planning':     'planning',
+    'Planning':     'planning',
+    'design':       'design',
+    'Design':       'design',
+    'construction': 'construction',
+    'Construction': 'construction',
   }
+  return m[s] ?? 'planning'
+}
 
-  console.log(`📦 Found ${projects.length} projects to migrate\n`)
+function mapProfile(t) {
+  const m = { 'Standard': 'S', 'Light': 'L', 'Enhanced': 'E', 'S': 'S', 'L': 'L', 'E': 'E' }
+  return m[t] ?? 'S'
+}
 
-  // ── Projects ──────────────────────────────────────────────────────────────
-  const projectDocs = []
-  const taskDocs = []
-  const contactDocs = []
+function mapTaskStatus(completed) {
+  if (completed === true) return 'complete'
+  if (completed === false) return 'not-started'
+  const m = { 'complete': 'complete', 'in-progress': 'in-progress', 'not-started': 'not-started', 'n-a': 'n-a', 'blocked': 'blocked' }
+  return m[String(completed).toLowerCase()] ?? 'not-started'
+}
 
-  for (const p of projects) {
-    const projectId = String(p.id ?? p.projectId ?? `proj_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`)
+function mapRole(role) {
+  const m = {
+    'Project Manager': 'project-manager',
+    'Project Executive': 'project-executive',
+    'Architect': 'architect',
+    'General Contractor': 'general-contractor',
+    'GC': 'general-contractor',
+    'MEP Engineer': 'mep-engineer',
+    'IT Vendor': 'it-vendor',
+    'Client Representative': 'client-rep',
+    'Facilities': 'facilities',
+    'D&C Account Director': 'project-executive',
+    'Owner': 'client-rep',
+  }
+  return m[role] ?? 'other'
+}
 
-    const projectData = {
-      projectName:          sanitize(p.projectName ?? p.name, 'Unnamed Project'),
-      projectNumber:        sanitize(p.projectNumber ?? p.jobNumber ?? p.so_number, ''),
-      profile:              sanitize(p.profile ?? p.projectProfile, 'S'),
-      status:               mapStatus(p.status ?? p.projectStatus),
-      currentPhase:         sanitize(p.currentPhase ?? p.phase, ''),
-      address:              sanitize(p.address ?? p.location, ''),
-      city:                 sanitize(p.city, ''),
-      state:                sanitize(p.state, ''),
-      country:              sanitize(p.country, 'USA'),
-      lat:                  p.lat ?? p.latitude ?? null,
-      lng:                  p.lng ?? p.longitude ?? null,
-      clientName:           sanitize(p.clientName ?? p.client ?? p.tenant, ''),
-      businessUnit:         sanitize(p.businessUnit ?? p.bu, ''),
-      projectManager:       sanitize(p.projectManager ?? p.pm, ''),
-      teamMembers:          Array.isArray(p.teamMembers) ? p.teamMembers : [],
-      startDate:            sanitize(p.startDate ?? p.start_date, ''),
-      targetCompletionDate: sanitize(p.targetCompletionDate ?? p.endDate ?? p.end_date, ''),
-      actualCompletionDate: p.actualCompletionDate ?? null,
-      totalBudget:          Number(p.totalBudget ?? p.budget ?? 0),
-      committedCost:        Number(p.committedCost ?? p.committed ?? 0),
-      forecastCost:         Number(p.forecastCost ?? p.forecast ?? 0),
-      actualCost:           Number(p.actualCost ?? p.actual ?? 0),
-      contingencyPercent:   Number(p.contingencyPercent ?? p.contingency ?? 10),
-      rsf:                  Number(p.rsf ?? p.squareFeet ?? 0) || null,
-      isActive:             p.isActive !== false && p.status !== 'Closed',
-      hasMER:               Boolean(p.hasMER ?? p.has_mer ?? false),
-      _migratedFromV1:      true,
-      _v1Id:                String(p.id ?? ''),
-      createdAt:            sanitize(p.createdAt ?? p.created_at, now),
-      updatedAt:            now,
-      createdBy:            sanitize(p.createdBy ?? p.pm, 'migration'),
+// ─── Main ─────────────────────────────────────────────────────────────────────
+async function migrate() {
+  const projectDocs  = []
+  const taskDocs     = []
+  const teamDocs     = []
+  const budgetDocs   = []
+
+  // ── Projects ────────────────────────────────────────────────────────────────
+  for (const p of (raw.projects ?? [])) {
+    const projectId = String(p.id)
+
+    // Parse address into components (format: "123 Street, City, ST ZIP")
+    const addressParts = (p.address ?? '').split(',').map(s => s.trim())
+    const street = addressParts[0] ?? ''
+    const city   = addressParts[1] ?? ''
+    const stateZip = (addressParts[2] ?? '').trim()
+    const state  = stateZip.split(' ')[0] ?? ''
+
+    projectDocs.push({
+      id: projectId,
+      data: {
+        projectName:          p.name ?? 'Unnamed Project',
+        projectNumber:        '',                           // V1 didn't have a SO number field
+        profile:              mapProfile(p.projectType),
+        status:               mapStatus(p.status),
+        currentPhase:         '',
+        address:              street,
+        city,
+        state,
+        country:              'USA',
+        lat:                  p.latitude ?? null,
+        lng:                  p.longitude ?? null,
+        clientName:           'JPMorgan Chase',
+        businessUnit:         '',
+        projectManager:       '',                          // populated from projectTeam below
+        teamMembers:          [],
+        startDate:            '',
+        targetCompletionDate: p.leaseExpiration ?? '',
+        actualCompletionDate: null,
+        warrantyStartDate:    p.warrantyStartDate ?? null,
+        warrantyEndDate:      p.warrantyEndDate ?? null,
+        totalBudget:          Number(p.approvedBudget ?? 0),
+        committedCost:        0,
+        forecastCost:         0,
+        actualCost:           0,
+        contingencyPercent:   10,
+        rsf:                  Number(p.sqft ?? 0) || null,
+        isActive:             p.status === 'active' || p.status === 'Active',
+        hasMER:               false,
+        archived:             Boolean(p.archived),
+        _migratedFromV1:      true,
+        _v1Id:                projectId,
+        createdAt:            p.createdAt ?? now,
+        updatedAt:            now,
+        createdBy:            'migration',
+      },
+    })
+
+    // ── Tasks ──────────────────────────────────────────────────────────────────
+    for (const t of (p.tasks ?? [])) {
+      taskDocs.push({
+        id: `${projectId}_${t.id}`,
+        data: {
+          projectId,
+          title:                t.task ?? '',
+          description:          t.notes ?? '',
+          status:               mapTaskStatus(t.completed),
+          priority:             'medium',
+          phase:                t.subdivision ?? '',
+          category:             t.subdivision ?? 'General',
+          assignedTo:           t.team ?? '',
+          dueDate:              '',
+          completedDate:        '',
+          notes:                t.notes ?? '',
+          order:                Number(t.id ?? 0),
+          isFromMasterChecklist: true,
+          masterTaskId:         String(t.id ?? ''),
+          subtasks:             Array.isArray(t.subtasks) ? t.subtasks : [],
+          _migratedFromV1:      true,
+          createdAt:            t.createdAt ?? now,
+          updatedAt:            t.updatedAt ?? now,
+        },
+      })
     }
 
-    projectDocs.push({ id: projectId, data: projectData })
-
-    // ── Tasks per project ──────────────────────────────────────────────────
-    const v1Tasks = Array.isArray(p.tasks)
-      ? p.tasks
-      : Array.isArray(p.checklist)
-      ? p.checklist
-      : []
-
-    v1Tasks.forEach((t, idx) => {
-      const taskId = String(t.id ?? `${projectId}_task_${idx}`)
-      taskDocs.push({
-        id: taskId,
+    // ── Project team members ───────────────────────────────────────────────────
+    for (const m of (p.projectTeam ?? [])) {
+      teamDocs.push({
+        id: `${projectId}_${m.id}`,
         data: {
           projectId,
-          title:                sanitize(t.title ?? t.name ?? t.task, 'Unnamed Task'),
-          description:          sanitize(t.description ?? t.notes, ''),
-          status:               mapTaskStatus(t.status ?? t.completed),
-          priority:             sanitize(t.priority, 'medium'),
-          phase:                sanitize(t.phase ?? t.category, ''),
-          category:             sanitize(t.category ?? t.subdivision ?? t.phase, 'General'),
-          assignedTo:           sanitize(t.assignedTo ?? t.assigned_to, ''),
-          dueDate:              sanitize(t.dueDate ?? t.due_date, ''),
-          completedDate:        sanitize(t.completedDate ?? t.completed_date, ''),
-          notes:                sanitize(t.notes ?? t.comments, ''),
-          order:                Number(t.order ?? t.sort ?? idx),
-          isFromMasterChecklist: Boolean(t.isFromMasterChecklist ?? t.master ?? false),
-          masterTaskId:         sanitize(t.masterTaskId ?? t.master_task_id, ''),
-          _migratedFromV1:      true,
-          createdAt:            sanitize(t.createdAt ?? t.created_at, now),
-          updatedAt:            now,
-        },
-      })
-    })
-
-    // ── Contacts per project ───────────────────────────────────────────────
-    const v1Contacts = Array.isArray(p.contacts) ? p.contacts : []
-    v1Contacts.forEach((c, idx) => {
-      const contactId = String(c.id ?? `${projectId}_contact_${idx}`)
-      contactDocs.push({
-        id: contactId,
-        data: {
-          projectId,
-          name:        sanitize(c.name ?? c.fullName, ''),
-          company:     sanitize(c.company ?? c.firm ?? c.organization, ''),
-          role:        sanitize(c.role ?? c.type, 'other'),
-          email:       sanitize(c.email, ''),
-          phone:       sanitize(c.phone ?? c.phoneNumber, ''),
-          notes:       sanitize(c.notes, ''),
+          contactId:   m.contactId ? String(m.contactId) : null,
+          name:        m.name ?? '',
+          role:        m.role ?? '',
+          email:       m.email ?? '',
+          phone:       m.phone ?? '',
+          company:     m.company ?? '',
+          trades:      Array.isArray(m.trades) ? m.trades : [],
+          addedAt:     m.addedAt ?? now,
           _migratedFromV1: true,
-          createdAt:   sanitize(c.createdAt, now),
         },
       })
-    })
+    }
+
+    // ── Budget line items ──────────────────────────────────────────────────────
+    const budgetArr = Array.isArray(p.budget)
+      ? p.budget
+      : Object.values(p.budget ?? {})
+
+    for (const b of budgetArr) {
+      const catMap = {
+        'Hard Cost': 'hard-cost',
+        'Soft Cost': 'soft-cost',
+        'FF&E': 'ff-e',
+        'IT/AV': 'it-av',
+        'Contingency': 'contingency',
+        "Owner's Reserve": 'owner-reserve',
+      }
+      budgetDocs.push({
+        id: String(b.id),
+        data: {
+          projectId,
+          category:        catMap[b.category] ?? 'soft-cost',
+          description:     b.category ?? '',
+          budgetAmount:    Number(b.baselineCost ?? 0),
+          committedAmount: 0,
+          forecastAmount:  Number(b.targetCost ?? 0),
+          actualAmount:    0,
+          variance:        Number(b.baselineCost ?? 0) - Number(b.targetCost ?? 0),
+          notes:           '',
+          _migratedFromV1: true,
+          createdAt:       b.createdAt ?? now,
+          updatedAt:       now,
+        },
+      })
+    }
   }
 
-  // ── Master tasks (global) ────────────────────────────────────────────────
-  const masterTasks = Array.isArray(v1Data?.masterTasks ?? v1Data?.master_tasks)
-    ? (v1Data.masterTasks ?? v1Data.master_tasks)
-    : []
-
-  const masterTaskDocs = masterTasks.map((t, idx) => ({
-    id: String(t.id ?? `master_${idx}`),
+  // ── Global contacts ──────────────────────────────────────────────────────────
+  const contactDocs = (raw.contacts ?? []).map(c => ({
+    id: String(c.id),
     data: {
-      title:           sanitize(t.title ?? t.name, ''),
-      category:        sanitize(t.category ?? t.subdivision, 'General'),
-      phase:           sanitize(t.phase, ''),
-      defaultPriority: sanitize(t.priority ?? t.defaultPriority, 'medium'),
-      applicableTo:    Array.isArray(t.applicableTo) ? t.applicableTo : ['L', 'S', 'E'],
-      order:           Number(t.order ?? idx),
-      notes:           sanitize(t.notes, ''),
+      projectId:  null,
+      name:       c.name ?? '',
+      company:    c.company ?? '',
+      role:       mapRole(c.role),
+      email:      c.email ?? '',
+      phone:      c.phone ?? '',
+      trades:     Array.isArray(c.trades) ? c.trades : [],
+      notes:      c.notes ?? '',
       _migratedFromV1: true,
+      createdAt:  c.createdAt ?? now,
+      updatedAt:  c.updatedAt ?? now,
     },
   }))
 
-  // ── Write to Firestore ────────────────────────────────────────────────────
-  console.log('📝 Writing to Firestore...\n')
+  // ── Master tasks ──────────────────────────────────────────────────────────────
+  const masterTaskDocs = (raw.masterTasks ?? []).map((t, i) => ({
+    id: String(t.id),
+    data: {
+      title:           t.task ?? '',
+      category:        t.subdivision ?? 'General',
+      phase:           t.subdivision ?? '',
+      assignedTeam:    t.team ?? '',
+      defaultPriority: 'medium',
+      applicableTo:    ['L', 'S', 'E'],
+      order:           Number(t.id ?? i),
+      notes:           t.notes ?? '',
+      subtasks:        Array.isArray(t.subtasks) ? t.subtasks : [],
+      _migratedFromV1: true,
+      createdAt:       t.createdAt ?? now,
+      updatedAt:       t.updatedAt ?? now,
+    },
+  }))
 
-  if (projectDocs.length > 0) {
-    process.stdout.write('Projects: ')
-    await batchWrite('projects', projectDocs)
-  }
-
-  if (taskDocs.length > 0) {
-    process.stdout.write('\nTasks: ')
-    await batchWrite('tasks', taskDocs)
-  }
-
-  if (contactDocs.length > 0) {
-    process.stdout.write('\nContacts: ')
-    await batchWrite('contacts', contactDocs)
-  }
-
-  if (masterTaskDocs.length > 0) {
-    process.stdout.write('\nMaster Tasks: ')
-    await batchWrite('masterTasks', masterTaskDocs)
-  }
+  // ── Write all collections ─────────────────────────────────────────────────────
+  console.log('📝 Writing to Firestore (portfolio-f86b9)...\n')
+  await batchWrite('projects',     projectDocs)
+  await batchWrite('tasks',        taskDocs)
+  await batchWrite('projectTeam',  teamDocs)
+  await batchWrite('budgetItems',  budgetDocs)
+  await batchWrite('contacts',     contactDocs)
+  await batchWrite('masterTasks',  masterTaskDocs)
 
   console.log('\n✅ Migration complete!')
   console.log(`   Projects:     ${projectDocs.length}`)
   console.log(`   Tasks:        ${taskDocs.length}`)
+  console.log(`   Team members: ${teamDocs.length}`)
+  console.log(`   Budget items: ${budgetDocs.length}`)
   console.log(`   Contacts:     ${contactDocs.length}`)
   console.log(`   Master Tasks: ${masterTaskDocs.length}`)
-  console.log('\n🌐 Check your Firebase Console to verify the data.')
+  console.log('\n🌐 Open Firebase Console → Firestore to verify.')
+  console.log('   https://console.firebase.google.com/project/portfolio-f86b9/firestore')
 }
 
-migrate().catch((err) => {
-  console.error('\n❌ Migration failed:', err)
+migrate().catch(err => {
+  console.error('\n❌ Migration failed:', err.message)
   process.exit(1)
 })
