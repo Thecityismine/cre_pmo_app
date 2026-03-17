@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   collection, onSnapshot, query, where,
-  addDoc, updateDoc, deleteDoc, doc, Timestamp,
+  addDoc, updateDoc, deleteDoc, doc,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 

@@ -66,12 +66,13 @@ export function useMilestones(projectId: string | undefined) {
     }
   }
 
-  const addMilestone = (data: Omit<Milestone, 'id' | 'createdAt' | 'updatedAt'>) =>
-    addDoc(collection(db, 'milestones'), {
+  const addMilestone = async (data: Omit<Milestone, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> => {
+    await addDoc(collection(db, 'milestones'), {
       ...data,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     })
+  }
 
   const updateMilestone = (id: string, data: Partial<Milestone>) =>
     updateDoc(doc(db, 'milestones', id), { ...data, updatedAt: new Date().toISOString() })

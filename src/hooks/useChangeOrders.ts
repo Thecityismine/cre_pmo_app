@@ -42,13 +42,14 @@ export function useChangeOrders(projectId: string | undefined) {
     ? Math.max(...changeOrders.map(c => c.number)) + 1
     : 1
 
-  const addChangeOrder = (data: Omit<ChangeOrder, 'id' | 'number' | 'createdAt' | 'updatedAt'>) =>
-    addDoc(collection(db, 'changeOrders'), {
+  const addChangeOrder = async (data: Omit<ChangeOrder, 'id' | 'number' | 'createdAt' | 'updatedAt'>): Promise<void> => {
+    await addDoc(collection(db, 'changeOrders'), {
       ...data,
       number: nextNumber,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     })
+  }
 
   const updateChangeOrder = (id: string, data: Partial<ChangeOrder>) =>
     updateDoc(doc(db, 'changeOrders', id), { ...data, updatedAt: new Date().toISOString() })

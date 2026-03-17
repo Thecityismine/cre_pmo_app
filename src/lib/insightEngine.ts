@@ -27,7 +27,7 @@ export interface InsightInput {
 export function generateInsights(input: InsightInput): Omit<AIInsight, 'id' | 'createdAt'>[] {
   const {
     project, taskCount, completedTaskCount, blockedTaskCount,
-    openRfiCount, overdueRfiCount, approvedCOs, pendingCOs, openPunchCount,
+    overdueRfiCount, approvedCOs, pendingCOs, openPunchCount,
   } = input
 
   const insights: Omit<AIInsight, 'id' | 'createdAt'>[] = []

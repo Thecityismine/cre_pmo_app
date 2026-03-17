@@ -4,7 +4,7 @@ import { usePortfolioMilestones } from '@/hooks/usePortfolioMilestones'
 import { usePortfolioInsights } from '@/hooks/useAIInsights'
 import {
   AlertTriangle, CheckCircle, DollarSign, FolderOpen, Clock,
-  ChevronRight, TrendingUp, TrendingDown, Calendar, Activity, Sparkles, X,
+  ChevronRight, TrendingUp, TrendingDown, Calendar, Activity, Sparkles,
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import { useNavigate } from 'react-router-dom'

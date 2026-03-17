@@ -147,10 +147,9 @@ function ScheduleForm({
 // ─── Schedule Row ─────────────────────────────────────────────────────────────
 
 function ScheduleRow({
-  item, projectId, onUpdate, onDelete,
+  item, onUpdate, onDelete,
 }: {
   item: ScheduleItem
-  projectId: string
   onUpdate: (id: string, data: Partial<ScheduleItem>) => void
   onDelete: (id: string) => void
 }) {
@@ -443,7 +442,7 @@ export function ScheduleTab({ project }: { project: Project }) {
       ) : (
         <div className="space-y-2">
           {filtered.map(item => (
-            <ScheduleRow key={item.id} item={item} projectId={project.id}
+            <ScheduleRow key={item.id} item={item}
               onUpdate={updateItem} onDelete={deleteItem} />
           ))}
         </div>

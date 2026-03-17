@@ -407,7 +407,7 @@ export function RfiTab({ project }: { project: Project }) {
         <div className="flex-1" />
         {rfis.length > 0 && (
           <button
-            onClick={() => exportToCsv(rfis, project.name)}
+            onClick={() => exportToCsv(rfis, project.projectName)}
             className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 bg-slate-800 border border-slate-700 hover:border-slate-600 px-3 py-1.5 rounded-lg transition-colors"
           >
             <Download size={12} /> Export CSV
