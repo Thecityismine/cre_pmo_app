@@ -145,7 +145,7 @@ export function NewProjectModal({ onClose }: Props) {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="overflow-y-auto flex-1">
+        <form id="new-project-form" onSubmit={handleSubmit} className="overflow-y-auto flex-1">
           <div className="p-6 space-y-5">
             {error && (
               <div className="bg-red-900/40 border border-red-700 text-red-300 text-sm rounded-lg px-4 py-3">{error}</div>
@@ -238,20 +238,22 @@ export function NewProjectModal({ onClose }: Props) {
             </label>
           </div>
 
-          {/* Footer */}
-          <div className="px-6 py-4 border-t border-slate-700 flex gap-3 shrink-0">
-            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-lg border border-slate-600 text-slate-300 text-sm hover:bg-slate-800 transition-colors">
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex-1 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors disabled:opacity-50"
-            >
-              {saving ? 'Creating...' : 'Create Project'}
-            </button>
-          </div>
         </form>
+
+        {/* Footer — outside scroll area so Save is always visible */}
+        <div className="px-6 py-4 border-t border-slate-700 flex gap-3 shrink-0">
+          <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-lg border border-slate-600 text-slate-300 text-sm hover:bg-slate-800 transition-colors">
+            Cancel
+          </button>
+          <button
+            type="submit"
+            form="new-project-form"
+            disabled={saving}
+            className="flex-1 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors disabled:opacity-50"
+          >
+            {saving ? 'Creating...' : 'Create Project'}
+          </button>
+        </div>
       </div>
     </div>
   )

@@ -17,9 +17,19 @@ body {
   min-height: 100dvh; /* dynamic viewport height for mobile browsers */
 }
 
+/* Topbar: push below iOS notch / status bar */
+header.topbar {
+  padding-top: env(safe-area-inset-top);
+}
+
 /* Fixed bottom nav clears iOS home indicator */
 nav.fixed.bottom-0 {
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Main scroll area: clear bottom nav + iOS home indicator */
+main.app-main {
+  padding-bottom: calc(5rem + env(safe-area-inset-bottom));
 }
 
 /* Hide scrollbar but keep scrollability */

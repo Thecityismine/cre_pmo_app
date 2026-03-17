@@ -8,7 +8,7 @@ export function Topbar({ onAIOpen }: { onAIOpen?: () => void }) {
   const [searchOpen, setSearchOpen] = useState(false)
 
   return (
-    <header className="h-14 bg-slate-900 border-b border-slate-700 flex items-center justify-between px-4 md:px-6 shrink-0">
+    <header className="topbar bg-slate-900 border-b border-slate-700 shrink-0"><div className="h-14 flex items-center justify-between px-4 md:px-6">
 
       {/* Mobile: search overlay toggle / Desktop: inline search */}
       {searchOpen ? (
@@ -73,6 +73,6 @@ export function Topbar({ onAIOpen }: { onAIOpen?: () => void }) {
           </div>
         </>
       )}
-    </header>
+    </div></header>
   )
 }
