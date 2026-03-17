@@ -7,10 +7,11 @@ import { clsx } from 'clsx'
 import {
   ArrowLeft, MapPin, DollarSign, Users, CheckSquare,
   Calendar, TrendingUp, ChevronDown, ChevronRight, Pencil, FileDown,
-  X, AlertCircle, Clock,
+  X, AlertCircle, Clock, ClipboardList, Plus,
 } from 'lucide-react'
-import { doc, updateDoc } from 'firebase/firestore'
+import { doc, updateDoc, collection, writeBatch } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
+import { useMasterTasks } from '@/hooks/useMasterTasks'
 import { EditProjectModal } from '@/components/EditProjectModal'
 import { BudgetTab } from '@/components/BudgetTab'
 import { AITab } from '@/components/AITab'
@@ -415,6 +416,7 @@ export function ProjectDetailPage() {
   const navigate = useNavigate()
   const { project, loading: projLoading } = useProject(id)
   const { tasks, loading: tasksLoading } = useTasks(id)
+  const { tasks: masterTasks } = useMasterTasks()
   const { team } = useProjectTeam(id)
   const { items: budgetItems } = useBudgetItems(id)
   const { approvedTotal: coApproved, pendingTotal: coPending } = useChangeOrders(id)
@@ -426,6 +428,36 @@ export function ProjectDetailPage() {
   const [disciplineFilter, setDisciplineFilter] = useState<string>('all')
   const [subdivisionFilter, setSubdivisionFilter] = useState<string>('all')
   const [showEdit, setShowEdit] = useState(false)
+  const [seeding, setSeeding] = useState(false)
+
+  const seedFromTemplate = async () => {
+    if (!id || masterTasks.length === 0) return
+    setSeeding(true)
+    try {
+      const now = new Date().toISOString()
+      const batch = writeBatch(db)
+      masterTasks.forEach(mt => {
+        const ref = doc(collection(db, 'tasks'))
+        batch.set(ref, {
+          projectId: id,
+          title: mt.title,
+          category: mt.category,
+          phase: mt.phase,
+          assignedTo: mt.assignedTeam || '',
+          priority: (mt.defaultPriority as Task['priority']) || 'medium',
+          status: 'not-started',
+          order: mt.order ?? 0,
+          notes: mt.notes || '',
+          isFromMasterChecklist: true,
+          createdAt: now,
+          updatedAt: now,
+        })
+      })
+      await batch.commit()
+    } finally {
+      setSeeding(false)
+    }
+  }
 
   if (projLoading) {
     return (
@@ -806,13 +838,13 @@ export function ProjectDetailPage() {
       )}
 
       {tab === 'checklist' && (
-        <div>
-          {/* Filters row */}
-          <div className="flex gap-2 mb-4">
+        <div className="space-y-4">
+          {/* Toolbar */}
+          <div className="flex gap-2 flex-wrap">
             <select
               value={disciplineFilter}
               onChange={e => setDisciplineFilter(e.target.value)}
-              className="flex-1 bg-slate-800 border border-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+              className="flex-1 min-w-[130px] bg-slate-800 border border-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
             >
               <option value="all">All Teams</option>
               {disciplines.map(d => (
@@ -822,21 +854,61 @@ export function ProjectDetailPage() {
             <select
               value={subdivisionFilter}
               onChange={e => setSubdivisionFilter(e.target.value)}
-              className="flex-1 bg-slate-800 border border-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+              className="flex-1 min-w-[130px] bg-slate-800 border border-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
             >
               <option value="all">All Subdivisions</option>
               {subdivisions.map(s => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
+            {/* Apply template button — only shown when tasks exist too, as a secondary action */}
+            {tasks.length > 0 && masterTasks.length > 0 && (
+              <button
+                onClick={seedFromTemplate}
+                disabled={seeding}
+                className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-700 hover:border-slate-600 px-3 py-2 rounded-lg transition-colors disabled:opacity-50"
+                title={`Append ${masterTasks.length} tasks from master template`}
+              >
+                <Plus size={12} />
+                {seeding ? 'Applying…' : 'Apply Template'}
+              </button>
+            )}
           </div>
 
           {tasksLoading ? (
             <div className="flex justify-center py-12">
               <div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full" />
             </div>
+          ) : tasks.length === 0 ? (
+            /* ── Empty state: no tasks yet ── */
+            <div className="bg-slate-800 border border-slate-700 rounded-xl p-8 text-center space-y-4">
+              <div className="w-14 h-14 rounded-full bg-blue-900/40 border border-blue-700/40 flex items-center justify-center mx-auto">
+                <ClipboardList size={26} className="text-blue-400" />
+              </div>
+              <div>
+                <h3 className="text-slate-100 font-semibold mb-1">No checklist tasks yet</h3>
+                <p className="text-slate-500 text-sm max-w-sm mx-auto">
+                  Start from the master template — {masterTasks.length} tasks across all project phases — or add tasks manually.
+                </p>
+              </div>
+              <div className="flex justify-center gap-3 flex-wrap">
+                <button
+                  onClick={seedFromTemplate}
+                  disabled={seeding || masterTasks.length === 0}
+                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  <ClipboardList size={15} />
+                  {seeding ? 'Applying template…' : `Apply Master Template (${masterTasks.length} tasks)`}
+                </button>
+              </div>
+              {masterTasks.length === 0 && (
+                <p className="text-xs text-slate-600">
+                  No master tasks defined yet. Go to the Checklist page to add tasks to the template first.
+                </p>
+              )}
+            </div>
           ) : Object.keys(grouped).length === 0 ? (
-            <p className="text-center text-slate-500 py-12">No tasks found.</p>
+            <p className="text-center text-slate-500 py-12 text-sm">No tasks match the current filter.</p>
           ) : (
             Object.entries(grouped).map(([cat, catTasks]) => (
               <TaskGroup key={cat} category={cat} tasks={catTasks} />
