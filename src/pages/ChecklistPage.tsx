@@ -3,15 +3,7 @@ import { useMasterTasks } from '@/hooks/useMasterTasks'
 import { collection, addDoc, doc, deleteDoc, updateDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { Plus, Search, Trash2, ChevronDown, ChevronRight, X, Check } from 'lucide-react'
-import { clsx } from 'clsx'
 import type { MasterTask } from '@/hooks/useMasterTasks'
-
-const PRIORITY_COLORS: Record<string, string> = {
-  critical: 'bg-red-900 text-red-300',
-  high:     'bg-orange-900 text-orange-300',
-  medium:   'bg-blue-900 text-blue-300',
-  low:      'bg-slate-700 text-slate-400',
-}
 
 // ─── Inline edit row ──────────────────────────────────────────────────────────
 function TaskRow({ task, onDelete }: { task: MasterTask; onDelete: (id: string) => void }) {
@@ -61,9 +53,6 @@ function TaskRow({ task, onDelete }: { task: MasterTask; onDelete: (id: string) 
           {task.assignedTeam && (
             <span className="hidden sm:block text-xs text-slate-500">{task.assignedTeam}</span>
           )}
-          <span className={clsx('text-xs px-1.5 py-0.5 rounded font-medium hidden md:inline-flex', PRIORITY_COLORS[task.defaultPriority] ?? PRIORITY_COLORS.medium)}>
-            {task.defaultPriority}
-          </span>
           {editing ? (
             <div className="flex gap-1">
               <button onClick={save} disabled={saving} className="p-1 text-emerald-400 hover:text-emerald-300">

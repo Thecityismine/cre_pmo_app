@@ -68,6 +68,28 @@ function StatCard({ label, value, sub, icon: Icon, accent = false }: {
 
 // ─── Task Edit Drawer ─────────────────────────────────────────────────────────
 
+const DISCIPLINES = [
+  'Architect', 'General Contractor', 'MEP Engineer', 'IT / AV',
+  'Furniture / FF&E', 'Client / Owner', 'Project Manager',
+  'Legal', 'Permits / Authority', 'Commissioning', 'Other',
+]
+
+const DISCIPLINE_COLORS: Record<string, string> = {
+  'Architect':            'bg-blue-900/60 text-blue-300',
+  'General Contractor':   'bg-amber-900/60 text-amber-300',
+  'MEP Engineer':         'bg-cyan-900/60 text-cyan-300',
+  'IT / AV':              'bg-purple-900/60 text-purple-300',
+  'Furniture / FF&E':     'bg-pink-900/60 text-pink-300',
+  'Client / Owner':       'bg-emerald-900/60 text-emerald-300',
+  'Project Manager':      'bg-slate-700 text-slate-300',
+  'Legal':                'bg-red-900/60 text-red-300',
+  'Permits / Authority':  'bg-orange-900/60 text-orange-300',
+}
+
+function disciplineColor(d: string) {
+  return DISCIPLINE_COLORS[d] ?? 'bg-slate-700 text-slate-400'
+}
+
 function TaskEditDrawer({ task, onClose }: { task: Task; onClose: () => void }) {
   const [status, setStatus] = useState<TaskStatus>(task.status as TaskStatus)
   const [assignedTo, setAssignedTo] = useState(task.assignedTo || '')
@@ -120,13 +142,29 @@ function TaskEditDrawer({ task, onClose }: { task: Task; onClose: () => void }) 
             </div>
           </div>
 
-          {/* Assigned To */}
+          {/* Discipline */}
           <div>
-            <label className="text-xs text-slate-400 uppercase tracking-wide font-medium block mb-1.5">Assigned To</label>
+            <label className="text-xs text-slate-400 uppercase tracking-wide font-medium block mb-1.5">Discipline / Responsible Party</label>
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {DISCIPLINES.map(d => (
+                <button
+                  key={d}
+                  onClick={() => setAssignedTo(assignedTo === d ? '' : d)}
+                  className={clsx(
+                    'px-2.5 py-1 rounded-lg text-xs font-medium transition-colors border',
+                    assignedTo === d
+                      ? disciplineColor(d) + ' border-current'
+                      : 'bg-slate-800 text-slate-500 border-slate-700 hover:text-slate-300'
+                  )}
+                >
+                  {d}
+                </button>
+              ))}
+            </div>
             <input
               value={assignedTo}
               onChange={e => setAssignedTo(e.target.value)}
-              placeholder="Name or email"
+              placeholder="Or type a custom discipline..."
               className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500"
             />
           </div>
@@ -240,9 +278,6 @@ function TaskRow({ task }: { task: Task }) {
               {task.title}
             </p>
             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-              {task.assignedTo && (
-                <span className="text-xs text-slate-500">{task.assignedTo}</span>
-              )}
               {task.dueDate && (
                 <span className={clsx('flex items-center gap-0.5 text-xs', isOverdue ? 'text-red-400' : isDueSoon ? 'text-amber-400' : 'text-slate-500')}>
                   {isOverdue ? <AlertCircle size={10} /> : <Clock size={10} />}
@@ -253,8 +288,15 @@ function TaskRow({ task }: { task: Task }) {
             </div>
           </button>
 
+          {/* Discipline badge */}
+          {task.assignedTo && (
+            <span className={clsx('shrink-0 text-xs px-2 py-0.5 rounded font-medium hidden sm:inline-flex', disciplineColor(task.assignedTo))}>
+              {task.assignedTo}
+            </span>
+          )}
+
           {/* Status badge */}
-          <span className={clsx('shrink-0 text-xs px-2 py-0.5 rounded font-medium hidden sm:inline-flex', TASK_STATUS_COLORS[task.status as TaskStatus])}>
+          <span className={clsx('shrink-0 text-xs px-2 py-0.5 rounded font-medium hidden md:inline-flex', TASK_STATUS_COLORS[task.status as TaskStatus])}>
             {TASK_STATUS_LABELS[task.status as TaskStatus]}
           </span>
         </div>
@@ -310,6 +352,7 @@ export function ProjectDetailPage() {
   const { items: budgetItems } = useBudgetItems(id)
   const [tab, setTab] = useState<Tab>('overview')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [disciplineFilter, setDisciplineFilter] = useState<string>('all')
   const [showEdit, setShowEdit] = useState(false)
 
   if (projLoading) {
@@ -333,8 +376,15 @@ export function ProjectDetailPage() {
   const budgetUsed = project.totalBudget > 0 ? (project.actualCost / project.totalBudget) * 100 : 0
   const budgetVariance = project.totalBudget - project.forecastCost
 
+  // Discipline options from actual task data
+  const disciplines = Array.from(new Set(tasks.map(t => t.assignedTo).filter(Boolean))) as string[]
+
   // Group tasks by category
-  const filteredTasks = statusFilter === 'all' ? tasks : tasks.filter(t => t.status === statusFilter)
+  const filteredTasks = tasks.filter(t => {
+    const matchStatus = statusFilter === 'all' || t.status === statusFilter
+    const matchDiscipline = disciplineFilter === 'all' || t.assignedTo === disciplineFilter
+    return matchStatus && matchDiscipline
+  })
   const grouped = filteredTasks.reduce<Record<string, Task[]>>((acc, t) => {
     const cat = t.category || 'General'
     if (!acc[cat]) acc[cat] = []
@@ -505,6 +555,35 @@ export function ProjectDetailPage() {
 
       {tab === 'checklist' && (
         <div>
+          {/* Discipline filter */}
+          {disciplines.length > 0 && (
+            <div className="flex gap-1.5 flex-wrap mb-2">
+              <button
+                onClick={() => setDisciplineFilter('all')}
+                className={clsx(
+                  'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
+                  disciplineFilter === 'all' ? 'bg-slate-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700'
+                )}
+              >
+                All Disciplines
+              </button>
+              {disciplines.map(d => (
+                <button
+                  key={d}
+                  onClick={() => setDisciplineFilter(disciplineFilter === d ? 'all' : d)}
+                  className={clsx(
+                    'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border',
+                    disciplineFilter === d
+                      ? disciplineColor(d) + ' border-current'
+                      : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-200'
+                  )}
+                >
+                  {d}
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Status filter */}
           <div className="flex gap-1.5 flex-wrap mb-4">
             {(['all', ...TASK_STATUSES] as string[]).map(s => (
