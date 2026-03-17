@@ -4,6 +4,12 @@ import { db } from '@/lib/firebase'
 
 export type RfiStatus = 'draft' | 'open' | 'answered' | 'closed'
 
+export interface RfiStatusEvent {
+  status: RfiStatus
+  changedAt: string
+  note?: string
+}
+
 export interface Rfi {
   id: string
   projectId: string
@@ -17,6 +23,7 @@ export interface Rfi {
   answeredDate: string
   response: string
   specSection: string
+  statusHistory: RfiStatusEvent[]
   createdAt: string
   updatedAt: string
 }
@@ -40,17 +47,34 @@ export function useRfis(projectId: string | undefined) {
 
   const nextNumber = rfis.length > 0 ? Math.max(...rfis.map(r => r.number)) + 1 : 1
 
-  const addRfi = async (data: Omit<Rfi, 'id' | 'number' | 'createdAt' | 'updatedAt'>): Promise<void> => {
+  const addRfi = async (data: Omit<Rfi, 'id' | 'number' | 'createdAt' | 'updatedAt' | 'statusHistory'>): Promise<void> => {
+    const now = new Date().toISOString()
     await addDoc(collection(db, 'rfis'), {
       ...data,
       number: nextNumber,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      statusHistory: [{ status: data.status, changedAt: now }],
+      createdAt: now,
+      updatedAt: now,
     })
   }
 
-  const updateRfi = (id: string, data: Partial<Rfi>) =>
-    updateDoc(doc(db, 'rfis', id), { ...data, updatedAt: new Date().toISOString() })
+  const updateRfi = async (id: string, data: Partial<Rfi>): Promise<void> => {
+    const now = new Date().toISOString()
+    const rfi = rfis.find(r => r.id === id)
+    const updates: Partial<Rfi> & { updatedAt: string } = { ...data, updatedAt: now }
+
+    // Append to statusHistory when status changes
+    if (data.status && rfi && data.status !== rfi.status) {
+      const history: RfiStatusEvent[] = [...(rfi.statusHistory || []), { status: data.status, changedAt: now }]
+      updates.statusHistory = history
+      // Auto-set answeredDate when moving to answered
+      if (data.status === 'answered' && !data.answeredDate && !rfi.answeredDate) {
+        updates.answeredDate = now.slice(0, 10)
+      }
+    }
+
+    await updateDoc(doc(db, 'rfis', id), updates as Record<string, unknown>)
+  }
 
   const deleteRfi = (id: string) => deleteDoc(doc(db, 'rfis', id))
 
