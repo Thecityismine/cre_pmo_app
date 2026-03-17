@@ -48,12 +48,13 @@ export function useSubmittals(projectId: string | undefined) {
   const nextIndex = submittals.length + 1
   const nextNumber = `SUB-${String(nextIndex).padStart(3, '0')}`
 
-  const addSubmittal = (data: Omit<Submittal, 'id' | 'createdAt' | 'updatedAt'>) =>
-    addDoc(collection(db, 'submittals'), {
+  const addSubmittal = async (data: Omit<Submittal, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> => {
+    await addDoc(collection(db, 'submittals'), {
       ...data,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     })
+  }
 
   const updateSubmittal = (id: string, data: Partial<Submittal>) =>
     updateDoc(doc(db, 'submittals', id), { ...data, updatedAt: new Date().toISOString() })

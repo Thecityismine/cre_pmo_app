@@ -138,7 +138,7 @@ function RfiRow({
 
         {/* Response indicator */}
         {rfi.response && (
-          <MessageSquare size={13} className="text-blue-400 shrink-0" title="Has response" />
+          <MessageSquare size={13} className="text-blue-400 shrink-0" aria-label="Has response" />
         )}
 
         {/* Status */}

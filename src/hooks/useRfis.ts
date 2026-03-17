@@ -40,13 +40,14 @@ export function useRfis(projectId: string | undefined) {
 
   const nextNumber = rfis.length > 0 ? Math.max(...rfis.map(r => r.number)) + 1 : 1
 
-  const addRfi = (data: Omit<Rfi, 'id' | 'number' | 'createdAt' | 'updatedAt'>) =>
-    addDoc(collection(db, 'rfis'), {
+  const addRfi = async (data: Omit<Rfi, 'id' | 'number' | 'createdAt' | 'updatedAt'>): Promise<void> => {
+    await addDoc(collection(db, 'rfis'), {
       ...data,
       number: nextNumber,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     })
+  }
 
   const updateRfi = (id: string, data: Partial<Rfi>) =>
     updateDoc(doc(db, 'rfis', id), { ...data, updatedAt: new Date().toISOString() })

@@ -47,13 +47,14 @@ export function usePunchList(projectId: string | undefined) {
     return `PL-${String(Math.max(...nums) + 1).padStart(3, '0')}`
   }
 
-  const addItem = (data: Omit<PunchItem, 'id' | 'number' | 'createdAt' | 'updatedAt'>) =>
-    addDoc(collection(db, 'punchList'), {
+  const addItem = async (data: Omit<PunchItem, 'id' | 'number' | 'createdAt' | 'updatedAt'>): Promise<void> => {
+    await addDoc(collection(db, 'punchList'), {
       ...data,
       number: nextNumber(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     })
+  }
 
   const updateItem = (id: string, data: Partial<PunchItem>) =>
     updateDoc(doc(db, 'punchList', id), { ...data, updatedAt: new Date().toISOString() })

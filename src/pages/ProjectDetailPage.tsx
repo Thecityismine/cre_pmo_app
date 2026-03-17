@@ -22,10 +22,10 @@ import { SubmittalsTab } from '@/components/SubmittalsTab'
 import { BidLogTab } from '@/components/BidLogTab'
 import { PunchListTab } from '@/components/PunchListTab'
 import { useBudgetItems } from '@/hooks/useBudgetItems'
-import { computeHealth, healthColor, healthBg } from '@/lib/healthScore'
+import { computeHealth } from '@/lib/healthScore'
 import { MilestoneTimeline } from '@/components/MilestoneTimeline'
 import { exportProjectPdf } from '@/lib/exportPdf'
-import type { Task, TaskStatus } from '@/types'
+import type { Task, TaskStatus, Project } from '@/types'
 
 // ─── Stage gate progress ──────────────────────────────────────────────────────
 const STAGES = [

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useMasterTasks } from '@/hooks/useMasterTasks'
 import { collection, addDoc, doc, deleteDoc, updateDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
-import { Plus, Search, Trash2, ChevronDown, ChevronRight, X, Check, Pencil } from 'lucide-react'
+import { Plus, Search, Trash2, ChevronDown, ChevronRight, Check, Pencil } from 'lucide-react'
 import type { MasterTask } from '@/hooks/useMasterTasks'
 
 // ─── Full-edit task row ────────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { clsx } from 'clsx'
-import { Plus, Trash2, ChevronDown, ChevronRight, X, Check, AlertTriangle, Zap, Bug, Lightbulb } from 'lucide-react'
+import { Plus, Trash2, ChevronDown, ChevronRight, Check, AlertTriangle, Zap, Bug, Lightbulb } from 'lucide-react'
 import { useRaidLog } from '@/hooks/useRaidLog'
 import type { RaidItem, RaidType, RaidStatus, RaidPriority } from '@/hooks/useRaidLog'
 import type { Project } from '@/types'

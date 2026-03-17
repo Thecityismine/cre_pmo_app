@@ -38,12 +38,13 @@ export function useRaidLog(projectId: string | undefined) {
     return unsub
   }, [projectId])
 
-  const addItem = (data: Omit<RaidItem, 'id' | 'createdAt' | 'updatedAt'>) =>
-    addDoc(collection(db, 'raidLog'), {
+  const addItem = async (data: Omit<RaidItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> => {
+    await addDoc(collection(db, 'raidLog'), {
       ...data,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     })
+  }
 
   const updateItem = (id: string, data: Partial<RaidItem>) =>
     updateDoc(doc(db, 'raidLog', id), { ...data, updatedAt: new Date().toISOString() })
