@@ -536,7 +536,14 @@ export function ProjectDetailPage() {
             <StatusPill status={project.status} />
             <div className="ml-auto flex items-center gap-2 shrink-0">
               <button
-                onClick={() => exportProjectPdf(project, tasks, budgetItems)}
+                onClick={() => exportProjectPdf(project, tasks, budgetItems, {
+                  milestones,
+                  approvedCOs: coApproved,
+                  pendingCOs: coPending,
+                  openRfis,
+                  overdueRfis,
+                  taskCompletionPct: totalPct,
+                })}
                 className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-600 px-3 py-1.5 rounded-lg transition-colors"
                 title="Export PDF report"
               >
