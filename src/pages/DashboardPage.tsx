@@ -3,6 +3,7 @@ import { usePortfolioTasks } from '@/hooks/usePortfolioTasks'
 import { AlertTriangle, CheckCircle, DollarSign, FolderOpen, Clock, ChevronRight, TrendingUp, TrendingDown } from 'lucide-react'
 import { clsx } from 'clsx'
 import { useNavigate } from 'react-router-dom'
+import { computeHealth, healthBg, healthColor } from '@/lib/healthScore'
 import type { Project } from '@/types'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -33,31 +34,15 @@ function StatusBadge({ status }: { status: string }) {
   return <span className={clsx('px-2 py-0.5 rounded text-xs font-medium', color)}>{label}</span>
 }
 
-// Health score: 0–100 based on budget variance + task completion (rough heuristic)
-function projectHealth(p: Project): number {
-  let score = 100
-  if (p.totalBudget > 0) {
-    const overPct = (p.forecastCost - p.totalBudget) / p.totalBudget
-    if (overPct > 0.1) score -= 40
-    else if (overPct > 0) score -= 20
-  }
-  if (p.targetCompletionDate) {
-    const daysLeft = (new Date(p.targetCompletionDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-    if (daysLeft < 0) score -= 20
-    else if (daysLeft < 30) score -= 10
-  }
-  return Math.max(0, score)
-}
-
-function HealthBar({ score }: { score: number }) {
-  const color = score >= 80 ? 'bg-emerald-500' : score >= 60 ? 'bg-amber-500' : 'bg-red-500'
+function HealthBar({ project }: { project: Project }) {
+  const h = computeHealth(project)
   return (
     <div className="flex items-center gap-2">
       <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-        <div className={clsx('h-full rounded-full', color)} style={{ width: `${score}%` }} />
+        <div className={clsx('h-full rounded-full', healthBg(h.total))} style={{ width: `${h.total}%` }} />
       </div>
-      <span className={clsx('text-xs font-medium w-8 text-right', score >= 80 ? 'text-emerald-400' : score >= 60 ? 'text-amber-400' : 'text-red-400')}>
-        {score}
+      <span className={clsx('text-xs font-semibold w-6 text-right tabular-nums', healthColor(h.total))}>
+        {h.total}
       </span>
     </div>
   )
@@ -282,7 +267,6 @@ export function DashboardPage() {
                 </thead>
                 <tbody>
                   {active.map((p, i) => {
-                    const health = projectHealth(p)
                     const overBudget = p.forecastCost > p.totalBudget
                     return (
                       <tr
@@ -304,7 +288,7 @@ export function DashboardPage() {
                           {overBudget && <span className="ml-1 text-xs">↑</span>}
                         </td>
                         <td className="px-5 py-3 w-36">
-                          <HealthBar score={health} />
+                          <HealthBar project={p} />
                         </td>
                       </tr>
                     )
@@ -316,7 +300,6 @@ export function DashboardPage() {
             {/* Mobile */}
             <div className="md:hidden divide-y divide-slate-700">
               {active.map(p => {
-                const health = projectHealth(p)
                 const overBudget = p.forecastCost > p.totalBudget
                 return (
                   <button
@@ -334,7 +317,7 @@ export function DashboardPage() {
                         {fmt(p.forecastCost)} {overBudget ? '↑' : ''}
                       </span>
                     </div>
-                    <HealthBar score={health} />
+                    <HealthBar project={p} />
                   </button>
                 )
               })}

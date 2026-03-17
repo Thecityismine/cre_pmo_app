@@ -5,6 +5,7 @@ import { clsx } from 'clsx'
 import { useNavigate } from 'react-router-dom'
 import { NewProjectModal } from '@/components/NewProjectModal'
 import { exportProjectsCsv } from '@/lib/exportCsv'
+import { computeHealth, healthColor, healthBg } from '@/lib/healthScore'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -40,12 +41,14 @@ const PROFILE_COLORS: Record<string, string> = {
 }
 
 const SORT_OPTIONS = [
-  { value: 'name-asc',    label: 'Name A–Z' },
-  { value: 'name-desc',   label: 'Name Z–A' },
-  { value: 'budget-desc', label: 'Budget ↓' },
-  { value: 'budget-asc',  label: 'Budget ↑' },
-  { value: 'status',      label: 'Stage' },
-  { value: 'date-desc',   label: 'Newest first' },
+  { value: 'name-asc',      label: 'Name A–Z' },
+  { value: 'name-desc',     label: 'Name Z–A' },
+  { value: 'budget-desc',   label: 'Budget ↓' },
+  { value: 'budget-asc',    label: 'Budget ↑' },
+  { value: 'health-asc',    label: 'Health ↑ (worst first)' },
+  { value: 'health-desc',   label: 'Health ↓ (best first)' },
+  { value: 'status',        label: 'Stage' },
+  { value: 'date-desc',     label: 'Newest first' },
 ]
 
 const fmt = (n: number) =>
@@ -74,7 +77,21 @@ function ProfileBadge({ profile }: { profile: string }) {
 
 // ─── Card view ────────────────────────────────────────────────────────────────
 
+function HealthBadge({ score }: { score: number }) {
+  const label = score >= 80 ? 'Healthy' : score >= 60 ? 'At Risk' : 'Critical'
+  return (
+    <div className="flex items-center gap-1.5">
+      <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden w-16">
+        <div className={clsx('h-full rounded-full', healthBg(score))} style={{ width: `${score}%` }} />
+      </div>
+      <span className={clsx('text-xs font-semibold tabular-nums w-6', healthColor(score))}>{score}</span>
+      <span className={clsx('text-xs', healthColor(score))}>{label}</span>
+    </div>
+  )
+}
+
 function ProjectCard({ project, onClick }: { project: ReturnType<typeof useProjects>['projects'][0]; onClick: () => void }) {
+  const health = computeHealth(project)
   const atRisk = project.forecastCost > project.totalBudget
   const budgetPct = project.totalBudget > 0 ? Math.min(100, Math.round((project.actualCost / project.totalBudget) * 100)) : 0
   const barColor = atRisk ? 'bg-red-500' : budgetPct > 80 ? 'bg-amber-500' : 'bg-blue-500'
@@ -84,7 +101,9 @@ function ProjectCard({ project, onClick }: { project: ReturnType<typeof useProje
       onClick={onClick}
       className={clsx(
         'bg-slate-800 border rounded-xl p-5 cursor-pointer transition-all hover:shadow-lg hover:shadow-black/20',
-        atRisk ? 'border-red-800 hover:border-red-600' : 'border-slate-700 hover:border-blue-500'
+        health.total < 60 ? 'border-red-800 hover:border-red-600'
+        : health.total < 80 ? 'border-amber-800/50 hover:border-amber-600'
+        : 'border-slate-700 hover:border-blue-500'
       )}
     >
       {/* Top row */}
@@ -95,9 +114,14 @@ function ProjectCard({ project, onClick }: { project: ReturnType<typeof useProje
       <p className="text-slate-500 text-xs mb-3">{project.projectNumber} · {project.city}, {project.state}</p>
 
       {/* Badges */}
-      <div className="flex items-center gap-2 flex-wrap mb-4">
+      <div className="flex items-center gap-2 flex-wrap mb-3">
         <StatusPill status={project.status} />
         <ProfileBadge profile={project.profile} />
+      </div>
+
+      {/* Health score */}
+      <div className="mb-3">
+        <HealthBadge score={health.total} />
       </div>
 
       {/* Budget bar */}
@@ -133,6 +157,7 @@ function ProjectCard({ project, onClick }: { project: ReturnType<typeof useProje
 
 function ProjectRow({ project, onClick }: { project: ReturnType<typeof useProjects>['projects'][0]; onClick: () => void }) {
   const atRisk = project.forecastCost > project.totalBudget
+  const health = computeHealth(project)
 
   return (
     <div
@@ -151,6 +176,16 @@ function ProjectRow({ project, onClick }: { project: ReturnType<typeof useProjec
         <StatusPill status={project.status} />
         <span className={clsx('px-2 py-0.5 rounded text-xs font-medium border', PROFILE_COLORS[project.profile] ?? 'bg-slate-700 text-slate-300 border-slate-600')}>
           {project.profile}
+        </span>
+      </div>
+
+      {/* Health score — list view */}
+      <div className="hidden md:flex items-center gap-1.5 shrink-0 w-28">
+        <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+          <div className={clsx('h-full rounded-full', healthBg(health.total))} style={{ width: `${health.total}%` }} />
+        </div>
+        <span className={clsx('text-xs font-semibold tabular-nums w-6 text-right', healthColor(health.total))}>
+          {health.total}
         </span>
       </div>
 
@@ -197,10 +232,12 @@ export function ProjectsPage() {
       switch (sort) {
         case 'name-asc':    return a.projectName.localeCompare(b.projectName)
         case 'name-desc':   return b.projectName.localeCompare(a.projectName)
-        case 'budget-desc': return (b.totalBudget || 0) - (a.totalBudget || 0)
-        case 'budget-asc':  return (a.totalBudget || 0) - (b.totalBudget || 0)
-        case 'status':      return STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status)
-        case 'date-desc':   return (b.createdAt || '').localeCompare(a.createdAt || '')
+        case 'budget-desc':  return (b.totalBudget || 0) - (a.totalBudget || 0)
+        case 'budget-asc':   return (a.totalBudget || 0) - (b.totalBudget || 0)
+        case 'health-asc':   return computeHealth(a).total - computeHealth(b).total
+        case 'health-desc':  return computeHealth(b).total - computeHealth(a).total
+        case 'status':       return STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status)
+        case 'date-desc':    return (b.createdAt || '').localeCompare(a.createdAt || '')
         default: return 0
       }
     })

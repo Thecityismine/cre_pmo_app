@@ -20,6 +20,7 @@ import { ChangeOrdersTab } from '@/components/ChangeOrdersTab'
 import { RfiTab } from '@/components/RfiTab'
 import { SubmittalsTab } from '@/components/SubmittalsTab'
 import { useBudgetItems } from '@/hooks/useBudgetItems'
+import { computeHealth, healthColor, healthBg } from '@/lib/healthScore'
 import { exportProjectPdf } from '@/lib/exportPdf'
 import type { Task, TaskStatus } from '@/types'
 
@@ -343,6 +344,58 @@ function TaskGroup({ category, tasks }: { category: string; tasks: Task[] }) {
   )
 }
 
+// ─── Health Scorecard ─────────────────────────────────────────────────────────
+
+function ScoreBar({ label, score, max, detail }: { label: string; score: number; max: number; detail: string }) {
+  const pct = Math.round((score / max) * 100)
+  const barColor = pct >= 80 ? 'bg-emerald-500' : pct >= 55 ? 'bg-amber-500' : 'bg-red-500'
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between text-xs">
+        <span className="text-slate-400">{label}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-slate-500">{detail}</span>
+          <span className="text-slate-300 font-medium tabular-nums">{score}/{max}</span>
+        </div>
+      </div>
+      <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+        <div className={clsx('h-full rounded-full transition-all', barColor)} style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  )
+}
+
+function HealthScorecard({ project }: { project: Project }) {
+  const h = computeHealth(project)
+  const ringColor = h.total >= 80 ? 'text-emerald-400' : h.total >= 60 ? 'text-amber-400' : 'text-red-400'
+  const ringBg   = h.total >= 80 ? 'border-emerald-500' : h.total >= 60 ? 'border-amber-500' : 'border-red-500'
+
+  return (
+    <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
+      <div className="flex items-center gap-4">
+        {/* Score ring */}
+        <div className={clsx('shrink-0 w-16 h-16 rounded-full border-4 flex flex-col items-center justify-center', ringBg)}>
+          <span className={clsx('text-xl font-bold leading-none', ringColor)}>{h.total}</span>
+          <span className="text-xs text-slate-500 leading-none mt-0.5">/ 100</span>
+        </div>
+
+        {/* Label + breakdown */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-2">
+            <p className={clsx('text-sm font-semibold', ringColor)}>{h.label}</p>
+            <span className="text-xs text-slate-500 uppercase tracking-wide font-medium">Project Health</span>
+          </div>
+          <div className="space-y-2">
+            <ScoreBar label="Budget"   score={h.budget}   max={40} detail={h.budgetLabel} />
+            <ScoreBar label="Schedule" score={h.schedule} max={35} detail={h.scheduleLabel} />
+            <ScoreBar label="Stage"    score={h.stage}    max={25} detail={h.stageLabel} />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
 type Tab = 'overview' | 'checklist' | 'budget' | 'cos' | 'raid' | 'rfis' | 'submittals' | 'team' | 'docs' | 'ai'
 
@@ -540,6 +593,10 @@ export function ProjectDetailPage() {
 
       {/* Tab content */}
       {tab === 'overview' && (
+        <div className="space-y-4">
+        {/* Health scorecard */}
+        <HealthScorecard project={project} />
+
         <div className="grid md:grid-cols-2 gap-4">
           <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 space-y-3">
             <p className="text-slate-400 text-xs uppercase tracking-wide font-medium">Project Info</p>
@@ -559,6 +616,7 @@ export function ProjectDetailPage() {
             <InfoRow label="Warranty End" value={(project as unknown as Record<string,string>).warrantyEndDate || '—'} />
             <InfoRow label="Size" value={project.rsf ? `${project.rsf.toLocaleString()} RSF` : '—'} />
           </div>
+        </div>
         </div>
       )}
 
