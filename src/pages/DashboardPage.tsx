@@ -2,6 +2,7 @@ import { useProjects } from '@/hooks/useProjects'
 import { usePortfolioTasks } from '@/hooks/usePortfolioTasks'
 import { usePortfolioMilestones } from '@/hooks/usePortfolioMilestones'
 import { usePortfolioInsights } from '@/hooks/useAIInsights'
+import { usePortfolioTaskStats } from '@/hooks/usePortfolioTaskStats'
 import {
   AlertTriangle, CheckCircle, DollarSign, FolderOpen, Clock,
   ChevronRight, TrendingUp, TrendingDown, Calendar, Activity, Sparkles,
@@ -39,8 +40,8 @@ function StatusBadge({ status }: { status: string }) {
   return <span className={clsx('px-2 py-0.5 rounded text-xs font-medium', color)}>{label}</span>
 }
 
-function HealthBar({ project }: { project: Project }) {
-  const h = computeHealth(project)
+function HealthBar({ project, taskPct }: { project: Project; taskPct?: number }) {
+  const h = computeHealth(project, { taskCompletionPct: taskPct })
   return (
     <div className="flex items-center gap-2">
       <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
@@ -135,17 +136,23 @@ export function DashboardPage() {
   const totalForecast = active.reduce((s, p) => s + (p.forecastCost || 0), 0)
   const portfolioVariance = totalBudget - totalForecast
 
-  // Average health score across active projects
-  const avgHealth = active.length > 0
-    ? Math.round(active.reduce((s, p) => s + computeHealth(p).total, 0) / active.length)
-    : null
-
   // Build a projectId → name map
   const projectMap = Object.fromEntries(projects.map(p => [p.id, p.projectName]))
 
-  const { milestones: upcomingMilestones } = usePortfolioMilestones(projectMap)
   const activeIds = active.map(p => p.id)
+  const { milestones: upcomingMilestones } = usePortfolioMilestones(projectMap)
   const { insights: portfolioInsights } = usePortfolioInsights(activeIds)
+
+  // Per-project task completion — powers accurate SPI in health scores
+  const { stats: taskStats } = usePortfolioTaskStats(activeIds)
+
+  // Average health score using actual task completion per project
+  const avgHealth = active.length > 0
+    ? Math.round(
+        active.reduce((s, p) => s + computeHealth(p, { taskCompletionPct: taskStats[p.id]?.pct }).total, 0)
+        / active.length
+      )
+    : null
 
   if (projLoading) {
     return (
@@ -461,7 +468,7 @@ export function DashboardPage() {
                           {overBudget && <span className="ml-1 text-xs">↑</span>}
                         </td>
                         <td className="px-5 py-3 w-36">
-                          <HealthBar project={p} />
+                          <HealthBar project={p} taskPct={taskStats[p.id]?.pct} />
                         </td>
                       </tr>
                     )

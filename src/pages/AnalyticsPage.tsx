@@ -1,6 +1,8 @@
 import { useProjects } from '@/hooks/useProjects'
+import { usePortfolioTaskStats } from '@/hooks/usePortfolioTaskStats'
+import { computeHealth, healthColor } from '@/lib/healthScore'
 import { clsx } from 'clsx'
-import { DollarSign, FolderOpen, CheckSquare, TrendingUp } from 'lucide-react'
+import { DollarSign, FolderOpen, TrendingUp, Activity } from 'lucide-react'
 
 const fmt = (n: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
@@ -27,10 +29,17 @@ export function AnalyticsPage() {
   const { projects } = useProjects()
 
   const active = projects.filter(p => p.isActive)
+  const activeIds = active.map(p => p.id)
+  const { stats: taskStats } = usePortfolioTaskStats(activeIds)
+
   const totalBudget = active.reduce((s, p) => s + (p.totalBudget || 0), 0)
   const totalActual = active.reduce((s, p) => s + (p.actualCost || 0), 0)
   const totalForecast = active.reduce((s, p) => s + (p.forecastCost || 0), 0)
-  const totalRSF = active.reduce((s, p) => s + (p.rsf || 0), 0)
+
+  const budgetVariance = totalBudget - totalForecast
+  const avgHealth = active.length > 0
+    ? Math.round(active.reduce((s, p) => s + computeHealth(p, { taskCompletionPct: taskStats[p.id]?.pct }).total, 0) / active.length)
+    : null
 
   // Status breakdown
   const byStatus = projects.reduce<Record<string, number>>((acc, p) => {
@@ -49,8 +58,6 @@ export function AnalyticsPage() {
   const profileLabels: Record<string, string> = { L: 'Light', S: 'Standard', E: 'Enhanced' }
   const profileColors: Record<string, string> = { L: 'bg-blue-500', S: 'bg-emerald-500', E: 'bg-purple-500' }
 
-  const maxBudget = Math.max(...active.map(p => p.totalBudget || 0), 1)
-
   return (
     <div className="space-y-5 max-w-5xl mx-auto">
       <div>
@@ -62,58 +69,78 @@ export function AnalyticsPage() {
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
         <KPI icon={FolderOpen} label="Active Projects" value={String(active.length)} sub={`${projects.length} total`} color="bg-blue-600" />
         <KPI icon={DollarSign} label="Total Budget" value={fmt(totalBudget)} sub="Active portfolio" color="bg-emerald-600" />
-        <KPI icon={TrendingUp} label="Forecast Cost" value={fmt(totalForecast)} sub={totalForecast > totalBudget ? '⚠ Over budget' : 'On track'} color={totalForecast > totalBudget ? 'bg-red-600' : 'bg-emerald-600'} />
-        <KPI icon={CheckSquare} label="Total RSF" value={totalRSF > 0 ? `${totalRSF.toLocaleString()} sf` : '—'} sub="Active projects" color="bg-slate-600" />
+        <KPI
+          icon={TrendingUp}
+          label="Portfolio Variance"
+          value={`${budgetVariance >= 0 ? '-' : '+'}${fmt(Math.abs(budgetVariance))}`}
+          sub={budgetVariance >= 0 ? 'Under forecast' : 'Over forecast'}
+          color={budgetVariance >= 0 ? 'bg-emerald-600' : 'bg-red-600'}
+        />
+        <KPI
+          icon={Activity}
+          label="Avg Health Score"
+          value={avgHealth !== null ? String(avgHealth) : '—'}
+          sub={avgHealth !== null ? (avgHealth >= 80 ? 'Healthy' : avgHealth >= 60 ? 'At Risk' : 'Critical') : 'No projects'}
+          color={avgHealth === null ? 'bg-slate-600' : avgHealth >= 80 ? 'bg-emerald-600' : avgHealth >= 60 ? 'bg-amber-600' : 'bg-red-600'}
+        />
       </div>
 
       {/* Budget vs Actual by project */}
       <div className="bg-slate-800 border border-slate-700 rounded-xl p-5">
-        <h2 className="text-slate-100 font-semibold mb-4">Budget by Project</h2>
+        <div className="flex items-baseline justify-between mb-4">
+          <h2 className="text-slate-100 font-semibold">Budget by Project</h2>
+          <div className="flex gap-4">
+            <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-blue-500" /><span className="text-xs text-slate-400">Actual</span></div>
+            <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-amber-500/70" /><span className="text-xs text-slate-400">Forecast</span></div>
+            <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-slate-600" /><span className="text-xs text-slate-400">Budget</span></div>
+          </div>
+        </div>
         {active.length === 0 ? (
           <p className="text-slate-500 text-sm text-center py-8">No active projects.</p>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-5">
             {active.map(p => {
-              const pct = p.totalBudget > 0 ? (p.actualCost / p.totalBudget) * 100 : 0
-              const forecastPct = p.totalBudget > 0 ? (p.forecastCost / p.totalBudget) * 100 : 0
-              const barWidth = (p.totalBudget / maxBudget) * 100
+              const budget = p.totalBudget || 0
+              // Percentages relative to budget (capped at 110% for visual)
+              const actualPct  = budget > 0 ? Math.min(110, (p.actualCost  / budget) * 100) : 0
+              const forecastPct = budget > 0 ? Math.min(110, (p.forecastCost / budget) * 100) : 0
+              const over = p.forecastCost > budget
               return (
                 <div key={p.id}>
-                  <div className="flex justify-between items-baseline mb-1.5">
-                    <span className="text-slate-200 text-sm font-medium truncate max-w-xs">{p.projectName}</span>
-                    <span className="text-slate-400 text-xs ml-2 shrink-0">{fmt(p.totalBudget)}</span>
-                  </div>
-                  {/* Budget bar (full width = portfolio max) */}
-                  <div className="h-5 bg-slate-700 rounded-lg overflow-hidden" style={{ width: `${barWidth}%`, minWidth: '40%' }}>
-                    {/* Actual spent */}
-                    <div className="h-full flex">
-                      <div
-                        className="h-full bg-blue-500 rounded-l-lg"
-                        style={{ width: `${Math.min(100, pct)}%` }}
-                        title={`Actual: ${fmt(p.actualCost)}`}
-                      />
-                      {forecastPct > pct && (
-                        <div
-                          className="h-full bg-amber-500/60"
-                          style={{ width: `${Math.min(100, forecastPct - pct)}%` }}
-                          title={`Forecast remaining: ${fmt(p.forecastCost - p.actualCost)}`}
-                        />
-                      )}
+                  <div className="flex items-baseline justify-between mb-1.5 gap-2">
+                    <span className="text-slate-200 text-sm font-medium truncate">{p.projectName}</span>
+                    <div className="flex items-center gap-3 shrink-0 text-xs">
+                      <span className="text-blue-400">A: {fmt(p.actualCost)}</span>
+                      <span className={over ? 'text-red-400 font-medium' : 'text-amber-400'}>F: {fmt(p.forecastCost)}</span>
+                      <span className="text-slate-500">B: {fmt(budget)}</span>
                     </div>
                   </div>
-                  <div className="flex gap-4 mt-1">
-                    <span className="text-xs text-blue-400">Actual: {fmt(p.actualCost)}</span>
-                    <span className="text-xs text-amber-400">Forecast: {fmt(p.forecastCost)}</span>
+                  {/* Stacked bar — width always 100% = budget */}
+                  <div className="relative h-4 bg-slate-700 rounded-lg overflow-hidden">
+                    {/* Forecast bar (behind actual) */}
+                    <div
+                      className={clsx('absolute inset-y-0 left-0 rounded-lg', over ? 'bg-red-500/50' : 'bg-amber-500/50')}
+                      style={{ width: `${forecastPct}%` }}
+                      title={`Forecast: ${fmt(p.forecastCost)}`}
+                    />
+                    {/* Actual bar (on top) */}
+                    <div
+                      className="absolute inset-y-0 left-0 rounded-lg bg-blue-500"
+                      style={{ width: `${actualPct}%` }}
+                      title={`Actual: ${fmt(p.actualCost)}`}
+                    />
+                    {/* Budget 100% line */}
+                    <div className="absolute inset-y-0 right-0 w-px bg-slate-500" title="Budget" />
+                  </div>
+                  <div className="flex justify-between text-[10px] text-slate-600 mt-0.5">
+                    <span>0%</span>
+                    <span className={over ? 'text-red-500' : 'text-slate-500'}>
+                      {Math.round(forecastPct)}% of budget
+                    </span>
                   </div>
                 </div>
               )
             })}
-
-            {/* Legend */}
-            <div className="flex gap-4 pt-2 border-t border-slate-700">
-              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-blue-500" /><span className="text-xs text-slate-400">Actual Spent</span></div>
-              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-amber-500/60" /><span className="text-xs text-slate-400">Remaining Forecast</span></div>
-            </div>
           </div>
         )}
       </div>
@@ -169,14 +196,66 @@ export function AnalyticsPage() {
         </div>
       </div>
 
+      {/* Health Score by Project */}
+      {active.length > 0 && (
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-5">
+          <h2 className="text-slate-100 font-semibold mb-4">Health Score by Project</h2>
+          <div className="space-y-3">
+            {active
+              .map(p => ({ p, h: computeHealth(p, { taskCompletionPct: taskStats[p.id]?.pct }) }))
+              .sort((a, b) => a.h.total - b.h.total)
+              .map(({ p, h }) => (
+                <div key={p.id}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-slate-300 text-sm truncate max-w-xs">{p.projectName}</span>
+                    <div className="flex items-center gap-2 shrink-0 ml-2">
+                      <span className="text-xs text-slate-500">{h.scheduleLabel}</span>
+                      <span className={clsx('text-sm font-bold tabular-nums w-8 text-right', healthColor(h.total))}>{h.total}</span>
+                    </div>
+                  </div>
+                  {/* Segmented bar: budget / schedule / stage */}
+                  <div className="flex gap-0.5 h-2 rounded-full overflow-hidden">
+                    <div
+                      className={clsx('rounded-l-full', h.budget >= 32 ? 'bg-emerald-500' : h.budget >= 22 ? 'bg-amber-500' : 'bg-red-500')}
+                      style={{ width: `${(h.budget / 100) * 100}%` }}
+                      title={`Budget: ${h.budget}/40 — ${h.budgetLabel}`}
+                    />
+                    <div
+                      className={clsx(h.schedule >= 28 ? 'bg-emerald-500/80' : h.schedule >= 18 ? 'bg-amber-500/80' : 'bg-red-500/80')}
+                      style={{ width: `${(h.schedule / 100) * 100}%` }}
+                      title={`Schedule: ${h.schedule}/35 — ${h.scheduleLabel}`}
+                    />
+                    <div
+                      className={clsx('rounded-r-full', h.stage >= 22 ? 'bg-emerald-500/60' : 'bg-amber-500/60')}
+                      style={{ width: `${(h.stage / 100) * 100}%` }}
+                      title={`Stage: ${h.stage}/25 — ${h.stageLabel}`}
+                    />
+                  </div>
+                </div>
+              ))}
+          </div>
+          {/* Legend */}
+          <div className="flex gap-4 mt-3 pt-3 border-t border-slate-700">
+            <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-emerald-500" /><span className="text-xs text-slate-400">Budget (40pts)</span></div>
+            <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-emerald-500/80" /><span className="text-xs text-slate-400">Schedule (35pts)</span></div>
+            <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-emerald-500/60" /><span className="text-xs text-slate-400">Stage (25pts)</span></div>
+          </div>
+        </div>
+      )}
+
       {/* Budget summary totals */}
       <div className="bg-slate-800 border border-slate-700 rounded-xl p-5">
         <h2 className="text-slate-100 font-semibold mb-4">Portfolio Budget Summary</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <SummaryItem label="Total Budget" value={fmt(totalBudget)} />
-          <SummaryItem label="Total Actual" value={fmt(totalActual)} />
-          <SummaryItem label="Total Forecast" value={fmt(totalForecast)} accent={totalForecast > totalBudget ? 'red' : 'green'} />
-          <SummaryItem label="Portfolio Variance" value={fmt(Math.abs(totalBudget - totalForecast))} accent={totalForecast > totalBudget ? 'red' : 'green'} sub={totalForecast > totalBudget ? 'Over' : 'Under'} />
+          <SummaryItem label="Approved Budget" value={fmt(totalBudget)} sub="Combined active" />
+          <SummaryItem label="Actual Spent" value={fmt(totalActual)} sub={totalBudget > 0 ? `${Math.round((totalActual/totalBudget)*100)}% of budget` : undefined} />
+          <SummaryItem label="Total Forecast" value={fmt(totalForecast)} accent={totalForecast > totalBudget ? 'red' : 'green'} sub={totalBudget > 0 ? `${Math.round((totalForecast/totalBudget)*100)}% of budget` : undefined} />
+          <SummaryItem
+            label="Budget Variance"
+            value={`${budgetVariance >= 0 ? '' : '-'}${fmt(Math.abs(budgetVariance))}`}
+            accent={budgetVariance >= 0 ? 'green' : 'red'}
+            sub={budgetVariance >= 0 ? 'Under forecast' : 'Over forecast'}
+          />
         </div>
       </div>
     </div>
@@ -211,7 +290,7 @@ function SummaryItem({ label, value, accent, sub }: {
       <p className={clsx('text-lg font-semibold', accent === 'red' ? 'text-red-400' : accent === 'green' ? 'text-emerald-400' : 'text-slate-100')}>
         {value}
       </p>
-      {sub && <p className={clsx('text-xs', accent === 'red' ? 'text-red-500' : 'text-emerald-500')}>{sub}</p>}
+      {sub && <p className={clsx('text-xs mt-0.5', accent === 'red' ? 'text-red-500' : accent === 'green' ? 'text-emerald-500' : 'text-slate-500')}>{sub}</p>}
     </div>
   )
 }
