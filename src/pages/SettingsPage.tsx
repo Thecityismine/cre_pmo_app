@@ -254,7 +254,7 @@ function DataAuditSection() {
     setDeleting(null)
   }
 
-  const totalItems = Object.values(counts).reduce((s, n) => s + (n ?? 0), 0)
+  const totalItems = Object.values(counts).reduce((s: number, n) => s + (n ?? 0), 0)
 
   return (
     <Section title="Data Audit" icon={Database}>

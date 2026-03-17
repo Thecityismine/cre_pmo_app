@@ -64,8 +64,6 @@ function Lightbox({
   all: ProjectDocument[]
   onClose: () => void
 }) {
-  const idx = all.findIndex(x => x.id === d.id)
-
   const [current, setCurrent] = useState(d)
   const currentIdx = all.findIndex(x => x.id === current.id)
 
