@@ -10,6 +10,7 @@ export interface ProjectDocument {
   projectId: string
   name: string
   originalName: string
+  displayName: string
   url: string
   storagePath: string
   size: number

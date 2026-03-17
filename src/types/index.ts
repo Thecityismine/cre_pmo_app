@@ -1,6 +1,6 @@
 // ─── Project Types ───────────────────────────────────────────────────────────
 
-export type ProjectProfile = 'L' | 'S' | 'E'  // Light, Standard, Enhanced
+export type ProjectProfile = string  // e.g. 'L' (Light), 'S' (Standard), 'E' (Enhanced) — configurable
 
 export type ProjectStatus =
   | 'pre-project'

@@ -591,6 +591,36 @@ export function BudgetTab({ project }: { project: Project }) {
             />
           )
         })}
+        {/* Catch-all for items imported with unrecognized categories */}
+        {(() => {
+          const orphans = ext.filter(i => !CATEGORIES.includes(i.category))
+          if (orphans.length === 0) return null
+          return (
+            <div className="bg-slate-800 border border-red-800/40 rounded-xl overflow-hidden">
+              <div className="flex items-center gap-3 px-4 py-3">
+                <AlertTriangle size={13} className="text-red-400 shrink-0" />
+                <span className="text-sm font-medium text-red-300">Unrecognized Category ({orphans.length} item{orphans.length > 1 ? 's' : ''})</span>
+                <span className="text-xs text-slate-500 ml-1">— imported from external source, unknown category</span>
+              </div>
+              <div className="border-t border-slate-700 divide-y divide-slate-700/50">
+                {orphans.map(item => (
+                  <div key={item.id} className="flex items-center gap-3 px-4 py-2.5 text-xs text-slate-400">
+                    <span className="flex-1 truncate">{item.description || '(no description)'}</span>
+                    <span className="text-slate-500">{item.category}</span>
+                    <span className="tabular-nums text-slate-300">{fmt(item.forecastAmount || item.budgetAmount || 0)}</span>
+                    <button
+                      onClick={() => handleDelete(item.id)}
+                      className="p-1 text-slate-600 hover:text-red-400 transition-colors"
+                      title="Delete item"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        })()}
       </div>
 
       {/* ── Financial summary footer ──────────────────────────────────────── */}

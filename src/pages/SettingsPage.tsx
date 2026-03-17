@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { signOut, updateProfile, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth'
-import { doc, updateDoc } from 'firebase/firestore'
+import { doc, updateDoc, collection, query, where, getDocs, writeBatch } from 'firebase/firestore'
 import { auth, db } from '@/lib/firebase'
 import { useAuthStore } from '@/store/authStore'
 import { useNavigate } from 'react-router-dom'
-import { User, Lock, LogOut, Save, Shield, Bell, Key, Eye, EyeOff, Check } from 'lucide-react'
+import { User, Lock, LogOut, Save, Shield, Bell, Key, Eye, EyeOff, Check, Tag, Plus, Trash2, Database } from 'lucide-react'
 import { clsx } from 'clsx'
+import { useProjectTypes } from '@/hooks/useProjectTypes'
+import { useProjects } from '@/hooks/useProjects'
 
 function Section({ title, icon: Icon, children }: { title: string; icon: React.ElementType; children: React.ReactNode }) {
   return (
@@ -106,6 +108,233 @@ function ApiKeyRow({
         )}
       </div>
     </div>
+  )
+}
+
+// ─── Project Types section ────────────────────────────────────────────────────
+
+function ProjectTypesSection() {
+  const { types, addType, removeType } = useProjectTypes()
+  const [code, setCode] = useState('')
+  const [label, setLabel] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleAdd = async () => {
+    const trimCode = code.trim().toUpperCase()
+    const trimLabel = label.trim()
+    if (!trimCode || !trimLabel) { setError('Both code and label are required.'); return }
+    if (types.find(t => t.code === trimCode)) { setError(`Code "${trimCode}" already exists.`); return }
+    setSaving(true)
+    setError('')
+    try {
+      await addType(trimCode, trimLabel)
+      setCode('')
+      setLabel('')
+    } catch (e) {
+      setError((e as Error).message ?? 'Failed to save. Check Firestore permissions.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Section title="Project Types" icon={Tag}>
+      <div className="space-y-4">
+        <p className="text-xs text-slate-500">
+          Define the project classification types used across the app (e.g. Light, Standard, Enhanced). Changes apply immediately to all project forms and filters.
+        </p>
+
+        {/* Existing types */}
+        <div className="space-y-2">
+          {types.map(t => (
+            <div key={t.code} className="flex items-center justify-between px-3 py-2 bg-slate-900/60 rounded-lg border border-slate-700">
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-mono text-blue-300 bg-blue-900/40 px-2 py-0.5 rounded">{t.code}</span>
+                <span className="text-sm text-slate-200">{t.label}</span>
+              </div>
+              {types.length > 1 && (
+                <button
+                  onClick={() => removeType(t.code)}
+                  className="p-1 text-slate-600 hover:text-red-400 transition-colors"
+                  title={`Remove ${t.label}`}
+                >
+                  <Trash2 size={14} />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Add new type */}
+        <div className="border-t border-slate-700 pt-4 space-y-3">
+          <p className="text-xs font-medium text-slate-400">Add New Type</p>
+          <div className="flex gap-2">
+            <input
+              value={code}
+              onChange={e => { setCode(e.target.value.toUpperCase()); setError('') }}
+              placeholder="Code (e.g. XL)"
+              maxLength={5}
+              className="w-24 bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-700 focus:outline-none focus:border-blue-500 placeholder-slate-600 font-mono uppercase"
+            />
+            <input
+              value={label}
+              onChange={e => { setLabel(e.target.value); setError('') }}
+              onKeyDown={e => { if (e.key === 'Enter') handleAdd() }}
+              placeholder="Label (e.g. Extra Large)"
+              className="flex-1 bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-700 focus:outline-none focus:border-blue-500 placeholder-slate-600"
+            />
+            <button
+              onClick={handleAdd}
+              disabled={saving || !code.trim() || !label.trim()}
+              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm px-3 py-2 rounded-lg disabled:opacity-50 transition-colors shrink-0"
+            >
+              <Plus size={14} /> {saving ? 'Adding…' : 'Add'}
+            </button>
+          </div>
+          {error && <p className="text-xs text-red-400">{error}</p>}
+        </div>
+      </div>
+    </Section>
+  )
+}
+
+// ─── Data Audit section ───────────────────────────────────────────────────────
+
+const AUDIT_COLLECTIONS = [
+  { key: 'scheduleItems',    label: 'Schedule Items' },
+  { key: 'changeOrders',     label: 'Change Orders' },
+  { key: 'rfis',             label: 'RFIs' },
+  { key: 'submittals',       label: 'Submittals' },
+  { key: 'bids',             label: 'Bid Log' },
+  { key: 'punchList',        label: 'Punch List' },
+  { key: 'raidLog',          label: 'RAID Log' },
+  { key: 'budgetItems',      label: 'Budget Items' },
+  { key: 'tasks',            label: 'Tasks' },
+  { key: 'milestones',       label: 'Milestones' },
+  { key: 'meetingNotes',     label: 'Meeting Notes' },
+  { key: 'projectDocuments', label: 'Documents' },
+] as const
+
+type AuditCounts = Partial<Record<string, number>>
+
+function DataAuditSection() {
+  const { projects } = useProjects()
+  const [selectedProjectId, setSelectedProjectId] = useState('')
+  const [counts, setCounts] = useState<AuditCounts>({})
+  const [loading, setLoading] = useState(false)
+  const [deleting, setDeleting] = useState<string | null>(null)
+  const [auditDone, setAuditDone] = useState(false)
+
+  const runAudit = async () => {
+    if (!selectedProjectId) return
+    setLoading(true)
+    setAuditDone(false)
+    const result: AuditCounts = {}
+    await Promise.all(
+      AUDIT_COLLECTIONS.map(async ({ key }) => {
+        const snap = await getDocs(query(collection(db, key), where('projectId', '==', selectedProjectId)))
+        result[key] = snap.size
+      })
+    )
+    setCounts(result)
+    setAuditDone(true)
+    setLoading(false)
+  }
+
+  const clearCollection = async (colKey: string, label: string) => {
+    if (!selectedProjectId) return
+    if (!confirm(`Delete ALL ${label} for this project? This cannot be undone.`)) return
+    setDeleting(colKey)
+    const snap = await getDocs(query(collection(db, colKey), where('projectId', '==', selectedProjectId)))
+    const batch = writeBatch(db)
+    snap.docs.forEach(d => batch.delete(d.ref))
+    await batch.commit()
+    setCounts(prev => ({ ...prev, [colKey]: 0 }))
+    setDeleting(null)
+  }
+
+  const totalItems = Object.values(counts).reduce((s, n) => s + (n ?? 0), 0)
+
+  return (
+    <Section title="Data Audit" icon={Database}>
+      <div className="space-y-4">
+        <p className="text-xs text-slate-500">
+          Inspect and clean up data for a specific project. Use this to find and remove any items that were imported or seeded accidentally.
+        </p>
+
+        {/* Project selector + run */}
+        <div className="flex gap-2">
+          <select
+            value={selectedProjectId}
+            onChange={e => { setSelectedProjectId(e.target.value); setAuditDone(false); setCounts({}) }}
+            className="flex-1 bg-slate-900 border border-slate-700 text-slate-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+          >
+            <option value="">Select a project…</option>
+            {projects.map(p => (
+              <option key={p.id} value={p.id}>{p.projectName}</option>
+            ))}
+          </select>
+          <button
+            onClick={runAudit}
+            disabled={!selectedProjectId || loading}
+            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg disabled:opacity-50 transition-colors shrink-0"
+          >
+            {loading ? (
+              <><span className="animate-spin w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full" /> Scanning…</>
+            ) : 'Run Audit'}
+          </button>
+        </div>
+
+        {/* Results */}
+        {auditDone && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs text-slate-500 pb-1">
+              <span>Collection</span>
+              <span>{totalItems} total items</span>
+            </div>
+            {AUDIT_COLLECTIONS.map(({ key, label }) => {
+              const count = counts[key] ?? 0
+              return (
+                <div key={key} className={clsx(
+                  'flex items-center justify-between px-3 py-2 rounded-lg border',
+                  count > 0
+                    ? 'bg-amber-900/20 border-amber-700/40'
+                    : 'bg-slate-900/40 border-slate-700/50'
+                )}>
+                  <div className="flex items-center gap-2">
+                    <span className={clsx(
+                      'w-6 h-6 flex items-center justify-center text-xs font-bold rounded-full',
+                      count > 0 ? 'bg-amber-600 text-white' : 'bg-slate-700 text-slate-400'
+                    )}>
+                      {count}
+                    </span>
+                    <span className={clsx('text-sm', count > 0 ? 'text-slate-200' : 'text-slate-500')}>{label}</span>
+                  </div>
+                  {count > 0 && (
+                    <button
+                      onClick={() => clearCollection(key, label)}
+                      disabled={deleting === key}
+                      className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 border border-red-800/60 hover:border-red-700 px-2 py-1 rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      {deleting === key ? (
+                        <span className="animate-spin w-3 h-3 border border-red-400 border-t-transparent rounded-full" />
+                      ) : (
+                        <Trash2 size={11} />
+                      )}
+                      {deleting === key ? 'Deleting…' : `Clear ${count}`}
+                    </button>
+                  )}
+                </div>
+              )
+            })}
+            {totalItems === 0 && (
+              <p className="text-xs text-emerald-400 text-center py-2">No data found in any collection for this project.</p>
+            )}
+          </div>
+        )}
+      </div>
+    </Section>
   )
 }
 
@@ -287,6 +516,12 @@ export function SettingsPage() {
           </div>
         </Section>
       )}
+
+      {/* Project Types */}
+      <ProjectTypesSection />
+
+      {/* Data Audit */}
+      <DataAuditSection />
 
       {/* API Keys */}
       <ApiKeysSection />

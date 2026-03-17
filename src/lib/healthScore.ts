@@ -21,8 +21,8 @@ export interface HealthOptions {
 
 export function computeHealth(p: Project, opts: HealthOptions = {}): HealthBreakdown {
   // ── Budget component (40 pts) ────────────────────────────────────────────
-  let budget = 40
-  let budgetLabel = 'On budget'
+  let budget = 0
+  let budgetLabel = 'Budget not set'
   let budgetVariancePct: number | null = null
 
   if (p.totalBudget > 0) {
@@ -45,14 +45,14 @@ export function computeHealth(p: Project, opts: HealthOptions = {}): HealthBreak
   // Uses SPI = EV / PV when both task completion % and project dates are known.
   // EV = taskCompletionPct / 100
   // PV = elapsed time / total project duration (0–1)
-  let schedule = 35
-  let scheduleLabel = 'On schedule'
+  let schedule = 0
+  let scheduleLabel = 'No schedule set'
   let daysToCompletion: number | null = null
   let spi: number | null = null
 
   const closedStatuses = ['closed', 'closeout', 'defect-period']
   if (closedStatuses.includes(p.status)) {
-    schedule = 35; scheduleLabel = 'Project closing'
+    schedule = p.targetCompletionDate ? 35 : 20; scheduleLabel = 'Project closing'
   } else if (p.startDate && p.targetCompletionDate) {
     const start = new Date(p.startDate).getTime()
     const end   = new Date(p.targetCompletionDate).getTime()
@@ -60,6 +60,9 @@ export function computeHealth(p: Project, opts: HealthOptions = {}): HealthBreak
     const totalDuration = end - start
 
     daysToCompletion = Math.ceil((end - now) / (1000 * 60 * 60 * 24))
+
+    // Phases where task tracking is expected — no tasks = can't assess schedule
+    const activeDeliveryPhase = ['design', 'construction', 'handover'].includes(p.status)
 
     if (totalDuration > 0 && opts.taskCompletionPct !== undefined) {
       const pv = Math.min(1, Math.max(0, (now - start) / totalDuration))  // planned progress
@@ -80,8 +83,10 @@ export function computeHealth(p: Project, opts: HealthOptions = {}): HealthBreak
         schedule = 35; scheduleLabel = 'Project started'
       }
     } else if (p.targetCompletionDate) {
-      // Fallback: days-to-completion heuristic when no task data
-      if (daysToCompletion > 60) {
+      // No task data — penalize active delivery phases that should be tracking tasks
+      if (activeDeliveryPhase) {
+        schedule = 15; scheduleLabel = 'No tasks tracked'
+      } else if (daysToCompletion > 60) {
         schedule = 35; scheduleLabel = 'On schedule'
       } else if (daysToCompletion > 30) {
         schedule = 28; scheduleLabel = `${daysToCompletion}d to completion`
@@ -98,7 +103,10 @@ export function computeHealth(p: Project, opts: HealthOptions = {}): HealthBreak
       (new Date(p.targetCompletionDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
     )
     daysToCompletion = days
-    if (days > 60) {
+    const activeDeliveryPhase = ['design', 'construction', 'handover'].includes(p.status)
+    if (activeDeliveryPhase) {
+      schedule = 15; scheduleLabel = 'No tasks tracked'
+    } else if (days > 60) {
       schedule = 35; scheduleLabel = 'On schedule'
     } else if (days > 30) {
       schedule = 28; scheduleLabel = `${days}d to completion`

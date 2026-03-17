@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useMasterTasks } from '@/hooks/useMasterTasks'
-import { collection, addDoc, doc, deleteDoc, updateDoc } from 'firebase/firestore'
+import { collection, addDoc, doc, deleteDoc, updateDoc, getDocs, query, where, writeBatch } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { Plus, Search, Trash2, ChevronDown, ChevronRight, Check, Pencil } from 'lucide-react'
 import type { MasterTask } from '@/hooks/useMasterTasks'
@@ -260,7 +260,10 @@ function AddTaskPanel({
     const finalCat = addingSub && newSub.trim() ? newSub.trim() : category
     if (!finalCat) return
     setSaving(true)
-    await addDoc(collection(db, 'masterTasks'), {
+    const now = new Date().toISOString()
+
+    // 1. Add to master checklist
+    const masterRef = await addDoc(collection(db, 'masterTasks'), {
       title: title.trim(),
       category: finalCat,
       phase: finalCat,
@@ -270,9 +273,44 @@ function AddTaskPanel({
       order: Date.now(),
       notes: notes.trim(),
       subtasks: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: now,
+      updatedAt: now,
     })
+
+    // 2. Find all projects that have been seeded from the master template
+    const seededSnap = await getDocs(
+      query(collection(db, 'tasks'), where('isFromMasterChecklist', '==', true))
+    )
+    const projectIds = [...new Set(seededSnap.docs.map(d => (d.data() as { projectId: string }).projectId))]
+
+    // 3. Batch-write the new task into each seeded project (chunks of 400)
+    if (projectIds.length > 0) {
+      const chunks: string[][] = []
+      for (let i = 0; i < projectIds.length; i += 400) chunks.push(projectIds.slice(i, i + 400))
+      for (const chunk of chunks) {
+        const batch = writeBatch(db)
+        chunk.forEach(projectId => {
+          const ref = doc(collection(db, 'tasks'))
+          batch.set(ref, {
+            projectId,
+            title: title.trim(),
+            category: finalCat,
+            phase: finalCat,
+            assignedTo: finalTeam,
+            priority: 'medium',
+            status: 'not-started',
+            order: Date.now(),
+            notes: notes.trim(),
+            isFromMasterChecklist: true,
+            masterTaskId: masterRef.id,
+            createdAt: now,
+            updatedAt: now,
+          })
+        })
+        await batch.commit()
+      }
+    }
+
     setSaving(false)
     onDone()
   }
@@ -366,7 +404,7 @@ function AddTaskPanel({
           disabled={saving || !canSave}
           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-40 transition-colors"
         >
-          <Plus size={14} /> {saving ? 'Adding...' : 'Add Task'}
+          <Plus size={14} /> {saving ? 'Syncing to projects...' : 'Add Task'}
         </button>
         <button onClick={onDone} className="text-sm text-slate-500 hover:text-slate-300 px-3 py-2">
           Cancel

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { clsx } from 'clsx'
 import { AlertTriangle, Info, Sparkles, X, ChevronDown, ChevronRight, RefreshCw } from 'lucide-react'
 import { useAIInsights } from '@/hooks/useAIInsights'
@@ -91,6 +91,16 @@ export function AIInsightsPanel({
   const { insights, loading, dismiss, addInsight, deleteInsight } = useAIInsights(input.project.id)
   const [refreshing, setRefreshing] = useState(false)
   const [showAll, setShowAll] = useState(false)
+  const autoTriggered = useRef(false)
+
+  // Auto-generate on first load when no insights exist in Firestore
+  useEffect(() => {
+    if (!loading && !refreshing && insights.length === 0 && !autoTriggered.current) {
+      autoTriggered.current = true
+      const fresh = generateInsights(input)
+      Promise.all(fresh.map(i => addInsight(i))).catch(() => {})
+    }
+  }, [loading, insights.length]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const refreshInsights = async () => {
     setRefreshing(true)

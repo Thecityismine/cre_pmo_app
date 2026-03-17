@@ -7,6 +7,8 @@ import { NewProjectModal } from '@/components/NewProjectModal'
 import { exportProjectsCsv } from '@/lib/exportCsv'
 import { computeHealth, healthColor, healthBg } from '@/lib/healthScore'
 import { usePortfolioTaskStats, type ProjectTaskStat } from '@/hooks/usePortfolioTaskStats'
+import { usePortfolioInsights } from '@/hooks/useAIInsights'
+import { useProjectTypes } from '@/hooks/useProjectTypes'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -91,7 +93,7 @@ function HealthBadge({ score }: { score: number }) {
   )
 }
 
-function ProjectCard({ project, taskStat, onClick }: { project: ReturnType<typeof useProjects>['projects'][0]; taskStat?: ProjectTaskStat; onClick: () => void }) {
+function ProjectCard({ project, taskStat, insightSeverity, onClick }: { project: ReturnType<typeof useProjects>['projects'][0]; taskStat?: ProjectTaskStat; insightSeverity?: 'critical' | 'warning' | null; onClick: () => void }) {
   const health = computeHealth(project)
   const atRisk = project.forecastCost > project.totalBudget
   const budgetPct = project.totalBudget > 0 ? Math.min(100, Math.round((project.actualCost / project.totalBudget) * 100)) : 0
@@ -110,7 +112,19 @@ function ProjectCard({ project, taskStat, onClick }: { project: ReturnType<typeo
       {/* Top row */}
       <div className="flex items-start justify-between gap-2 mb-1">
         <p className="text-slate-100 font-semibold leading-tight truncate flex-1">{project.projectName}</p>
-        {atRisk && <AlertTriangle size={14} className="text-red-400 shrink-0 mt-0.5" />}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {insightSeverity === 'critical' && (
+            <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-red-900/60 text-red-300 text-[10px] font-medium">
+              <AlertTriangle size={10} /> Risk
+            </span>
+          )}
+          {insightSeverity === 'warning' && !atRisk && (
+            <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-900/60 text-amber-300 text-[10px] font-medium">
+              <AlertTriangle size={10} /> Warn
+            </span>
+          )}
+          {atRisk && <AlertTriangle size={14} className="text-red-400" />}
+        </div>
       </div>
       <p className="text-slate-500 text-xs mb-3">{project.projectNumber} · {project.city}, {project.state}</p>
 
@@ -174,7 +188,7 @@ function ProjectCard({ project, taskStat, onClick }: { project: ReturnType<typeo
 
 // ─── List row ─────────────────────────────────────────────────────────────────
 
-function ProjectRow({ project, onClick }: { project: ReturnType<typeof useProjects>['projects'][0]; onClick: () => void }) {
+function ProjectRow({ project, insightSeverity, onClick }: { project: ReturnType<typeof useProjects>['projects'][0]; insightSeverity?: 'critical' | 'warning' | null; onClick: () => void }) {
   const atRisk = project.forecastCost > project.totalBudget
   const health = computeHealth(project)
 
@@ -186,6 +200,8 @@ function ProjectRow({ project, onClick }: { project: ReturnType<typeof useProjec
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <p className="text-slate-100 font-medium text-sm truncate">{project.projectName}</p>
+          {insightSeverity === 'critical' && <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" title="Critical risk insight" />}
+          {insightSeverity === 'warning' && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" title="Warning insight" />}
           {atRisk && <AlertTriangle size={12} className="text-red-400 shrink-0" />}
         </div>
         <p className="text-slate-500 text-xs mt-0.5">{project.projectNumber} · {project.city}, {project.state}</p>
@@ -223,11 +239,23 @@ function ProjectRow({ project, onClick }: { project: ReturnType<typeof useProjec
 export function ProjectsPage() {
   const { projects, loading } = useProjects()
   const { stats: taskStats } = usePortfolioTaskStats(projects.map(p => p.id))
+  const { insights: portfolioInsights } = usePortfolioInsights(projects.map(p => p.id))
   const navigate = useNavigate()
+
+  // Highest severity per project
+  const insightMap = useMemo(() => {
+    const map: Record<string, 'critical' | 'warning'> = {}
+    for (const i of portfolioInsights) {
+      const cur = map[i.projectId]
+      if (!cur || (i.severity === 'critical')) map[i.projectId] = i.severity as 'critical' | 'warning'
+    }
+    return map
+  }, [portfolioInsights])
 
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
-  const [profileFilter, setProfileFilter] = useState<'all' | 'L' | 'S' | 'E'>('all')
+  const [profileFilter, setProfileFilter] = useState<string>('all')
+  const { types: projectTypes } = useProjectTypes()
   const [activeOnly, setActiveOnly] = useState(false)
   const [sort, setSort] = useState('name-asc')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
@@ -367,23 +395,20 @@ export function ProjectsPage() {
             Active only
           </button>
 
-          {/* Profile filter */}
-          {(['L', 'S', 'E'] as const).map(p => (
-            <button
-              key={p}
-              onClick={() => setProfileFilter(profileFilter === p ? 'all' : p)}
-              className={clsx(
-                'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border',
-                profileFilter === p
-                  ? p === 'L' ? 'bg-blue-600 text-white border-blue-600'
-                  : p === 'S' ? 'bg-purple-600 text-white border-purple-600'
-                  : 'bg-amber-600 text-white border-amber-600'
-                  : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-200'
-              )}
-            >
-              {p === 'L' ? 'Light' : p === 'S' ? 'Standard' : 'Enhanced'}
-            </button>
-          ))}
+          {/* Profile type filter */}
+          <select
+            value={profileFilter}
+            onChange={e => setProfileFilter(e.target.value)}
+            className={clsx(
+              'bg-slate-800 border text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-500 transition-colors',
+              profileFilter !== 'all' ? 'border-blue-500 text-blue-300' : 'border-slate-700 text-slate-400'
+            )}
+          >
+            <option value="all">All Types</option>
+            {projectTypes.map(t => (
+              <option key={t.code} value={t.code}>{t.label}</option>
+            ))}
+          </select>
 
           {/* Status dropdown on mobile, pills on desktop for common statuses */}
           <select
@@ -425,13 +450,13 @@ export function ProjectsPage() {
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filtered.map(p => (
-            <ProjectCard key={p.id} project={p} taskStat={taskStats[p.id]} onClick={() => navigate(`/projects/${p.id}`)} />
+            <ProjectCard key={p.id} project={p} taskStat={taskStats[p.id]} insightSeverity={insightMap[p.id]} onClick={() => navigate(`/projects/${p.id}`)} />
           ))}
         </div>
       ) : (
         <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
           {filtered.map(p => (
-            <ProjectRow key={p.id} project={p} onClick={() => navigate(`/projects/${p.id}`)} />
+            <ProjectRow key={p.id} project={p} insightSeverity={insightMap[p.id]} onClick={() => navigate(`/projects/${p.id}`)} />
           ))}
         </div>
       )}

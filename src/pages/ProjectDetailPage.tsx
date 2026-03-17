@@ -251,9 +251,7 @@ function TaskRow({ task }: { task: Task }) {
   const [showDrawer, setShowDrawer] = useState(false)
 
   const cycleStatus = async () => {
-    const order: TaskStatus[] = ['not-started', 'in-progress', 'complete', 'n-a']
-    const curr = order.indexOf(task.status as TaskStatus)
-    const next = order[(curr + 1) % order.length]
+    const next = task.status === 'complete' ? 'not-started' : 'complete'
     await updateDoc(doc(db, 'tasks', task.id), { status: next, updatedAt: new Date().toISOString() })
   }
 
@@ -431,6 +429,7 @@ export function ProjectDetailPage() {
   const [showEdit, setShowEdit] = useState(false)
   const [seeding, setSeeding] = useState(false)
 
+  // Seed all master tasks (first-time setup)
   const seedFromTemplate = async () => {
     if (!id || masterTasks.length === 0) return
     setSeeding(true)
@@ -450,6 +449,41 @@ export function ProjectDetailPage() {
           order: mt.order ?? 0,
           notes: mt.notes || '',
           isFromMasterChecklist: true,
+          masterTaskId: mt.id,
+          createdAt: now,
+          updatedAt: now,
+        })
+      })
+      await batch.commit()
+    } finally {
+      setSeeding(false)
+    }
+  }
+
+  // Sync only master tasks not yet in this project (by title match)
+  const existingTitles = new Set(tasks.map(t => t.title.trim().toLowerCase()))
+  const missingMasterTasks = masterTasks.filter(mt => !existingTitles.has(mt.title.trim().toLowerCase()))
+
+  const syncMissingTasks = async () => {
+    if (!id || missingMasterTasks.length === 0) return
+    setSeeding(true)
+    try {
+      const now = new Date().toISOString()
+      const batch = writeBatch(db)
+      missingMasterTasks.forEach(mt => {
+        const ref = doc(collection(db, 'tasks'))
+        batch.set(ref, {
+          projectId: id,
+          title: mt.title,
+          category: mt.category,
+          phase: mt.phase,
+          assignedTo: mt.assignedTeam || '',
+          priority: (mt.defaultPriority as Task['priority']) || 'medium',
+          status: 'not-started',
+          order: mt.order ?? 0,
+          notes: mt.notes || '',
+          isFromMasterChecklist: true,
+          masterTaskId: mt.id,
           createdAt: now,
           updatedAt: now,
         })
@@ -870,16 +904,16 @@ export function ProjectDetailPage() {
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
-            {/* Apply template button — only shown when tasks exist too, as a secondary action */}
-            {tasks.length > 0 && masterTasks.length > 0 && (
+            {/* Sync missing master tasks */}
+            {tasks.length > 0 && missingMasterTasks.length > 0 && (
               <button
-                onClick={seedFromTemplate}
+                onClick={syncMissingTasks}
                 disabled={seeding}
-                className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-700 hover:border-slate-600 px-3 py-2 rounded-lg transition-colors disabled:opacity-50"
-                title={`Append ${masterTasks.length} tasks from master template`}
+                className="flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 border border-amber-700/50 hover:border-amber-600 px-3 py-2 rounded-lg transition-colors disabled:opacity-50"
+                title={`Add ${missingMasterTasks.length} task(s) from master checklist not yet in this project`}
               >
                 <Plus size={12} />
-                {seeding ? 'Applying…' : 'Apply Template'}
+                {seeding ? 'Syncing…' : `Sync Missing (${missingMasterTasks.length})`}
               </button>
             )}
           </div>

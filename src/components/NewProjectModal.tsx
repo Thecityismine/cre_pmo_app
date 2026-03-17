@@ -4,7 +4,8 @@ import { db } from '@/lib/firebase'
 import { useAuthStore } from '@/store/authStore'
 import { X } from 'lucide-react'
 import { clsx } from 'clsx'
-import type { ProjectProfile, ProjectStatus } from '@/types'
+import type { ProjectStatus } from '@/types'
+import { useProjectTypes } from '@/hooks/useProjectTypes'
 
 interface Props {
   onClose: () => void
@@ -23,13 +24,14 @@ const STATUSES: { value: ProjectStatus; label: string }[] = [
 
 export function NewProjectModal({ onClose }: Props) {
   const user = useAuthStore((s) => s.user)
+  const { types: projectTypes } = useProjectTypes()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
   const [form, setForm] = useState({
     projectName: '',
     projectNumber: '',
-    profile: 'S' as ProjectProfile,
+    profile: 'S',
     status: 'planning' as ProjectStatus,
     clientName: 'JPMorgan Chase',
     businessUnit: '',
@@ -166,11 +168,11 @@ export function NewProjectModal({ onClose }: Props) {
               <Field label="Project Number (SO#)">
                 <input value={form.projectNumber} onChange={e => set('projectNumber', e.target.value)} placeholder="SO09897" className={input()} />
               </Field>
-              <Field label="Profile">
+              <Field label="Project Type">
                 <select value={form.profile} onChange={e => set('profile', e.target.value)} className={input()}>
-                  <option value="L">Light (L)</option>
-                  <option value="S">Standard (S)</option>
-                  <option value="E">Enhanced (E)</option>
+                  {projectTypes.map(t => (
+                    <option key={t.code} value={t.code}>{t.label} ({t.code})</option>
+                  ))}
                 </select>
               </Field>
             </div>

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { clsx } from 'clsx'
 import {
   Plus, Trash2, Check, ChevronDown, ChevronRight,
-  AlertCircle, Clock, MessageSquare, Download, AlertTriangle,
+  AlertCircle, Clock, MessageSquare, Download, AlertTriangle, Search, Timer,
 } from 'lucide-react'
 import { useRfis } from '@/hooks/useRfis'
 import type { Rfi, RfiStatus, RfiStatusEvent } from '@/hooks/useRfis'
@@ -27,6 +27,24 @@ function fmtDate(iso: string) {
 
 function fmtDateShort(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+function daysSince(iso: string) {
+  return Math.floor((Date.now() - new Date(iso).getTime()) / (1000 * 60 * 60 * 24))
+}
+
+function daysUntil(iso: string) {
+  return Math.ceil((new Date(iso).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+}
+
+function avgResponseDays(rfis: Rfi[]): number | null {
+  const answered = rfis.filter(r => r.answeredDate && r.createdAt)
+  if (answered.length === 0) return null
+  const total = answered.reduce((sum, r) => {
+    const ms = new Date(r.answeredDate).getTime() - new Date(r.createdAt).getTime()
+    return sum + Math.max(0, Math.round(ms / (1000 * 60 * 60 * 24)))
+  }, 0)
+  return Math.round(total / answered.length)
 }
 
 function exportToCsv(rfis: Rfi[], projectName: string) {
@@ -141,12 +159,14 @@ function RfiRow({
     setEditing(false)
   }
 
-  const isOverdue = rfi.dueDate && (rfi.status === 'open' || rfi.status === 'draft') &&
-    new Date(rfi.dueDate) < new Date()
-
+  const isActive = rfi.status === 'open' || rfi.status === 'draft'
+  const isOverdue = isActive && rfi.dueDate && new Date(rfi.dueDate) < new Date()
+  const dueSoonDays = !isOverdue && isActive && rfi.dueDate ? daysUntil(rfi.dueDate) : null
+  const isDueSoon = dueSoonDays !== null && dueSoonDays <= 7
   const daysOverdue = isOverdue
     ? Math.ceil((Date.now() - new Date(rfi.dueDate).getTime()) / (1000 * 60 * 60 * 24))
     : 0
+  const daysOpen = isActive ? daysSince(rfi.createdAt) : null
 
   if (editing) {
     return (
@@ -185,7 +205,9 @@ function RfiRow({
   return (
     <div className={clsx(
       'border rounded-xl overflow-hidden transition-colors',
-      isOverdue ? 'border-red-800/50 bg-red-950/10' : 'border-slate-700 bg-slate-800'
+      isOverdue ? 'border-red-800/50 bg-red-950/10'
+      : isDueSoon ? 'border-amber-800/40 bg-amber-950/10'
+      : 'border-slate-700 bg-slate-800'
     )}>
       <div className="flex items-center gap-3 px-4 py-3 group">
         <span className="text-xs font-mono text-slate-500 shrink-0 w-14">RFI-{String(rfi.number).padStart(3, '0')}</span>
@@ -197,10 +219,20 @@ function RfiRow({
             {rfi.assignedTo && <span>→ {rfi.assignedTo}</span>}
             {rfi.specSection && <span className="text-slate-600">· {rfi.specSection}</span>}
             {rfi.dueDate && (
-              <span className={clsx('flex items-center gap-0.5', isOverdue ? 'text-red-400 font-medium' : 'text-slate-500')}>
+              <span className={clsx('flex items-center gap-0.5',
+                isOverdue ? 'text-red-400 font-medium'
+                : isDueSoon ? 'text-amber-400 font-medium'
+                : 'text-slate-500'
+              )}>
                 {isOverdue ? <AlertCircle size={10} /> : <Clock size={10} />}
                 Due {fmtDateShort(rfi.dueDate)}
                 {isOverdue && ` — ${daysOverdue}d overdue`}
+                {isDueSoon && ` — due in ${dueSoonDays}d`}
+              </span>
+            )}
+            {daysOpen !== null && daysOpen > 0 && (
+              <span className="flex items-center gap-0.5 text-slate-600">
+                <Timer size={10} /> {daysOpen}d open
               </span>
             )}
           </div>
@@ -358,33 +390,78 @@ function OverdueBanner({ overdueRfis }: { overdueRfis: Rfi[] }) {
 export function RfiTab({ project }: { project: Project }) {
   const { rfis, loading, addRfi, updateRfi, deleteRfi, nextNumber, openCount, overdueCount } = useRfis(project.id)
   const [statusFilter, setStatusFilter] = useState<RfiStatus | 'all'>('all')
+  const [search, setSearch] = useState('')
   const [showAdd, setShowAdd] = useState(false)
 
-  const filtered = statusFilter === 'all' ? rfis : rfis.filter(r => r.status === statusFilter)
   const overdueRfis = rfis.filter(r =>
     (r.status === 'open' || r.status === 'draft') &&
     r.dueDate && new Date(r.dueDate) < new Date()
   )
+  const dueSoonRfis = rfis.filter(r => {
+    if (r.status !== 'open' && r.status !== 'draft') return false
+    if (!r.dueDate || new Date(r.dueDate) < new Date()) return false
+    return daysUntil(r.dueDate) <= 7
+  })
+
+  const filtered = rfis.filter(r => {
+    const matchStatus = statusFilter === 'all' || r.status === statusFilter
+    const q = search.toLowerCase()
+    const matchSearch = !q || r.subject.toLowerCase().includes(q) ||
+      (r.specSection || '').toLowerCase().includes(q) ||
+      (r.submittedBy || '').toLowerCase().includes(q) ||
+      (r.assignedTo || '').toLowerCase().includes(q) ||
+      `rfi-${String(r.number).padStart(3, '0')}`.includes(q)
+    return matchStatus && matchSearch
+  })
+
+  const avgResp = avgResponseDays(rfis)
 
   return (
     <div className="space-y-4">
       {/* Summary cards */}
-      <div className="grid grid-cols-4 gap-3">
-        {[
-          { label: 'Total RFIs', value: rfis.length, color: 'text-slate-100' },
-          { label: 'Open', value: openCount, color: openCount > 0 ? 'text-amber-400' : 'text-slate-100' },
-          { label: 'Overdue', value: overdueCount, color: overdueCount > 0 ? 'text-red-400' : 'text-slate-100' },
-          { label: 'Closed', value: rfis.filter(r => r.status === 'closed').length, color: 'text-emerald-400' },
-        ].map(s => (
-          <div key={s.label} className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-center">
-            <p className={clsx('text-xl font-bold', s.color)}>{s.value}</p>
-            <p className="text-xs text-slate-500 mt-0.5">{s.label}</p>
-          </div>
-        ))}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-center">
+          <p className="text-xl font-bold text-slate-100">{rfis.length}</p>
+          <p className="text-xs text-slate-500 mt-0.5">Total RFIs</p>
+        </div>
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-center">
+          <p className={clsx('text-xl font-bold', openCount > 0 ? 'text-amber-400' : 'text-slate-100')}>{openCount}</p>
+          <p className="text-xs text-slate-500 mt-0.5">Open</p>
+        </div>
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-center">
+          <p className={clsx('text-xl font-bold', overdueCount > 0 ? 'text-red-400' : 'text-slate-100')}>{overdueCount}</p>
+          <p className="text-xs text-slate-500 mt-0.5">Overdue</p>
+        </div>
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-center">
+          <p className={clsx('text-xl font-bold', avgResp !== null ? 'text-blue-400' : 'text-slate-600')}>
+            {avgResp !== null ? `${avgResp}d` : '—'}
+          </p>
+          <p className="text-xs text-slate-500 mt-0.5">Avg Response</p>
+        </div>
       </div>
 
       {/* Overdue alert banner */}
       <OverdueBanner overdueRfis={overdueRfis} />
+
+      {/* Due soon banner */}
+      {dueSoonRfis.length > 0 && overdueRfis.length === 0 && (
+        <div className="flex items-start gap-3 bg-amber-950/30 border border-amber-800/40 rounded-xl px-4 py-3">
+          <Clock size={15} className="text-amber-400 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold text-amber-300">
+              {dueSoonRfis.length} RFI{dueSoonRfis.length > 1 ? 's' : ''} due within 7 days
+            </p>
+            <div className="mt-1 space-y-0.5">
+              {dueSoonRfis.map(r => (
+                <p key={r.id} className="text-xs text-amber-400/70">
+                  RFI-{String(r.number).padStart(3, '0')} — {r.subject}
+                  <span className="ml-1">({daysUntil(r.dueDate)}d remaining)</span>
+                </p>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Toolbar */}
       <div className="flex items-center gap-2 flex-wrap">
@@ -404,6 +481,18 @@ export function RfiTab({ project }: { project: Project }) {
             </button>
           ))}
         </div>
+
+        {/* Search */}
+        <div className="relative flex-1 min-w-[160px] max-w-xs">
+          <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search RFIs…"
+            className="w-full bg-slate-800 text-slate-200 placeholder-slate-500 text-xs rounded-lg pl-8 pr-3 py-1.5 border border-slate-700 focus:outline-none focus:border-blue-500"
+          />
+        </div>
+
         <div className="flex-1" />
         {rfis.length > 0 && (
           <button

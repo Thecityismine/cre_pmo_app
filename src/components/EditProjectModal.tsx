@@ -4,7 +4,8 @@ import { db } from '@/lib/firebase'
 import { X, Trash2, AlertTriangle } from 'lucide-react'
 import { clsx } from 'clsx'
 import { useNavigate } from 'react-router-dom'
-import type { Project, ProjectProfile, ProjectStatus } from '@/types'
+import type { Project, ProjectStatus } from '@/types'
+import { useProjectTypes } from '@/hooks/useProjectTypes'
 
 // All Firestore collections that store per-project data
 const PROJECT_SUBCOLLECTIONS = [
@@ -53,6 +54,7 @@ const STATUSES: { value: ProjectStatus; label: string }[] = [
 
 export function EditProjectModal({ project, onClose }: Props) {
   const navigate = useNavigate()
+  const { types: projectTypes } = useProjectTypes()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [showDelete, setShowDelete] = useState(false)
@@ -111,7 +113,7 @@ export function EditProjectModal({ project, onClose }: Props) {
       await updateDoc(doc(db, 'projects', project.id), {
         projectName:          form.projectName.trim(),
         projectNumber:        form.projectNumber.trim(),
-        profile:              form.profile as ProjectProfile,
+        profile:              form.profile,
         status:               form.status as ProjectStatus,
         clientName:           form.clientName,
         businessUnit:         form.businessUnit,
@@ -171,11 +173,11 @@ export function EditProjectModal({ project, onClose }: Props) {
               <Field label="Project Number (SO#)">
                 <input value={form.projectNumber} onChange={e => set('projectNumber', e.target.value)} placeholder="SO09897" className={inp()} />
               </Field>
-              <Field label="Profile">
+              <Field label="Project Type">
                 <select value={form.profile} onChange={e => set('profile', e.target.value)} className={inp()}>
-                  <option value="L">Light (L)</option>
-                  <option value="S">Standard (S)</option>
-                  <option value="E">Enhanced (E)</option>
+                  {projectTypes.map(t => (
+                    <option key={t.code} value={t.code}>{t.label} ({t.code})</option>
+                  ))}
                 </select>
               </Field>
             </div>

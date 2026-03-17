@@ -28,6 +28,9 @@ export function Topbar({ onAIOpen }: { onAIOpen?: () => void }) {
         </div>
       ) : (
         <>
+          {/* Desktop logo */}
+          <img src="/App-Logo.png" alt="ProjeX" className="hidden md:block h-8 w-auto object-contain mr-4"  />
+
           {/* Desktop search */}
           <div className="relative hidden md:block">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
@@ -38,8 +41,8 @@ export function Topbar({ onAIOpen }: { onAIOpen?: () => void }) {
             />
           </div>
 
-          {/* Mobile: app title */}
-          <span className="text-slate-100 font-semibold text-sm md:hidden">ProjeX</span>
+          {/* Mobile: app logo */}
+          <img src="/App-Logo.png" alt="ProjeX" className="h-8 w-auto object-contain md:hidden"  />
 
           {/* Right actions */}
           <div className="flex items-center gap-2 md:gap-3">
