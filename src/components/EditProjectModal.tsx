@@ -1,9 +1,34 @@
 import { useState } from 'react'
-import { doc, updateDoc } from 'firebase/firestore'
+import { doc, updateDoc, deleteDoc, collection, query, where, getDocs, writeBatch } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
-import { X } from 'lucide-react'
+import { X, Trash2, AlertTriangle } from 'lucide-react'
 import { clsx } from 'clsx'
+import { useNavigate } from 'react-router-dom'
 import type { Project, ProjectProfile, ProjectStatus } from '@/types'
+
+// All Firestore collections that store per-project data
+const PROJECT_SUBCOLLECTIONS = [
+  'tasks', 'budgetItems', 'milestones', 'rfis', 'changeOrders',
+  'submittals', 'bids', 'punchList', 'raidLog', 'scheduleItems',
+  'meetingNotes', 'projectDocuments', 'aiInsights', 'projectTeam',
+]
+
+async function cascadeDeleteProject(projectId: string) {
+  // Delete all sub-collection docs in batches of 400
+  for (const col of PROJECT_SUBCOLLECTIONS) {
+    const snap = await getDocs(query(collection(db, col), where('projectId', '==', projectId)))
+    if (snap.empty) continue
+    const chunks: typeof snap.docs[] = []
+    for (let i = 0; i < snap.docs.length; i += 400) chunks.push(snap.docs.slice(i, i + 400))
+    for (const chunk of chunks) {
+      const batch = writeBatch(db)
+      chunk.forEach(d => batch.delete(d.ref))
+      await batch.commit()
+    }
+  }
+  // Delete the project itself
+  await deleteDoc(doc(db, 'projects', projectId))
+}
 
 interface Props {
   project: Project
@@ -23,8 +48,25 @@ const STATUSES: { value: ProjectStatus; label: string }[] = [
 ]
 
 export function EditProjectModal({ project, onClose }: Props) {
+  const navigate = useNavigate()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [showDelete, setShowDelete] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState('')
+  const [deleting, setDeleting] = useState(false)
+
+  const handleDelete = async () => {
+    if (deleteConfirm !== project.projectName) return
+    setDeleting(true)
+    try {
+      await cascadeDeleteProject(project.id)
+      onClose()
+      navigate('/projects')
+    } catch (err: unknown) {
+      setError((err as Error).message ?? 'Failed to delete project.')
+      setDeleting(false)
+    }
+  }
 
   const [form, setForm] = useState({
     projectName:          project.projectName,
@@ -212,6 +254,58 @@ export function EditProjectModal({ project, onClose }: Props) {
                 <span className="text-slate-300 text-sm">Active project (shows on dashboard)</span>
               </label>
             </div>
+          </div>
+
+          {/* Danger zone */}
+          <div className="px-6 pb-4">
+            {!showDelete ? (
+              <button
+                type="button"
+                onClick={() => setShowDelete(true)}
+                className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-400 transition-colors"
+              >
+                <Trash2 size={12} /> Delete this project
+              </button>
+            ) : (
+              <div className="bg-red-950/40 border border-red-800/60 rounded-xl p-4 space-y-3">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle size={14} className="text-red-400 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-red-300 text-sm font-semibold">Delete project permanently?</p>
+                    <p className="text-red-400/70 text-xs mt-0.5">
+                      This will delete the project and ALL related data — tasks, budget, schedule, RFIs, change orders, milestones, and more. This cannot be undone.
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs text-red-400 mb-1">Type <span className="font-mono font-semibold">{project.projectName}</span> to confirm:</p>
+                  <input
+                    value={deleteConfirm}
+                    onChange={e => setDeleteConfirm(e.target.value)}
+                    placeholder={project.projectName}
+                    className="w-full bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2 border border-red-800/60 focus:outline-none focus:border-red-500 placeholder-slate-600"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleDelete}
+                    disabled={deleting || deleteConfirm !== project.projectName}
+                    className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-2 rounded-lg disabled:opacity-40 transition-colors"
+                  >
+                    <Trash2 size={13} />
+                    {deleting ? 'Deleting…' : 'Delete Project'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setShowDelete(false); setDeleteConfirm('') }}
+                    className="text-sm text-slate-500 hover:text-slate-300 px-3 py-2"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Footer */}
