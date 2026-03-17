@@ -248,9 +248,9 @@ function TaskEditDrawer({ task, onClose }: { task: Task; onClose: () => void }) 
 // ─── Task Row ─────────────────────────────────────────────────────────────────
 
 function TaskRow({ task }: { task: Task }) {
-  const [showDrawer, setShowDrawer] = useState(false)
+  const [expanded, setExpanded] = useState(false)
 
-  const cycleStatus = async () => {
+  const toggleComplete = async () => {
     const next = task.status === 'complete' ? 'not-started' : 'complete'
     await updateDoc(doc(db, 'tasks', task.id), { status: next, updatedAt: new Date().toISOString() })
   }
@@ -262,63 +262,62 @@ function TaskRow({ task }: { task: Task }) {
     && new Date(task.dueDate) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
 
   return (
-    <>
-      <div className={clsx('border-b border-slate-700/50 last:border-0', isOverdue && 'bg-red-950/20')}>
-        <div className="flex items-center gap-3 px-4 py-3">
-          {/* Status toggle */}
-          <button
-            onClick={cycleStatus}
-            className={clsx(
-              'shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors',
-              task.status === 'complete'
-                ? 'bg-emerald-500 border-emerald-500'
-                : task.status === 'in-progress'
-                ? 'border-blue-500 bg-blue-500/20'
-                : 'border-slate-600 bg-transparent hover:border-slate-400'
-            )}
-          >
-            {task.status === 'complete' && (
-              <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-            )}
-          </button>
+    <div className={clsx('border-b border-slate-700/50 last:border-0', isOverdue && 'bg-red-950/20')}>
+      <div className="flex items-center gap-3 px-4 py-3">
+        {/* Checkbox */}
+        <button
+          onClick={toggleComplete}
+          className={clsx(
+            'shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors',
+            task.status === 'complete'
+              ? 'bg-emerald-500 border-emerald-500'
+              : 'border-slate-600 bg-transparent hover:border-slate-400'
+          )}
+        >
+          {task.status === 'complete' && (
+            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          )}
+        </button>
 
-          {/* Title + meta — click to open drawer */}
-          <button className="flex-1 min-w-0 text-left" onClick={() => setShowDrawer(true)}>
-            <p className={clsx(
-              'text-sm leading-snug',
-              task.status === 'complete' ? 'line-through text-slate-500' : 'text-slate-200 hover:text-white'
-            )}>
-              {task.title}
-            </p>
-            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-              {task.dueDate && (
-                <span className={clsx('flex items-center gap-0.5 text-xs', isOverdue ? 'text-red-400' : isDueSoon ? 'text-amber-400' : 'text-slate-500')}>
-                  {isOverdue ? <AlertCircle size={10} /> : <Clock size={10} />}
-                  {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                  {isOverdue && ' overdue'}
-                </span>
-              )}
-            </div>
-          </button>
-
-          {/* Discipline badge */}
-          {task.assignedTo && (
-            <span className={clsx('shrink-0 text-xs px-2 py-0.5 rounded font-medium hidden sm:inline-flex', disciplineColor(task.assignedTo))}>
-              {task.assignedTo}
+        {/* Title — click to expand notes */}
+        <button
+          className="flex-1 min-w-0 text-left"
+          onClick={() => task.notes ? setExpanded(!expanded) : undefined}
+        >
+          <p className={clsx(
+            'text-sm leading-snug',
+            task.status === 'complete' ? 'line-through text-slate-500' : 'text-slate-200'
+          )}>
+            {task.title}
+          </p>
+          {task.dueDate && (
+            <span className={clsx('flex items-center gap-0.5 text-xs mt-0.5', isOverdue ? 'text-red-400' : isDueSoon ? 'text-amber-400' : 'text-slate-500')}>
+              {isOverdue ? <AlertCircle size={10} /> : <Clock size={10} />}
+              {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              {isOverdue && ' overdue'}
             </span>
           )}
+        </button>
 
-          {/* Status badge */}
-          <span className={clsx('shrink-0 text-xs px-2 py-0.5 rounded font-medium hidden md:inline-flex', TASK_STATUS_COLORS[task.status as TaskStatus])}>
-            {TASK_STATUS_LABELS[task.status as TaskStatus]}
+        {/* Discipline badge */}
+        {task.assignedTo && (
+          <span className={clsx('shrink-0 text-xs px-2 py-0.5 rounded font-medium hidden sm:inline-flex', disciplineColor(task.assignedTo))}>
+            {task.assignedTo}
           </span>
-        </div>
+        )}
       </div>
 
-      {showDrawer && <TaskEditDrawer task={task} onClose={() => setShowDrawer(false)} />}
-    </>
+      {/* Inline notes expand */}
+      {expanded && task.notes && (
+        <div className="px-12 pb-3">
+          <p className="text-xs text-slate-400 bg-slate-900/60 rounded-lg px-3 py-2 border border-slate-700 whitespace-pre-wrap">
+            {task.notes}
+          </p>
+        </div>
+      )}
+    </div>
   )
 }
 

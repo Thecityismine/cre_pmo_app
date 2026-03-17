@@ -33,16 +33,12 @@ export function Sidebar() {
       )}
     >
       {/* Logo */}
-      <div className="flex items-center gap-3 px-4 py-5 border-b border-slate-700 overflow-hidden">
-        <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shrink-0">
-          <span className="text-white font-bold text-sm">C</span>
-        </div>
-        <span className={clsx(
-          'text-white font-semibold text-sm truncate transition-all duration-200',
-          collapsed ? 'hidden' : 'hidden lg:block'
-        )}>
-          ProjeX
-        </span>
+      <div className="flex items-center justify-center px-4 py-4 border-b border-slate-700 overflow-hidden">
+        <img
+          src="/App-Logo.png"
+          alt="ProjeX"
+          className={clsx('w-auto object-contain transition-all duration-200', collapsed ? 'h-7' : 'h-8')}
+        />
       </div>
 
       {/* Nav */}

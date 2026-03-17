@@ -1,6 +1,7 @@
 import { Bell, Search, User, X } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { AIChatButton } from '@/components/AIChatDrawer'
 
 export function Topbar({ onAIOpen }: { onAIOpen?: () => void }) {
@@ -60,10 +61,10 @@ export function Topbar({ onAIOpen }: { onAIOpen?: () => void }) {
               <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full" />
             </button>
 
-            <div className="flex items-center gap-2 pl-2 md:pl-3 border-l border-slate-700">
+            <Link to="/settings" className="flex items-center gap-2 pl-2 md:pl-3 border-l border-slate-700 hover:opacity-80 transition-opacity">
               <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center shrink-0">
                 {user?.photoURL ? (
-                  <img src={user.photoURL} alt={user.displayName} className="w-8 h-8 rounded-full" />
+                  <img src={user.photoURL} alt={user.displayName ?? ''} className="w-8 h-8 rounded-full" />
                 ) : (
                   <User size={16} className="text-white" />
                 )}
@@ -72,7 +73,7 @@ export function Topbar({ onAIOpen }: { onAIOpen?: () => void }) {
                 <p className="text-sm text-slate-200 leading-none truncate max-w-32">{user?.displayName ?? 'User'}</p>
                 <p className="text-xs text-slate-500 mt-0.5">{user?.role ?? ''}</p>
               </div>
-            </div>
+            </Link>
           </div>
         </>
       )}
