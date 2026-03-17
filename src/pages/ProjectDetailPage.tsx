@@ -7,7 +7,8 @@ import { clsx } from 'clsx'
 import {
   ArrowLeft, MapPin, DollarSign, Users, CheckSquare,
   Calendar, TrendingUp, ChevronDown, ChevronRight, Pencil, FileDown,
-  AlertCircle, Clock, ClipboardList, Plus,
+  AlertCircle, Clock, ClipboardList, Plus, X,
+  ClipboardCheck, FileText, BookOpen,
 } from 'lucide-react'
 import { doc, updateDoc, collection, writeBatch } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
@@ -24,6 +25,7 @@ import { BidLogTab } from '@/components/BidLogTab'
 import { PunchListTab } from '@/components/PunchListTab'
 import { ScheduleTab } from '@/components/ScheduleTab'
 import { MeetingNotesTab } from '@/components/MeetingNotesTab'
+import { TasksTab } from '@/components/TasksTab'
 import { useBudgetItems } from '@/hooks/useBudgetItems'
 import { useChangeOrders } from '@/hooks/useChangeOrders'
 import { useProjectDocuments } from '@/hooks/useProjectDocuments'
@@ -244,7 +246,7 @@ function HealthScorecard({ project, taskCompletionPct }: { project: Project; tas
 }
 
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
-type Tab = 'overview' | 'checklist' | 'schedule' | 'budget' | 'cos' | 'rfis' | 'submittals' | 'bids' | 'punch' | 'raid' | 'meetings' | 'team' | 'docs' | 'ai'
+type Tab = 'overview' | 'checklist' | 'schedule' | 'budget' | 'cos' | 'rfis' | 'submittals' | 'bids' | 'punch' | 'raid' | 'meetings' | 'team' | 'docs' | 'tasks' | 'ai'
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export function ProjectDetailPage() {
@@ -265,6 +267,8 @@ export function ProjectDetailPage() {
   const [subdivisionFilter, setSubdivisionFilter] = useState<string>('all')
   const [showEdit, setShowEdit] = useState(false)
   const [seeding, setSeeding] = useState(false)
+  const [fabOpen, setFabOpen] = useState(false)
+  const [fabTaskForm, setFabTaskForm] = useState(false)
 
   // Seed all master tasks (first-time setup)
   const seedFromTemplate = async () => {
@@ -386,6 +390,7 @@ export function ProjectDetailPage() {
     { id: 'meetings', label: 'Meetings' },
     { id: 'team', label: 'Team' },
     { id: 'docs', label: 'Docs' },
+    { id: 'tasks', label: 'Tasks' },
     { id: 'ai', label: '✦ AI' },
   ]
 
@@ -852,7 +857,64 @@ export function ProjectDetailPage() {
         </div>
       )}
 
+      {tab === 'tasks' && (
+        <TasksTab
+          project={project}
+          showAddForm={fabTaskForm}
+          onFormClose={() => setFabTaskForm(false)}
+        />
+      )}
+
       {showEdit && <EditProjectModal project={project} onClose={() => setShowEdit(false)} />}
+
+      {/* ── Floating Action Button ── */}
+      <div className="fixed bottom-24 right-4 md:bottom-6 md:right-6 z-50 flex flex-col items-end gap-2">
+        {/* FAB menu */}
+        {fabOpen && (
+          <div className="flex flex-col gap-2 items-end mb-1">
+            {[
+              {
+                label: 'Add Task',
+                icon: ClipboardCheck,
+                color: 'bg-blue-600 hover:bg-blue-700',
+                action: () => { setTab('tasks'); setFabTaskForm(true); setFabOpen(false) },
+              },
+              {
+                label: 'Add Document',
+                icon: FileText,
+                color: 'bg-slate-700 hover:bg-slate-600',
+                action: () => { setTab('docs'); setFabOpen(false) },
+              },
+              {
+                label: 'Add Meeting Note',
+                icon: BookOpen,
+                color: 'bg-slate-700 hover:bg-slate-600',
+                action: () => { setTab('meetings'); setFabOpen(false) },
+              },
+            ].map(({ label, icon: Icon, color, action }) => (
+              <button
+                key={label}
+                onClick={action}
+                className={clsx('flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-white text-sm font-medium shadow-lg transition-all', color)}
+              >
+                <Icon size={15} />
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Main FAB */}
+        <button
+          onClick={() => setFabOpen(!fabOpen)}
+          className={clsx(
+            'w-14 h-14 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-xl flex items-center justify-center transition-all duration-200',
+            fabOpen && 'rotate-45'
+          )}
+        >
+          {fabOpen ? <X size={22} /> : <Plus size={22} />}
+        </button>
+      </div>
     </div>
   )
 }

@@ -322,7 +322,7 @@ export function EditProjectModal({ project, onClose }: Props) {
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-4 border-t border-slate-700 flex gap-3 shrink-0">
+          <div className="px-6 py-4 border-t border-slate-700 flex gap-3 bg-slate-900 sticky bottom-0">
             <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-lg border border-slate-600 text-slate-300 text-sm hover:bg-slate-800 transition-colors">
               Cancel
             </button>

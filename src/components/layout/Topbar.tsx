@@ -3,10 +3,12 @@ import { useAuthStore } from '@/store/authStore'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AIChatButton } from '@/components/AIChatDrawer'
+import { usePortfolioTasks } from '@/hooks/usePortfolioTasks'
 
 export function Topbar({ onAIOpen }: { onAIOpen?: () => void }) {
   const user = useAuthStore((s) => s.user)
   const [searchOpen, setSearchOpen] = useState(false)
+  const { overdueCount } = usePortfolioTasks()
 
   return (
     <header className="topbar bg-slate-900 border-b border-slate-700 shrink-0"><div className="h-14 flex items-center justify-between px-4 md:px-6">
@@ -56,9 +58,13 @@ export function Topbar({ onAIOpen }: { onAIOpen?: () => void }) {
               <Search size={18} />
             </button>
 
-            <button className="relative p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors">
+            <button className="relative p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors" title={overdueCount > 0 ? `${overdueCount} overdue task${overdueCount > 1 ? 's' : ''}` : 'No overdue tasks'}>
               <Bell size={18} />
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full" />
+              {overdueCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-red-500 rounded-full flex items-center justify-center px-0.5">
+                  <span className="text-[9px] font-bold text-white leading-none">{overdueCount > 9 ? '9+' : overdueCount}</span>
+                </span>
+              )}
             </button>
 
             <Link to="/settings" className="flex items-center gap-2 pl-2 md:pl-3 border-l border-slate-700 hover:opacity-80 transition-opacity">

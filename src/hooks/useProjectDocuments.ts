@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   collection, onSnapshot, query, where,
-  addDoc, deleteDoc, doc,
+  addDoc, deleteDoc, doc, updateDoc,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
@@ -48,5 +48,9 @@ export function useProjectDocuments(projectId: string | undefined) {
     await deleteDoc(doc(db, 'projectDocuments', id))
   }
 
-  return { documents, loading, addDocument, removeDocument }
+  const updateDocument = async (id: string, fields: Partial<Pick<ProjectDocument, 'displayName' | 'category'>>) => {
+    await updateDoc(doc(db, 'projectDocuments', id), fields)
+  }
+
+  return { documents, loading, addDocument, removeDocument, updateDocument }
 }

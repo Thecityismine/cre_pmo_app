@@ -1,9 +1,9 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { clsx } from 'clsx'
 import {
-  FileText, Image, Film, Archive, Trash2,
+  FileText, Image, Film, Archive, Trash2, Pencil,
   Download, FolderOpen, Loader2, AlertTriangle, File,
-  X, ChevronLeft, ChevronRight, ZoomIn, Plus, Upload,
+  X, ChevronLeft, ChevronRight, ZoomIn, Plus, Upload, Check,
 } from 'lucide-react'
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage'
 import { storage } from '@/lib/firebase'
@@ -205,10 +205,79 @@ function Lightbox({ doc: d, all, onClose }: { doc: ProjectDocument; all: Project
   )
 }
 
+// ─── Edit Modal ───────────────────────────────────────────────────────────────
+
+function EditModal({
+  doc: d,
+  onClose,
+  onSave,
+}: {
+  doc: ProjectDocument
+  onClose: () => void
+  onSave: (displayName: string, category: string) => Promise<void>
+}) {
+  const [displayName, setDisplayName] = useState(d.displayName || d.originalName)
+  const [category, setCategory] = useState(d.category)
+  const [saving, setSaving] = useState(false)
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSaving(true)
+    await onSave(displayName.trim() || d.originalName, category)
+    setSaving(false)
+    onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
+      <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between">
+          <h3 className="text-slate-100 font-semibold text-sm">Edit Document</h3>
+          <button onClick={onClose} className="text-slate-500 hover:text-slate-300"><X size={16} /></button>
+        </div>
+
+        <form onSubmit={handleSave} className="space-y-4">
+          <div>
+            <label className="text-xs text-slate-400 block mb-1.5">Display Name</label>
+            <input
+              value={displayName}
+              onChange={e => setDisplayName(e.target.value)}
+              className="w-full bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-blue-500"
+              autoFocus
+            />
+          </div>
+
+          <div>
+            <label className="text-xs text-slate-400 block mb-1.5">Category</label>
+            <select
+              value={category}
+              onChange={e => setCategory(e.target.value)}
+              className="w-full bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-blue-500"
+            >
+              {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+
+          <div className="flex gap-2 pt-1">
+            <button type="submit" disabled={saving}
+              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-50 transition-colors">
+              <Check size={13} /> {saving ? 'Saving…' : 'Save'}
+            </button>
+            <button type="button" onClick={onClose}
+              className="border border-slate-600 text-slate-400 text-sm px-4 py-2 rounded-lg hover:bg-slate-800 transition-colors">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 // ─── Document card ────────────────────────────────────────────────────────────
 
-function DocCard({ doc: d, onOpen, onDelete, deleting }: {
-  doc: ProjectDocument; onOpen: () => void; onDelete: () => void; deleting: boolean
+function DocCard({ doc: d, onOpen, onDelete, onEdit, deleting }: {
+  doc: ProjectDocument; onOpen: () => void; onDelete: () => void; onEdit: () => void; deleting: boolean
 }) {
   const label = d.displayName || d.originalName
 
@@ -244,15 +313,24 @@ function DocCard({ doc: d, onOpen, onDelete, deleting }: {
         </div>
       </div>
 
-      {/* Delete on hover */}
-      <button
-        onClick={e => { e.stopPropagation(); onDelete() }}
-        disabled={deleting}
-        className="absolute top-2 right-2 p-1 bg-black/60 hover:bg-red-900/80 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
-        title="Delete"
-      >
-        {deleting ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
-      </button>
+      {/* Action buttons on hover */}
+      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={e => { e.stopPropagation(); onEdit() }}
+          className="p-1 bg-black/60 hover:bg-slate-700 text-white rounded-lg"
+          title="Edit"
+        >
+          <Pencil size={12} />
+        </button>
+        <button
+          onClick={e => { e.stopPropagation(); onDelete() }}
+          disabled={deleting}
+          className="p-1 bg-black/60 hover:bg-red-900/80 text-white rounded-lg disabled:opacity-50"
+          title="Delete"
+        >
+          {deleting ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+        </button>
+      </div>
     </div>
   )
 }
@@ -261,13 +339,14 @@ function DocCard({ doc: d, onOpen, onDelete, deleting }: {
 
 export function DocumentsTab({ project }: { project: Project }) {
   const user = useAuthStore((s) => s.user)
-  const { documents, loading, addDocument, removeDocument } = useProjectDocuments(project.id)
+  const { documents, loading, addDocument, removeDocument, updateDocument } = useProjectDocuments(project.id)
 
   const [uploads, setUploads] = useState<UploadItem[]>([])
   const [catFilter, setCatFilter] = useState('All')
   const [deleting, setDeleting] = useState<string | null>(null)
   const [lightboxDoc, setLightboxDoc] = useState<ProjectDocument | null>(null)
   const [showModal, setShowModal] = useState(false)
+  const [editDoc, setEditDoc] = useState<ProjectDocument | null>(null)
 
   const uploadFiles = useCallback(async (files: File[], displayName: string, category: string) => {
     const newItems: UploadItem[] = files.map(f => ({ file: f, progress: 0, error: '', done: false }))
@@ -328,7 +407,10 @@ export function DocumentsTab({ project }: { project: Project }) {
   }
 
   const categories = ['All', ...Array.from(new Set(documents.map(d => d.category)))]
-  const filtered = catFilter === 'All' ? documents : documents.filter(d => d.category === catFilter)
+
+  const filtered = (catFilter === 'All' ? documents : documents.filter(d => d.category === catFilter))
+    .slice().sort((a, b) => a.category.localeCompare(b.category))
+
   const grouped = filtered.reduce<Record<string, ProjectDocument[]>>((acc, d) => {
     const cat = d.category || 'General'
     if (!acc[cat]) acc[cat] = []
@@ -340,9 +422,9 @@ export function DocumentsTab({ project }: { project: Project }) {
     <div className="space-y-4">
 
       {/* ── Toolbar ── */}
-      <div className="flex items-center justify-between">
-        {/* Category filter tabs */}
-        <div className="flex gap-1.5 flex-wrap">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Category filter tabs */}
           {categories.length > 2 && categories.map(c => (
             <button key={c} onClick={() => setCatFilter(c)}
               className={clsx(
@@ -409,6 +491,7 @@ export function DocumentsTab({ project }: { project: Project }) {
                     key={d.id}
                     doc={d}
                     onOpen={() => setLightboxDoc(d)}
+                    onEdit={() => setEditDoc(d)}
                     onDelete={() => { if (confirm(`Delete "${d.displayName || d.originalName}"?`)) handleDelete(d.id, d.storagePath) }}
                     deleting={deleting === d.id}
                   />
@@ -421,6 +504,15 @@ export function DocumentsTab({ project }: { project: Project }) {
 
       {/* ── Upload Modal ── */}
       {showModal && <UploadModal onClose={() => setShowModal(false)} onUpload={uploadFiles} />}
+
+      {/* ── Edit Modal ── */}
+      {editDoc && (
+        <EditModal
+          doc={editDoc}
+          onClose={() => setEditDoc(null)}
+          onSave={(displayName, category) => updateDocument(editDoc.id, { displayName, category })}
+        />
+      )}
 
       {/* ── Lightbox ── */}
       {lightboxDoc && <Lightbox doc={lightboxDoc} all={filtered} onClose={() => setLightboxDoc(null)} />}
