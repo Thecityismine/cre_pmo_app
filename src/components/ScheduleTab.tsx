@@ -2,11 +2,52 @@ import { useState } from 'react'
 import { clsx } from 'clsx'
 import {
   Plus, ChevronDown, ChevronRight, CheckCircle2, AlertTriangle,
-  Clock, Calendar, Trash2, Pencil, BarChart2, Flag,
+  Clock, Calendar, Trash2, Pencil, BarChart2, Flag, Download, Lock,
 } from 'lucide-react'
+import { doc, updateDoc } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
 import { useScheduleItems } from '@/hooks/useScheduleItems'
 import type { ScheduleItem } from '@/hooks/useScheduleItems'
 import type { Project } from '@/types'
+
+// ─── CSV export ───────────────────────────────────────────────────────────────
+
+function exportScheduleCsv(items: ScheduleItem[], projectName: string) {
+  const headers = [
+    'Name', 'Start Date', 'End Date', 'Baseline Start', 'Baseline End',
+    '% Complete', 'Status', 'Critical Path', 'Notes',
+  ]
+  const rows = items.map(i => {
+    const status =
+      i.percentComplete === 100 ? 'Complete'
+      : !i.endDate ? 'Upcoming'
+      : new Date(i.endDate) < new Date() ? 'Behind'
+      : !i.startDate ? 'Upcoming'
+      : new Date(i.startDate) <= new Date() ? 'In Progress'
+      : 'Upcoming'
+    return [
+      i.name,
+      i.startDate || '',
+      i.endDate || '',
+      i.baselineStart || '',
+      i.baselineEnd || '',
+      i.percentComplete,
+      status,
+      i.isCriticalPath ? 'Yes' : 'No',
+      (i.notes || '').replace(/\n/g, ' '),
+    ]
+  })
+  const csv = [headers, ...rows]
+    .map(row => row.map(cell => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(','))
+    .join('\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${projectName.replace(/\s+/g, '_')}_Schedule.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -323,6 +364,7 @@ export function ScheduleTab({ project }: { project: Project }) {
     useScheduleItems(project.id)
   const [showAdd, setShowAdd] = useState(false)
   const [filter, setFilter] = useState<'all' | 'behind' | 'in-progress' | 'upcoming' | 'complete'>('all')
+  const [lockingBaseline, setLockingBaseline] = useState(false)
 
   const filtered = filter === 'all' ? items : items.filter(i => itemStatus(i) === filter)
 
@@ -333,6 +375,27 @@ export function ScheduleTab({ project }: { project: Project }) {
 
   const spiColor = spi === null ? 'text-slate-400' : spi >= 1.0 ? 'text-emerald-400' : spi >= 0.8 ? 'text-amber-400' : 'text-red-400'
   const spiLabel = spi === null ? 'N/A' : spi >= 1.0 ? 'On Schedule' : spi >= 0.8 ? 'Slightly Behind' : 'Behind Schedule'
+
+  const lockBaseline = async () => {
+    const itemsWithDates = items.filter(i => i.startDate || i.endDate)
+    if (itemsWithDates.length === 0) {
+      alert('No items with dates to lock as baseline.')
+      return
+    }
+    if (!confirm(`Lock current dates as baseline for all ${itemsWithDates.length} item(s) with dates? This will overwrite any existing baseline dates.`)) return
+    setLockingBaseline(true)
+    const now = new Date().toISOString()
+    await Promise.all(
+      itemsWithDates.map(i =>
+        updateDoc(doc(db, 'scheduleItems', i.id), {
+          baselineStart: i.startDate,
+          baselineEnd:   i.endDate,
+          updatedAt:     now,
+        })
+      )
+    )
+    setLockingBaseline(false)
+  }
 
   return (
     <div className="space-y-4">
@@ -408,11 +471,29 @@ export function ScheduleTab({ project }: { project: Project }) {
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {items.length === 0 && (
             <button onClick={seedDefaults}
               className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-700 hover:border-slate-600 px-3 py-1.5 rounded-lg transition-colors">
               <BarChart2 size={12} /> Seed defaults
+            </button>
+          )}
+          {items.length > 0 && (
+            <button
+              onClick={lockBaseline}
+              disabled={lockingBaseline}
+              title="Copy current start/end dates to baseline for all items"
+              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-700 hover:border-slate-600 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+            >
+              <Lock size={12} /> {lockingBaseline ? 'Locking…' : 'Lock Baseline'}
+            </button>
+          )}
+          {items.length > 0 && (
+            <button
+              onClick={() => exportScheduleCsv(items, project.projectName || 'Project')}
+              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-700 hover:border-slate-600 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              <Download size={12} /> Export CSV
             </button>
           )}
           <button onClick={() => setShowAdd(true)}

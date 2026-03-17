@@ -1,9 +1,37 @@
 import { useState } from 'react'
 import { clsx } from 'clsx'
-import { Plus, Trash2, Check, TrendingUp, TrendingDown, Clock } from 'lucide-react'
+import { Plus, Trash2, Check, TrendingUp, TrendingDown, Clock, Download, AlertTriangle } from 'lucide-react'
 import { useChangeOrders } from '@/hooks/useChangeOrders'
 import type { ChangeOrder, COStatus } from '@/hooks/useChangeOrders'
 import type { Project } from '@/types'
+
+// ─── CSV export ───────────────────────────────────────────────────────────────
+
+function exportCOsCsv(cos: ChangeOrder[], projectName: string) {
+  const headers = ['Number', 'Title', 'Category', 'Amount', 'Status', 'Requested By', 'Date', 'Approved Date', 'Description', 'Notes']
+  const rows = cos.map(c => [
+    `CO-${String(c.number).padStart(3, '0')}`,
+    c.title,
+    c.category,
+    c.amount,
+    c.status,
+    c.requestedBy,
+    c.date,
+    c.approvedDate,
+    (c.description || '').replace(/\n/g, ' '),
+    (c.notes || '').replace(/\n/g, ' '),
+  ])
+  const csv = [headers, ...rows]
+    .map(row => row.map(cell => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(','))
+    .join('\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${projectName.replace(/\s+/g, '_')}_Change_Orders.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -288,6 +316,29 @@ export function ChangeOrdersTab({ project }: { project: Project }) {
         </div>
       </div>
 
+      {/* Pending exposure banner */}
+      {pendingTotal > 0 && (
+        <div className="flex items-center gap-2 text-xs px-3 py-2 rounded-lg border bg-amber-900/20 border-amber-700/40 text-amber-300">
+          <AlertTriangle size={13} className="shrink-0" />
+          <span>
+            <strong>{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(pendingTotal)}</strong> pending CO exposure —{' '}
+            {changeOrders.filter(c => c.status === 'pending').length} change order{changeOrders.filter(c => c.status === 'pending').length !== 1 ? 's' : ''} awaiting approval
+          </span>
+        </div>
+      )}
+
+      {/* Approved CO banner */}
+      {approvedTotal > 0 && (
+        <div className="flex items-center gap-2 text-xs px-3 py-2 rounded-lg border bg-emerald-900/20 border-emerald-700/40 text-emerald-300">
+          <Check size={13} className="shrink-0" />
+          <span>
+            Approved COs added{' '}
+            <strong>{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(approvedTotal)}</strong>{' '}
+            to project budget
+          </span>
+        </div>
+      )}
+
       {/* Toolbar */}
       <div className="flex items-center gap-2">
         <div className="flex gap-1 bg-slate-800 border border-slate-700 rounded-lg p-1">
@@ -308,6 +359,15 @@ export function ChangeOrdersTab({ project }: { project: Project }) {
         </div>
 
         <div className="flex-1" />
+
+        {changeOrders.length > 0 && (
+          <button
+            onClick={() => exportCOsCsv(changeOrders, project.projectName || 'Project')}
+            className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-700 hover:border-slate-600 px-3 py-1.5 rounded-lg transition-colors"
+          >
+            <Download size={12} /> Export CSV
+          </button>
+        )}
 
         <button
           onClick={() => setShowAdd(true)}

@@ -2,8 +2,41 @@ import { useState } from 'react'
 import { clsx } from 'clsx'
 import { Plus, Trash2, Check, ChevronDown, ChevronRight, AlertCircle, Clock } from 'lucide-react'
 import { useSubmittals } from '@/hooks/useSubmittals'
-import type { Submittal, SubmittalStatus } from '@/hooks/useSubmittals'
+import type { Submittal, SubmittalStatus, SubmittalStatusEvent } from '@/hooks/useSubmittals'
 import type { Project } from '@/types'
+
+// ─── Status Timeline ──────────────────────────────────────────────────────────
+
+function StatusTimeline({ events }: { events: SubmittalStatusEvent[] }) {
+  if (!events || events.length === 0) return null
+  return (
+    <div className="space-y-2">
+      {events.map((ev, idx) => {
+        const isLast = idx === events.length - 1
+        const cfg = STATUS_CONFIG[ev.status] ?? { label: ev.status, color: 'bg-slate-700 text-slate-400' }
+        return (
+          <div key={idx} className="flex items-start gap-3">
+            <div className="flex flex-col items-center shrink-0">
+              <div className={clsx('w-2.5 h-2.5 rounded-full mt-0.5', isLast ? 'bg-blue-500' : 'bg-slate-600')} />
+              {!isLast && <div className="w-px flex-1 bg-slate-700 mt-1 h-4" />}
+            </div>
+            <div className="flex-1 min-w-0 pb-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className={clsx('text-xs px-2 py-0.5 rounded-full font-medium', cfg.color)}>
+                  {cfg.label}
+                </span>
+                <span className="text-xs text-slate-500">
+                  {new Date(ev.changedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                </span>
+              </div>
+              {ev.note && <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{ev.note}</p>}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -158,9 +191,23 @@ function SubmittalRow({
         </div>
       </div>
 
-      {expanded && submittal.notes && (
-        <div className="px-4 pb-3 border-t border-slate-700/50 pt-3">
-          <p className="text-sm text-slate-400 leading-relaxed">{submittal.notes}</p>
+      {expanded && (
+        <div className="px-4 pb-4 border-t border-slate-700/50 pt-3 space-y-3">
+          {submittal.notes && (
+            <div>
+              <p className="text-xs text-slate-500 uppercase tracking-wide font-medium mb-1">Review Notes</p>
+              <p className="text-sm text-slate-400 leading-relaxed">{submittal.notes}</p>
+            </div>
+          )}
+          {submittal.statusHistory && submittal.statusHistory.length > 0 && (
+            <div>
+              <p className="text-xs text-slate-500 uppercase tracking-wide font-medium mb-2">Status History</p>
+              <StatusTimeline events={submittal.statusHistory} />
+            </div>
+          )}
+          {(!submittal.notes && (!submittal.statusHistory || submittal.statusHistory.length === 0)) && (
+            <p className="text-xs text-slate-600 italic">No notes or status history yet.</p>
+          )}
         </div>
       )}
     </div>

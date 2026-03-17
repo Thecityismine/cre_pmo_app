@@ -11,6 +11,12 @@ export type SubmittalStatus =
   | 'revise-resubmit'
   | 'rejected'
 
+export interface SubmittalStatusEvent {
+  status: SubmittalStatus
+  changedAt: string
+  note?: string
+}
+
 export interface Submittal {
   id: string
   projectId: string
@@ -24,6 +30,7 @@ export interface Submittal {
   dueDate: string
   reviewedDate: string
   notes: string
+  statusHistory?: SubmittalStatusEvent[]
   createdAt: string
   updatedAt: string
 }
@@ -49,15 +56,26 @@ export function useSubmittals(projectId: string | undefined) {
   const nextNumber = `SUB-${String(nextIndex).padStart(3, '0')}`
 
   const addSubmittal = async (data: Omit<Submittal, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> => {
+    const now = new Date().toISOString()
     await addDoc(collection(db, 'submittals'), {
       ...data,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      statusHistory: [{ status: data.status, changedAt: now }],
+      createdAt: now,
+      updatedAt: now,
     })
   }
 
-  const updateSubmittal = (id: string, data: Partial<Submittal>) =>
-    updateDoc(doc(db, 'submittals', id), { ...data, updatedAt: new Date().toISOString() })
+  const updateSubmittal = async (id: string, data: Partial<Submittal>): Promise<void> => {
+    const now = new Date().toISOString()
+    // Find the current submittal to check status change
+    const current = submittals.find(s => s.id === id)
+    const payload: Record<string, unknown> = { ...data, updatedAt: now }
+    if (current && data.status && data.status !== current.status) {
+      const existing: SubmittalStatusEvent[] = current.statusHistory ?? [{ status: current.status, changedAt: current.createdAt }]
+      payload.statusHistory = [...existing, { status: data.status, changedAt: now }]
+    }
+    await updateDoc(doc(db, 'submittals', id), payload)
+  }
 
   const deleteSubmittal = (id: string) => deleteDoc(doc(db, 'submittals', id))
 

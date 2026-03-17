@@ -30,6 +30,7 @@ import { usePunchList } from '@/hooks/usePunchList'
 import { AIInsightsPanel } from '@/components/AIInsightsPanel'
 import { computeHealth } from '@/lib/healthScore'
 import { MilestoneTimeline } from '@/components/MilestoneTimeline'
+import { useMilestones } from '@/hooks/useMilestones'
 import { exportProjectPdf } from '@/lib/exportPdf'
 import type { Task, TaskStatus, Project } from '@/types'
 
@@ -417,6 +418,7 @@ export function ProjectDetailPage() {
   const { team } = useProjectTeam(id)
   const { items: budgetItems } = useBudgetItems(id)
   const { approvedTotal: coApproved, pendingTotal: coPending } = useChangeOrders(id)
+  const { milestones } = useMilestones(id)
   const { documents: recentDocs } = useProjectDocuments(id)
   const { openCount: openRfis, overdueCount: overdueRfis } = useRfis(id)
   const { openCount: openPunch } = usePunchList(id)
@@ -610,8 +612,125 @@ export function ProjectDetailPage() {
       {/* Tab content */}
       {tab === 'overview' && (
         <div className="space-y-4">
+
+        {/* ── 6 Financial Metric Tiles ─────────────────────────────────── */}
+        {(() => {
+          const extItems = budgetItems as (typeof budgetItems[0] & { contractAmount?: number; paidAmount?: number })[]
+          const totalContracted = extItems.reduce((s, i) => s + (i.contractAmount ?? i.committedAmount ?? 0), 0)
+          const totalPaidFromItems = extItems.reduce((s, i) => s + (i.paidAmount ?? 0), 0)
+          const netBudgetOv = (project.totalBudget || 0) + coApproved
+          const forecastVariance = netBudgetOv - (project.forecastCost || 0)
+          const tiles = [
+            {
+              label: 'Baseline Budget',
+              value: fmt(project.totalBudget || 0),
+              color: 'text-blue-300',
+              sub: 'Original approved budget',
+            },
+            {
+              label: 'Committed (Contract)',
+              value: totalContracted > 0 ? fmt(totalContracted) : '—',
+              color: 'text-slate-200',
+              sub: 'Sum of contract amounts',
+            },
+            {
+              label: 'Total Forecast',
+              value: fmt(project.forecastCost || 0),
+              color: (project.forecastCost || 0) > netBudgetOv ? 'text-red-400' : 'text-emerald-400',
+              sub: (project.forecastCost || 0) > netBudgetOv ? 'Over net budget' : 'Within net budget',
+            },
+            {
+              label: 'Actual Spent',
+              value: totalPaidFromItems > 0 ? fmt(totalPaidFromItems) : fmt(project.actualCost || 0),
+              color: 'text-slate-200',
+              sub: 'Paid to date',
+            },
+            {
+              label: 'Budget Variance',
+              value: forecastVariance >= 0 ? fmt(forecastVariance) : `(${fmt(Math.abs(forecastVariance))})`,
+              color: forecastVariance >= 0 ? 'text-emerald-400' : 'text-red-400',
+              sub: forecastVariance >= 0 ? 'Under forecast' : 'Over forecast',
+            },
+            {
+              label: 'CO Exposure',
+              value: coPending > 0 ? fmt(coPending) : '—',
+              color: coPending > 0 ? 'text-amber-300' : 'text-slate-500',
+              sub: coPending > 0 ? 'Pending approval' : 'No pending COs',
+            },
+          ]
+          return (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {tiles.map(t => (
+                <div key={t.label} className="bg-slate-800 border border-slate-700 rounded-xl p-3">
+                  <p className="text-xs text-slate-500 mb-1">{t.label}</p>
+                  <p className={clsx('text-lg font-bold tabular-nums', t.color)}>{t.value}</p>
+                  {t.sub && <p className="text-xs text-slate-600 mt-0.5">{t.sub}</p>}
+                </div>
+              ))}
+            </div>
+          )
+        })()}
+
         {/* Health scorecard */}
         <HealthScorecard project={project} taskCompletionPct={totalPct} />
+
+        {/* ── Milestone Mini-Timeline ───────────────────────────────────── */}
+        {(() => {
+          const dated = milestones.filter(m => m.targetDate)
+          const today = new Date()
+          if (dated.length === 0) {
+            return (
+              <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 flex items-center gap-3">
+                <Calendar size={16} className="text-slate-500 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-slate-400">No milestone dates set.</p>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Go to the{' '}
+                    <button onClick={() => setTab('schedule')} className="text-blue-400 hover:text-blue-300 underline">
+                      Schedule
+                    </button>
+                    {' '}tab to add target dates.
+                  </p>
+                </div>
+              </div>
+            )
+          }
+          return (
+            <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
+              <div className="px-4 py-3 border-b border-slate-700">
+                <p className="text-sm font-semibold text-slate-100">Milestone Timeline</p>
+              </div>
+              <div className="overflow-x-auto">
+                <div className="flex gap-0 px-4 py-4 min-w-max">
+                  {dated.slice(0, 8).map((m, idx) => {
+                    const isComplete = m.status === 'complete'
+                    const tDate = new Date(m.targetDate)
+                    const isNear = !isComplete && Math.abs(tDate.getTime() - today.getTime()) <= 14 * 24 * 60 * 60 * 1000
+                    const dotColor = isComplete ? 'bg-emerald-500 border-emerald-400' : isNear ? 'bg-blue-500 border-blue-400' : 'bg-slate-600 border-slate-500'
+                    const textColor = isComplete ? 'text-emerald-400' : isNear ? 'text-blue-300' : 'text-slate-400'
+                    return (
+                      <div key={m.id} className="flex items-start" style={{ minWidth: 120 }}>
+                        <div className="flex flex-col items-center">
+                          <div className={clsx('w-3 h-3 rounded-full border-2 shrink-0 mt-0.5', dotColor)} />
+                          {idx < dated.slice(0, 8).length - 1 && (
+                            <div className="w-px flex-1 bg-slate-700 mt-1 min-h-[16px]" />
+                          )}
+                        </div>
+                        <div className="ml-2 pb-4">
+                          <p className={clsx('text-xs font-medium leading-tight', textColor)}>{m.name}</p>
+                          <p className="text-[10px] text-slate-600 mt-0.5">
+                            {new Date(m.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </p>
+                        </div>
+                        {idx < dated.slice(0, 8).length - 1 && <div className="flex-1 h-px bg-slate-700 mt-1.5 min-w-[16px]" />}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+          )
+        })()}
 
         {/* AI Insights */}
         <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-4">
@@ -630,26 +749,6 @@ export function ProjectDetailPage() {
             maxShow={4}
           />
         </div>
-
-        {/* Financial Summary */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {[
-            { label: 'Total Budget',    value: fmt(project.totalBudget || 0),  color: 'text-slate-100' },
-            { label: 'Approved COs',    value: (coApproved >= 0 ? '+' : '') + fmt(coApproved), color: coApproved > 0 ? 'text-red-400' : coApproved < 0 ? 'text-emerald-400' : 'text-slate-500' },
-            { label: 'Net Budget',      value: fmt((project.totalBudget || 0) + coApproved), color: 'text-blue-300' },
-            { label: 'Forecast',        value: fmt(project.forecastCost || 0),  color: project.forecastCost > project.totalBudget ? 'text-red-400' : 'text-emerald-400' },
-          ].map(s => (
-            <div key={s.label} className="bg-slate-800 border border-slate-700 rounded-xl p-3">
-              <p className="text-xs text-slate-500 mb-1">{s.label}</p>
-              <p className={clsx('text-base font-bold', s.color)}>{s.value}</p>
-            </div>
-          ))}
-        </div>
-        {coPending !== 0 && (
-          <p className="text-xs text-amber-400 bg-amber-900/20 border border-amber-700/40 rounded-lg px-3 py-2">
-            ⚠ Pending CO exposure: <strong>{fmt(Math.abs(coPending))}</strong> — not yet reflected in budget.
-          </p>
-        )}
 
         {/* Project info + Schedule */}
         <div className="grid md:grid-cols-2 gap-4">
