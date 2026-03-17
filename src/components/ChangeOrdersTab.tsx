@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { clsx } from 'clsx'
-import { Plus, Trash2, Check, X, TrendingUp, TrendingDown, Clock } from 'lucide-react'
+import { Plus, Trash2, Check, TrendingUp, TrendingDown, Clock } from 'lucide-react'
 import { useChangeOrders } from '@/hooks/useChangeOrders'
 import type { ChangeOrder, COStatus } from '@/hooks/useChangeOrders'
 import type { Project } from '@/types'

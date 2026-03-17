@@ -36,12 +36,13 @@ export function useBidLog(projectId: string | undefined) {
     return unsub
   }, [projectId])
 
-  const addBid = (data: Omit<BidItem, 'id' | 'createdAt' | 'updatedAt'>) =>
-    addDoc(collection(db, 'bids'), {
+  const addBid = async (data: Omit<BidItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> => {
+    await addDoc(collection(db, 'bids'), {
       ...data,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     })
+  }
 
   const updateBid = (id: string, data: Partial<BidItem>) =>
     updateDoc(doc(db, 'bids', id), { ...data, updatedAt: new Date().toISOString() })

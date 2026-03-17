@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { clsx } from 'clsx'
-import { Plus, Check, Trash2, Pencil, Award, Clock, X } from 'lucide-react'
+import { Plus, Check, Trash2, Pencil, Award, Clock } from 'lucide-react'
 import { useBidLog } from '@/hooks/useBidLog'
 import type { BidItem, BidStatus } from '@/hooks/useBidLog'
 import type { Project } from '@/types'
