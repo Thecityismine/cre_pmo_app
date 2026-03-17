@@ -41,7 +41,7 @@ export function useRfis(projectId: string | undefined) {
         .sort((a, b) => a.number - b.number)
       setRfis(sorted)
       setLoading(false)
-    })
+    }, () => setLoading(false))
     return unsub
   }, [projectId])
 

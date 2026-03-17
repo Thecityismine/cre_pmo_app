@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import { NewProjectModal } from '@/components/NewProjectModal'
 import { exportProjectsCsv } from '@/lib/exportCsv'
 import { computeHealth, healthColor, healthBg } from '@/lib/healthScore'
+import { usePortfolioTaskStats, type ProjectTaskStat } from '@/hooks/usePortfolioTaskStats'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -90,7 +91,7 @@ function HealthBadge({ score }: { score: number }) {
   )
 }
 
-function ProjectCard({ project, onClick }: { project: ReturnType<typeof useProjects>['projects'][0]; onClick: () => void }) {
+function ProjectCard({ project, taskStat, onClick }: { project: ReturnType<typeof useProjects>['projects'][0]; taskStat?: ProjectTaskStat; onClick: () => void }) {
   const health = computeHealth(project)
   const atRisk = project.forecastCost > project.totalBudget
   const budgetPct = project.totalBudget > 0 ? Math.min(100, Math.round((project.actualCost / project.totalBudget) * 100)) : 0
@@ -126,7 +127,7 @@ function ProjectCard({ project, onClick }: { project: ReturnType<typeof useProje
 
       {/* Budget bar */}
       {project.totalBudget > 0 && (
-        <div className="space-y-1.5 mb-4">
+        <div className="space-y-1.5 mb-3">
           <div className="flex justify-between text-xs text-slate-500">
             <span>Spent</span>
             <span className={clsx(atRisk && 'text-red-400')}>{fmt(project.actualCost)} / {fmt(project.totalBudget)}</span>
@@ -137,6 +138,24 @@ function ProjectCard({ project, onClick }: { project: ReturnType<typeof useProje
           {atRisk && (
             <p className="text-xs text-red-400">Forecast {fmt(project.forecastCost)} — over budget</p>
           )}
+        </div>
+      )}
+
+      {/* Checklist progress */}
+      {taskStat && taskStat.total > 0 && (
+        <div className="space-y-1 mb-3">
+          <div className="flex justify-between text-xs text-slate-500">
+            <span>Checklist</span>
+            <span className={clsx(taskStat.pct === 100 ? 'text-emerald-400' : 'text-slate-400')}>
+              {taskStat.complete}/{taskStat.total} tasks
+            </span>
+          </div>
+          <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+            <div
+              className={clsx('h-full rounded-full transition-all', taskStat.pct === 100 ? 'bg-emerald-500' : taskStat.pct >= 60 ? 'bg-blue-500' : 'bg-slate-500')}
+              style={{ width: `${taskStat.pct}%` }}
+            />
+          </div>
         </div>
       )}
 
@@ -203,6 +222,7 @@ function ProjectRow({ project, onClick }: { project: ReturnType<typeof useProjec
 
 export function ProjectsPage() {
   const { projects, loading } = useProjects()
+  const { stats: taskStats } = usePortfolioTaskStats(projects.map(p => p.id))
   const navigate = useNavigate()
 
   const [search, setSearch] = useState('')
@@ -405,7 +425,7 @@ export function ProjectsPage() {
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filtered.map(p => (
-            <ProjectCard key={p.id} project={p} onClick={() => navigate(`/projects/${p.id}`)} />
+            <ProjectCard key={p.id} project={p} taskStat={taskStats[p.id]} onClick={() => navigate(`/projects/${p.id}`)} />
           ))}
         </div>
       ) : (

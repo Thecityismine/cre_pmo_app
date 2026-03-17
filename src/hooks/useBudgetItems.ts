@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { collection, onSnapshot, query, where, orderBy } from 'firebase/firestore'
+import { collection, onSnapshot, query, where } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
 export interface BudgetItem {
@@ -26,12 +26,14 @@ export function useBudgetItems(projectId: string | undefined) {
     const q = query(
       collection(db, 'budgetItems'),
       where('projectId', '==', projectId),
-      orderBy('createdAt', 'asc')
     )
     const unsub = onSnapshot(q, (snap) => {
-      setItems(snap.docs.map((d) => ({ id: d.id, ...d.data() } as BudgetItem)))
+      const sorted = snap.docs
+        .map((d) => ({ id: d.id, ...d.data() } as BudgetItem))
+        .sort((a, b) => (a.createdAt || '').localeCompare(b.createdAt || ''))
+      setItems(sorted)
       setLoading(false)
-    })
+    }, () => setLoading(false))
     return unsub
   }, [projectId])
 

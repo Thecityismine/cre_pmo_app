@@ -34,7 +34,7 @@ export function useChangeOrders(projectId: string | undefined) {
         .sort((a, b) => a.number - b.number)
       setChangeOrders(sorted)
       setLoading(false)
-    })
+    }, () => setLoading(false))
     return unsub
   }, [projectId])
 
