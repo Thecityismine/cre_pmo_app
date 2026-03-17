@@ -351,8 +351,8 @@ export function ProjectDetailPage() {
   const { team } = useProjectTeam(id)
   const { items: budgetItems } = useBudgetItems(id)
   const [tab, setTab] = useState<Tab>('overview')
-  const [statusFilter, setStatusFilter] = useState<string>('all')
   const [disciplineFilter, setDisciplineFilter] = useState<string>('all')
+  const [subdivisionFilter, setSubdivisionFilter] = useState<string>('all')
   const [showEdit, setShowEdit] = useState(false)
 
   if (projLoading) {
@@ -378,12 +378,13 @@ export function ProjectDetailPage() {
 
   // Discipline options from actual task data
   const disciplines = Array.from(new Set(tasks.map(t => t.assignedTo).filter(Boolean))) as string[]
+  const subdivisions = Array.from(new Set(tasks.map(t => t.category).filter(Boolean))) as string[]
 
   // Group tasks by category
   const filteredTasks = tasks.filter(t => {
-    const matchStatus = statusFilter === 'all' || t.status === statusFilter
     const matchDiscipline = disciplineFilter === 'all' || t.assignedTo === disciplineFilter
-    return matchStatus && matchDiscipline
+    const matchSubdivision = subdivisionFilter === 'all' || t.category === subdivisionFilter
+    return matchDiscipline && matchSubdivision
   })
   const grouped = filteredTasks.reduce<Record<string, Task[]>>((acc, t) => {
     const cat = t.category || 'General'
@@ -555,51 +556,28 @@ export function ProjectDetailPage() {
 
       {tab === 'checklist' && (
         <div>
-          {/* Discipline filter */}
-          {disciplines.length > 0 && (
-            <div className="flex gap-1.5 flex-wrap mb-2">
-              <button
-                onClick={() => setDisciplineFilter('all')}
-                className={clsx(
-                  'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
-                  disciplineFilter === 'all' ? 'bg-slate-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700'
-                )}
-              >
-                All Disciplines
-              </button>
+          {/* Filters row */}
+          <div className="flex gap-2 mb-4">
+            <select
+              value={disciplineFilter}
+              onChange={e => setDisciplineFilter(e.target.value)}
+              className="flex-1 bg-slate-800 border border-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+            >
+              <option value="all">All Teams</option>
               {disciplines.map(d => (
-                <button
-                  key={d}
-                  onClick={() => setDisciplineFilter(disciplineFilter === d ? 'all' : d)}
-                  className={clsx(
-                    'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border',
-                    disciplineFilter === d
-                      ? disciplineColor(d) + ' border-current'
-                      : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-200'
-                  )}
-                >
-                  {d}
-                </button>
+                <option key={d} value={d}>{d}</option>
               ))}
-            </div>
-          )}
-
-          {/* Status filter */}
-          <div className="flex gap-1.5 flex-wrap mb-4">
-            {(['all', ...TASK_STATUSES] as string[]).map(s => (
-              <button
-                key={s}
-                onClick={() => setStatusFilter(s)}
-                className={clsx(
-                  'px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors',
-                  statusFilter === s
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700'
-                )}
-              >
-                {s === 'all' ? `All (${tasks.length})` : TASK_STATUS_LABELS[s as TaskStatus]}
-              </button>
-            ))}
+            </select>
+            <select
+              value={subdivisionFilter}
+              onChange={e => setSubdivisionFilter(e.target.value)}
+              className="flex-1 bg-slate-800 border border-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+            >
+              <option value="all">All Subdivisions</option>
+              {subdivisions.map(s => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
           </div>
 
           {tasksLoading ? (
