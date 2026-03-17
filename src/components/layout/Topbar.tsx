@@ -39,7 +39,7 @@ export function Topbar({ onAIOpen }: { onAIOpen?: () => void }) {
           </div>
 
           {/* Mobile: app title */}
-          <span className="text-slate-100 font-semibold text-sm md:hidden">CRE PMO</span>
+          <span className="text-slate-100 font-semibold text-sm md:hidden">ProjeX</span>
 
           {/* Right actions */}
           <div className="flex items-center gap-2 md:gap-3">

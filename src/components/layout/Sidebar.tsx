@@ -41,7 +41,7 @@ export function Sidebar() {
           'text-white font-semibold text-sm truncate transition-all duration-200',
           collapsed ? 'hidden' : 'hidden lg:block'
         )}>
-          CRE PMO
+          ProjeX
         </span>
       </div>
 

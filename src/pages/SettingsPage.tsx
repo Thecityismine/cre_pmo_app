@@ -301,7 +301,7 @@ export function SettingsPage() {
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
             <span className="text-slate-500">App</span>
-            <span className="text-slate-300">CRE PMO V2</span>
+            <span className="text-slate-300">ProjeX</span>
           </div>
           <div className="flex justify-between">
             <span className="text-slate-500">Firebase Project</span>
