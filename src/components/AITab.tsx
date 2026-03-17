@@ -7,7 +7,7 @@ import {
 } from 'lucide-react'
 import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
-import { openai, hasOpenAIKey } from '@/lib/openai'
+import { getOpenAI, hasOpenAIKey } from '@/lib/openai'
 import { useMeetingNotes, type MeetingNote } from '@/hooks/useMeetingNotes'
 import { useAuthStore } from '@/store/authStore'
 import type { Project, Task } from '@/types'
@@ -260,14 +260,14 @@ export function AITab({ project, tasks }: { project: Project; tasks: Task[] }) {
       let noteText = rawText
 
       if (mode === 'audio' && audioFile) {
-        const transcription = await openai.audio.transcriptions.create({
+        const transcription = await getOpenAI().audio.transcriptions.create({
           file: audioFile,
           model: 'whisper-1',
         })
         noteText = transcription.text
       }
 
-      const completion = await openai.chat.completions.create({
+      const completion = await getOpenAI().chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: 'You are a concise CRE project management assistant.' },
@@ -337,7 +337,7 @@ Client: ${project.clientName || 'N/A'}
 `.trim()
 
     try {
-      const completion = await openai.chat.completions.create({
+      const completion = await getOpenAI().chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: 'You are a senior CRE project management consultant. Write concise, professional project status briefs suitable for executive reporting.' },
@@ -396,7 +396,7 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
 }`
 
     try {
-      const completion = await openai.chat.completions.create({
+      const completion = await getOpenAI().chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: 'You are a CRE scheduling expert. Return only valid JSON.' },

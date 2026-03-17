@@ -15,6 +15,10 @@ import { EditProjectModal } from '@/components/EditProjectModal'
 import { BudgetTab } from '@/components/BudgetTab'
 import { AITab } from '@/components/AITab'
 import { DocumentsTab } from '@/components/DocumentsTab'
+import { RaidTab } from '@/components/RaidTab'
+import { ChangeOrdersTab } from '@/components/ChangeOrdersTab'
+import { RfiTab } from '@/components/RfiTab'
+import { SubmittalsTab } from '@/components/SubmittalsTab'
 import { useBudgetItems } from '@/hooks/useBudgetItems'
 import { exportProjectPdf } from '@/lib/exportPdf'
 import type { Task, TaskStatus } from '@/types'
@@ -340,7 +344,7 @@ function TaskGroup({ category, tasks }: { category: string; tasks: Task[] }) {
 }
 
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
-type Tab = 'overview' | 'checklist' | 'budget' | 'team' | 'ai' | 'docs'
+type Tab = 'overview' | 'checklist' | 'budget' | 'cos' | 'raid' | 'rfis' | 'submittals' | 'team' | 'docs' | 'ai'
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export function ProjectDetailPage() {
@@ -400,6 +404,10 @@ export function ProjectDetailPage() {
     { id: 'overview', label: 'Overview' },
     { id: 'checklist', label: `Checklist (${totalDone}/${tasks.length})` },
     { id: 'budget', label: 'Budget' },
+    { id: 'cos', label: 'Change Orders' },
+    { id: 'rfis', label: 'RFIs' },
+    { id: 'submittals', label: 'Submittals' },
+    { id: 'raid', label: 'RAID' },
     { id: 'team', label: 'Team' },
     { id: 'docs', label: 'Docs' },
     { id: 'ai', label: '✦ AI' },
@@ -515,13 +523,13 @@ export function ProjectDetailPage() {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-slate-800/50 p-1 rounded-xl border border-slate-700">
+      <div className="flex gap-1 bg-slate-800/50 p-1 rounded-xl border border-slate-700 overflow-x-auto scrollbar-none">
         {tabs.map(t => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
             className={clsx(
-              'flex-1 py-2 px-2 rounded-lg text-xs md:text-sm font-medium transition-colors',
+              'shrink-0 py-2 px-3 rounded-lg text-xs font-medium transition-colors whitespace-nowrap',
               tab === t.id ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
             )}
           >
@@ -595,6 +603,14 @@ export function ProjectDetailPage() {
       )}
 
       {tab === 'budget' && <BudgetTab project={project} />}
+
+      {tab === 'cos' && <ChangeOrdersTab project={project} />}
+
+      {tab === 'rfis' && <RfiTab project={project} />}
+
+      {tab === 'submittals' && <SubmittalsTab project={project} />}
+
+      {tab === 'raid' && <RaidTab project={project} />}
 
       {tab === 'docs' && <DocumentsTab project={project} />}
 
