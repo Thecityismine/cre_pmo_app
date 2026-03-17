@@ -21,6 +21,7 @@ import { RfiTab } from '@/components/RfiTab'
 import { SubmittalsTab } from '@/components/SubmittalsTab'
 import { useBudgetItems } from '@/hooks/useBudgetItems'
 import { computeHealth, healthColor, healthBg } from '@/lib/healthScore'
+import { MilestoneTimeline } from '@/components/MilestoneTimeline'
 import { exportProjectPdf } from '@/lib/exportPdf'
 import type { Task, TaskStatus } from '@/types'
 
@@ -617,6 +618,9 @@ export function ProjectDetailPage() {
             <InfoRow label="Size" value={project.rsf ? `${project.rsf.toLocaleString()} RSF` : '—'} />
           </div>
         </div>
+
+        {/* Milestone timeline */}
+        <MilestoneTimeline project={project} />
         </div>
       )}
 

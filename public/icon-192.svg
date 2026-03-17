@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="40" fill="#0f172a"/>
+  <rect width="192" height="192" rx="40" fill="url(#g)"/>
+  <defs>
+    <radialGradient id="g" cx="30%" cy="20%" r="80%">
+      <stop offset="0%" stop-color="#1e40af" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Lightning bolt / building hybrid -->
+  <path d="M108 32 L68 100 H94 L84 160 L136 88 H108 L120 32 Z" fill="#863bff" opacity="0.15"/>
+  <path d="M104 36 L66 98 H91 L82 156 L132 86 H105 L116 36 Z" fill="url(#bolt)"/>
+  <defs>
+    <linearGradient id="bolt" x1="0%" y1="0%" x2="60%" y2="100%">
+      <stop offset="0%" stop-color="#c084fc"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+</svg>
