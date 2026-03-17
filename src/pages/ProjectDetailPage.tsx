@@ -21,7 +21,10 @@ import { RfiTab } from '@/components/RfiTab'
 import { SubmittalsTab } from '@/components/SubmittalsTab'
 import { BidLogTab } from '@/components/BidLogTab'
 import { PunchListTab } from '@/components/PunchListTab'
+import { ScheduleTab } from '@/components/ScheduleTab'
 import { useBudgetItems } from '@/hooks/useBudgetItems'
+import { useChangeOrders } from '@/hooks/useChangeOrders'
+import { useProjectDocuments } from '@/hooks/useProjectDocuments'
 import { computeHealth } from '@/lib/healthScore'
 import { MilestoneTimeline } from '@/components/MilestoneTimeline'
 import { exportProjectPdf } from '@/lib/exportPdf'
@@ -368,8 +371,8 @@ function ScoreBar({ label, score, max, detail }: { label: string; score: number;
   )
 }
 
-function HealthScorecard({ project }: { project: Project }) {
-  const h = computeHealth(project)
+function HealthScorecard({ project, taskCompletionPct }: { project: Project; taskCompletionPct?: number }) {
+  const h = computeHealth(project, { taskCompletionPct })
   const ringColor = h.total >= 80 ? 'text-emerald-400' : h.total >= 60 ? 'text-amber-400' : 'text-red-400'
   const ringBg   = h.total >= 80 ? 'border-emerald-500' : h.total >= 60 ? 'border-amber-500' : 'border-red-500'
 
@@ -400,7 +403,7 @@ function HealthScorecard({ project }: { project: Project }) {
 }
 
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
-type Tab = 'overview' | 'checklist' | 'budget' | 'cos' | 'rfis' | 'submittals' | 'bids' | 'punch' | 'raid' | 'team' | 'docs' | 'ai'
+type Tab = 'overview' | 'checklist' | 'schedule' | 'budget' | 'cos' | 'rfis' | 'submittals' | 'bids' | 'punch' | 'raid' | 'team' | 'docs' | 'ai'
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export function ProjectDetailPage() {
@@ -410,6 +413,8 @@ export function ProjectDetailPage() {
   const { tasks, loading: tasksLoading } = useTasks(id)
   const { team } = useProjectTeam(id)
   const { items: budgetItems } = useBudgetItems(id)
+  const { approvedTotal: coApproved, pendingTotal: coPending } = useChangeOrders(id)
+  const { documents: recentDocs } = useProjectDocuments(id)
   const [tab, setTab] = useState<Tab>('overview')
   const [disciplineFilter, setDisciplineFilter] = useState<string>('all')
   const [subdivisionFilter, setSubdivisionFilter] = useState<string>('all')
@@ -459,6 +464,7 @@ export function ProjectDetailPage() {
   const tabs: { id: Tab; label: string }[] = [
     { id: 'overview', label: 'Overview' },
     { id: 'checklist', label: `Checklist (${totalDone}/${tasks.length})` },
+    { id: 'schedule', label: 'Schedule' },
     { id: 'budget', label: 'Budget' },
     { id: 'cos', label: 'Change Orders' },
     { id: 'rfis', label: 'RFIs' },
@@ -600,8 +606,29 @@ export function ProjectDetailPage() {
       {tab === 'overview' && (
         <div className="space-y-4">
         {/* Health scorecard */}
-        <HealthScorecard project={project} />
+        <HealthScorecard project={project} taskCompletionPct={totalPct} />
 
+        {/* Financial Summary */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[
+            { label: 'Total Budget',    value: fmt(project.totalBudget || 0),  color: 'text-slate-100' },
+            { label: 'Approved COs',    value: (coApproved >= 0 ? '+' : '') + fmt(coApproved), color: coApproved > 0 ? 'text-red-400' : coApproved < 0 ? 'text-emerald-400' : 'text-slate-500' },
+            { label: 'Net Budget',      value: fmt((project.totalBudget || 0) + coApproved), color: 'text-blue-300' },
+            { label: 'Forecast',        value: fmt(project.forecastCost || 0),  color: project.forecastCost > project.totalBudget ? 'text-red-400' : 'text-emerald-400' },
+          ].map(s => (
+            <div key={s.label} className="bg-slate-800 border border-slate-700 rounded-xl p-3">
+              <p className="text-xs text-slate-500 mb-1">{s.label}</p>
+              <p className={clsx('text-base font-bold', s.color)}>{s.value}</p>
+            </div>
+          ))}
+        </div>
+        {coPending !== 0 && (
+          <p className="text-xs text-amber-400 bg-amber-900/20 border border-amber-700/40 rounded-lg px-3 py-2">
+            ⚠ Pending CO exposure: <strong>{fmt(Math.abs(coPending))}</strong> — not yet reflected in budget.
+          </p>
+        )}
+
+        {/* Project info + Schedule */}
         <div className="grid md:grid-cols-2 gap-4">
           <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 space-y-3">
             <p className="text-slate-400 text-xs uppercase tracking-wide font-medium">Project Info</p>
@@ -616,7 +643,7 @@ export function ProjectDetailPage() {
             <p className="text-slate-400 text-xs uppercase tracking-wide font-medium">Schedule</p>
             <InfoRow label="Start Date" value={project.startDate || '—'} />
             <InfoRow label="Target Completion" value={project.targetCompletionDate || '—'} />
-            <InfoRow label="Lease Expiration" value={project.targetCompletionDate || '—'} />
+            <InfoRow label="Lease Expiration" value={(project as unknown as Record<string,string>).leaseExpiration || project.targetCompletionDate || '—'} />
             <InfoRow label="Warranty Start" value={(project as unknown as Record<string,string>).warrantyStartDate || '—'} />
             <InfoRow label="Warranty End" value={(project as unknown as Record<string,string>).warrantyEndDate || '—'} />
             <InfoRow label="Size" value={project.rsf ? `${project.rsf.toLocaleString()} RSF` : '—'} />
@@ -625,6 +652,34 @@ export function ProjectDetailPage() {
 
         {/* Milestone timeline */}
         <MilestoneTimeline project={project} />
+
+        {/* Recent Documents */}
+        {recentDocs.length > 0 && (
+          <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
+              <p className="text-sm font-semibold text-slate-200">Recent Documents</p>
+              <button onClick={() => setTab('docs')} className="text-xs text-blue-400 hover:text-blue-300">
+                View all →
+              </button>
+            </div>
+            <div className="divide-y divide-slate-700/50">
+              {recentDocs.slice(0, 5).map(doc => (
+                <a key={doc.id} href={doc.url} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-700/30 transition-colors">
+                  <div className="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center shrink-0">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">
+                      {doc.name.split('.').pop()?.slice(0, 3) ?? 'DOC'}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-slate-200 truncate">{doc.name}</p>
+                    <p className="text-xs text-slate-500">{doc.category} · {new Date(doc.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
         </div>
       )}
 
@@ -667,6 +722,8 @@ export function ProjectDetailPage() {
           )}
         </div>
       )}
+
+      {tab === 'schedule' && <ScheduleTab project={project} />}
 
       {tab === 'budget' && <BudgetTab project={project} />}
 

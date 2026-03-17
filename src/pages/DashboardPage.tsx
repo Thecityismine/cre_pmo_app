@@ -1,6 +1,10 @@
 import { useProjects } from '@/hooks/useProjects'
 import { usePortfolioTasks } from '@/hooks/usePortfolioTasks'
-import { AlertTriangle, CheckCircle, DollarSign, FolderOpen, Clock, ChevronRight, TrendingUp, TrendingDown } from 'lucide-react'
+import { usePortfolioMilestones } from '@/hooks/usePortfolioMilestones'
+import {
+  AlertTriangle, CheckCircle, DollarSign, FolderOpen, Clock,
+  ChevronRight, TrendingUp, TrendingDown, Calendar, Activity,
+} from 'lucide-react'
 import { clsx } from 'clsx'
 import { useNavigate } from 'react-router-dom'
 import { computeHealth, healthBg, healthColor } from '@/lib/healthScore'
@@ -73,6 +77,49 @@ function StatCard({ label, value, sub, icon: Icon, color, onClick }: {
   )
 }
 
+// ─── Budget summary bars ──────────────────────────────────────────────────────
+
+function BudgetSummaryBars({ projects }: { projects: Project[] }) {
+  const navigate = useNavigate()
+  const withBudget = projects.filter(p => p.totalBudget > 0)
+  if (withBudget.length === 0) return null
+
+  return (
+    <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
+      <div className="px-5 py-4 border-b border-slate-700">
+        <h2 className="text-slate-100 font-semibold text-sm">Budget Utilization</h2>
+        <p className="text-xs text-slate-500 mt-0.5">Forecast vs. approved budget per project</p>
+      </div>
+      <div className="divide-y divide-slate-700/50">
+        {withBudget.map(p => {
+          const pct = Math.min(110, (p.forecastCost / p.totalBudget) * 100)
+          const over = p.forecastCost > p.totalBudget
+          return (
+            <button
+              key={p.id}
+              onClick={() => navigate(`/projects/${p.id}`)}
+              className="w-full text-left px-5 py-3 hover:bg-slate-700/30 transition-colors"
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-sm text-slate-200 font-medium truncate">{p.projectName}</span>
+                <span className={clsx('text-xs font-medium shrink-0 ml-2', over ? 'text-red-400' : 'text-emerald-400')}>
+                  {fmt(p.forecastCost)} / {fmt(p.totalBudget)}
+                </span>
+              </div>
+              <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                <div
+                  className={clsx('h-full rounded-full transition-all', over ? 'bg-red-500' : pct > 85 ? 'bg-amber-500' : 'bg-emerald-500')}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 // ─── Main dashboard ───────────────────────────────────────────────────────────
 
 export function DashboardPage() {
@@ -81,14 +128,21 @@ export function DashboardPage() {
   const navigate = useNavigate()
 
   const active = projects.filter(p => p.isActive)
-  const atRisk = active.filter(p => p.forecastCost > p.totalBudget)
   const closed = projects.filter(p => p.status === 'closed')
+  const atRisk = active.filter(p => p.forecastCost > p.totalBudget)
   const totalBudget = active.reduce((s, p) => s + (p.totalBudget || 0), 0)
   const totalForecast = active.reduce((s, p) => s + (p.forecastCost || 0), 0)
   const portfolioVariance = totalBudget - totalForecast
 
-  // Build a projectId → name map for task display
+  // Average health score across active projects
+  const avgHealth = active.length > 0
+    ? Math.round(active.reduce((s, p) => s + computeHealth(p).total, 0) / active.length)
+    : null
+
+  // Build a projectId → name map
   const projectMap = Object.fromEntries(projects.map(p => [p.id, p.projectName]))
+
+  const { milestones: upcomingMilestones } = usePortfolioMilestones(projectMap)
 
   if (projLoading) {
     return (
@@ -119,18 +173,22 @@ export function DashboardPage() {
           onClick={() => navigate('/projects')}
         />
         <StatCard
-          label="Portfolio Budget"
+          label="Total Budget"
           value={fmtM(totalBudget)}
           sub={`${fmtM(totalForecast)} forecast`}
           icon={DollarSign}
           color="bg-emerald-600"
         />
         <StatCard
-          label="At Risk"
-          value={atRisk.length}
-          sub={atRisk.length > 0 ? 'Over forecast' : 'All on budget'}
-          icon={AlertTriangle}
-          color={atRisk.length > 0 ? 'bg-red-600' : 'bg-slate-600'}
+          label="Portfolio Health"
+          value={avgHealth !== null ? `${avgHealth}` : '—'}
+          sub={avgHealth !== null
+            ? avgHealth >= 80 ? 'Avg — Healthy'
+            : avgHealth >= 60 ? 'Avg — At Risk'
+            : 'Avg — Critical'
+            : 'No active projects'}
+          icon={Activity}
+          color={avgHealth === null ? 'bg-slate-600' : avgHealth >= 80 ? 'bg-emerald-600' : avgHealth >= 60 ? 'bg-amber-600' : 'bg-red-600'}
         />
         <StatCard
           label="Overdue Tasks"
@@ -164,54 +222,72 @@ export function DashboardPage() {
               />
             </div>
           </div>
+          {atRisk.length > 0 && (
+            <div className="shrink-0 text-right">
+              <p className="text-xs text-red-400 font-medium">{atRisk.length} over budget</p>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Two-column: overdue tasks + upcoming */}
-      {!tasksLoading && (overdue.length > 0 || upcoming.length > 0) && (
-        <div className="grid md:grid-cols-2 gap-4">
-          {/* Overdue tasks */}
-          {overdue.length > 0 && (
-            <div className="bg-slate-800 border border-red-800/40 rounded-xl overflow-hidden">
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-700 bg-red-950/20">
-                <AlertTriangle size={14} className="text-red-400" />
-                <h3 className="text-sm font-semibold text-red-300">Overdue Tasks ({overdue.length})</h3>
-              </div>
-              <div className="divide-y divide-slate-700/50 max-h-72 overflow-y-auto">
-                {overdue.slice(0, 15).map(t => (
-                  <button
-                    key={t.id}
-                    onClick={() => navigate(`/projects/${t.projectId}`)}
-                    className="w-full text-left px-4 py-2.5 hover:bg-slate-700/50 transition-colors"
-                  >
-                    <p className="text-sm text-slate-200 truncate">{t.title}</p>
-                    <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500">
-                      <span className="text-red-400">
-                        {new Date(t.dueDate!).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                      </span>
-                      <span>·</span>
-                      <span className="truncate">{projectMap[t.projectId] ?? 'Unknown project'}</span>
-                    </div>
-                  </button>
-                ))}
-                {overdue.length > 15 && (
-                  <p className="text-xs text-slate-500 text-center py-2">+{overdue.length - 15} more</p>
-                )}
-              </div>
+      {/* Two-column: milestones + tasks */}
+      <div className="grid md:grid-cols-2 gap-4">
+
+        {/* Next 30-Day Milestones */}
+        <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
+            <div className="flex items-center gap-2">
+              <Calendar size={14} className="text-blue-400" />
+              <h3 className="text-sm font-semibold text-slate-200">Next 30-Day Milestones</h3>
+            </div>
+            <span className="text-xs text-slate-500">{upcomingMilestones.length} upcoming</span>
+          </div>
+          {upcomingMilestones.length === 0 ? (
+            <div className="text-center py-8 text-slate-500">
+              <Calendar size={24} className="mx-auto mb-2 opacity-30" />
+              <p className="text-sm">No milestones in the next 30 days.</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-700/50 max-h-64 overflow-y-auto">
+              {upcomingMilestones.map(m => (
+                <button
+                  key={m.id}
+                  onClick={() => navigate(`/projects/${m.projectId}`)}
+                  className="w-full text-left px-4 py-2.5 hover:bg-slate-700/50 transition-colors"
+                >
+                  <p className="text-sm text-slate-200 truncate">{m.name}</p>
+                  <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500">
+                    <span className={clsx(
+                      m.daysUntil <= 7 ? 'text-red-400' : m.daysUntil <= 14 ? 'text-amber-400' : 'text-blue-400'
+                    )}>
+                      {m.daysUntil === 0 ? 'Today' : m.daysUntil === 1 ? 'Tomorrow' : `${m.daysUntil} days`}
+                    </span>
+                    <span>·</span>
+                    <span className="text-slate-400 truncate">{m.projectName}</span>
+                    {m.targetDate && (
+                      <>
+                        <span>·</span>
+                        <span>{new Date(m.targetDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                      </>
+                    )}
+                  </div>
+                </button>
+              ))}
             </div>
           )}
+        </div>
 
-          {/* Upcoming tasks */}
-          {upcoming.length > 0 && (
-            <div className="bg-slate-800 border border-amber-800/40 rounded-xl overflow-hidden">
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-700 bg-amber-950/20">
-                <Clock size={14} className="text-amber-400" />
-                <h3 className="text-sm font-semibold text-amber-300">Due in 14 Days ({upcoming.length})</h3>
-              </div>
-              <div className="divide-y divide-slate-700/50 max-h-72 overflow-y-auto">
-                {upcoming.slice(0, 15).map(t => {
-                  const daysLeft = Math.ceil((new Date(t.dueDate!).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-                  return (
+        {/* Overdue tasks */}
+        {!tasksLoading && (overdue.length > 0 || upcoming.length > 0) ? (
+          <div className="space-y-4">
+            {overdue.length > 0 && (
+              <div className="bg-slate-800 border border-red-800/40 rounded-xl overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-700 bg-red-950/20">
+                  <AlertTriangle size={14} className="text-red-400" />
+                  <h3 className="text-sm font-semibold text-red-300">Overdue Tasks ({overdue.length})</h3>
+                </div>
+                <div className="divide-y divide-slate-700/50 max-h-48 overflow-y-auto">
+                  {overdue.slice(0, 8).map(t => (
                     <button
                       key={t.id}
                       onClick={() => navigate(`/projects/${t.projectId}`)}
@@ -219,25 +295,68 @@ export function DashboardPage() {
                     >
                       <p className="text-sm text-slate-200 truncate">{t.title}</p>
                       <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500">
-                        <span className={clsx(daysLeft <= 3 ? 'text-orange-400' : 'text-amber-400')}>
-                          {daysLeft === 0 ? 'Today' : daysLeft === 1 ? 'Tomorrow' : `${daysLeft} days`}
+                        <span className="text-red-400">
+                          {new Date(t.dueDate!).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         </span>
                         <span>·</span>
-                        <span className="truncate">{projectMap[t.projectId] ?? 'Unknown project'}</span>
+                        <span className="truncate">{projectMap[t.projectId] ?? 'Unknown'}</span>
                       </div>
                     </button>
-                  )
-                })}
-                {upcoming.length > 15 && (
-                  <p className="text-xs text-slate-500 text-center py-2">+{upcoming.length - 15} more</p>
-                )}
+                  ))}
+                  {overdue.length > 8 && (
+                    <p className="text-xs text-slate-500 text-center py-2">+{overdue.length - 8} more</p>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-      )}
+            )}
 
-      {/* Active projects with health */}
+            {upcoming.length > 0 && (
+              <div className="bg-slate-800 border border-amber-800/40 rounded-xl overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-700 bg-amber-950/20">
+                  <Clock size={14} className="text-amber-400" />
+                  <h3 className="text-sm font-semibold text-amber-300">Due in 14 Days ({upcoming.length})</h3>
+                </div>
+                <div className="divide-y divide-slate-700/50 max-h-48 overflow-y-auto">
+                  {upcoming.slice(0, 8).map(t => {
+                    const daysLeft = Math.ceil((new Date(t.dueDate!).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+                    return (
+                      <button
+                        key={t.id}
+                        onClick={() => navigate(`/projects/${t.projectId}`)}
+                        className="w-full text-left px-4 py-2.5 hover:bg-slate-700/50 transition-colors"
+                      >
+                        <p className="text-sm text-slate-200 truncate">{t.title}</p>
+                        <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500">
+                          <span className={clsx(daysLeft <= 3 ? 'text-orange-400' : 'text-amber-400')}>
+                            {daysLeft === 0 ? 'Today' : daysLeft === 1 ? 'Tomorrow' : `${daysLeft} days`}
+                          </span>
+                          <span>·</span>
+                          <span className="truncate">{projectMap[t.projectId] ?? 'Unknown'}</span>
+                        </div>
+                      </button>
+                    )
+                  })}
+                  {upcoming.length > 8 && (
+                    <p className="text-xs text-slate-500 text-center py-2">+{upcoming.length - 8} more</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="bg-slate-800 border border-slate-700 rounded-xl flex items-center justify-center py-8 text-slate-500">
+            <div className="text-center">
+              <CheckCircle size={24} className="mx-auto mb-2 text-emerald-500 opacity-70" />
+              <p className="text-sm">No overdue or upcoming tasks</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Budget utilization bars */}
+      <BudgetSummaryBars projects={active} />
+
+      {/* Active projects table */}
       <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-700">
           <h2 className="text-slate-100 font-semibold">Active Projects</h2>

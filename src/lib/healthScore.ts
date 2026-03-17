@@ -12,9 +12,14 @@ export interface HealthBreakdown {
   label: 'Healthy' | 'At Risk' | 'Critical'
   daysToCompletion: number | null
   budgetVariancePct: number | null
+  spi: number | null
 }
 
-export function computeHealth(p: Project): HealthBreakdown {
+export interface HealthOptions {
+  taskCompletionPct?: number   // 0–100, used for SPI (EV)
+}
+
+export function computeHealth(p: Project, opts: HealthOptions = {}): HealthBreakdown {
   // ── Budget component (40 pts) ────────────────────────────────────────────
   let budget = 40
   let budgetLabel = 'On budget'
@@ -36,14 +41,58 @@ export function computeHealth(p: Project): HealthBreakdown {
     }
   }
 
-  // ── Schedule component (35 pts) ──────────────────────────────────────────
+  // ── Schedule component (35 pts) ─────────────────────────────────────────
+  // Uses SPI = EV / PV when both task completion % and project dates are known.
+  // EV = taskCompletionPct / 100
+  // PV = elapsed time / total project duration (0–1)
   let schedule = 35
   let scheduleLabel = 'On schedule'
   let daysToCompletion: number | null = null
+  let spi: number | null = null
 
   const closedStatuses = ['closed', 'closeout', 'defect-period']
   if (closedStatuses.includes(p.status)) {
     schedule = 35; scheduleLabel = 'Project closing'
+  } else if (p.startDate && p.targetCompletionDate) {
+    const start = new Date(p.startDate).getTime()
+    const end   = new Date(p.targetCompletionDate).getTime()
+    const now   = Date.now()
+    const totalDuration = end - start
+
+    daysToCompletion = Math.ceil((end - now) / (1000 * 60 * 60 * 24))
+
+    if (totalDuration > 0 && opts.taskCompletionPct !== undefined) {
+      const pv = Math.min(1, Math.max(0, (now - start) / totalDuration))  // planned progress
+      const ev = opts.taskCompletionPct / 100                              // earned value
+      if (pv > 0) {
+        spi = Math.round((ev / pv) * 100) / 100
+        if (spi >= 1.0) {
+          schedule = 35; scheduleLabel = `SPI ${spi.toFixed(2)} — On schedule`
+        } else if (spi >= 0.9) {
+          schedule = 28; scheduleLabel = `SPI ${spi.toFixed(2)} — Slightly behind`
+        } else if (spi >= 0.8) {
+          schedule = 18; scheduleLabel = `SPI ${spi.toFixed(2)} — Behind schedule`
+        } else {
+          schedule = 6; scheduleLabel = `SPI ${spi.toFixed(2)} — Significantly behind`
+        }
+      } else {
+        // Project just started, no elapsed time yet
+        schedule = 35; scheduleLabel = 'Project started'
+      }
+    } else if (p.targetCompletionDate) {
+      // Fallback: days-to-completion heuristic when no task data
+      if (daysToCompletion > 60) {
+        schedule = 35; scheduleLabel = 'On schedule'
+      } else if (daysToCompletion > 30) {
+        schedule = 28; scheduleLabel = `${daysToCompletion}d to completion`
+      } else if (daysToCompletion > 0) {
+        schedule = 18; scheduleLabel = `${daysToCompletion}d to completion`
+      } else if (daysToCompletion > -14) {
+        schedule = 8; scheduleLabel = `${Math.abs(daysToCompletion)}d past target`
+      } else {
+        schedule = 0; scheduleLabel = `${Math.abs(daysToCompletion)}d past target`
+      }
+    }
   } else if (p.targetCompletionDate) {
     const days = Math.ceil(
       (new Date(p.targetCompletionDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
@@ -85,7 +134,7 @@ export function computeHealth(p: Project): HealthBreakdown {
     total, budget, schedule, stage,
     budgetLabel, scheduleLabel, stageLabel,
     color, label,
-    daysToCompletion, budgetVariancePct,
+    daysToCompletion, budgetVariancePct, spi,
   }
 }
 

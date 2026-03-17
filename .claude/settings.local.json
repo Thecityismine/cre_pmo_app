@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -l \"Schedule\\\\|schedule\" /c/Users/gmedi/Desktop/cre-pmo-v2/src/components/*.tsx)",
+      "Bash(npx tsc:*)"
+    ]
+  }
+}
