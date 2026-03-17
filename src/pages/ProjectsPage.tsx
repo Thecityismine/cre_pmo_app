@@ -1,9 +1,10 @@
 import { useProjects } from '@/hooks/useProjects'
-import { FolderOpen, Plus, Search, LayoutGrid, List, AlertTriangle, ArrowUpDown, X } from 'lucide-react'
+import { FolderOpen, Plus, Search, LayoutGrid, List, AlertTriangle, ArrowUpDown, X, Download } from 'lucide-react'
 import { useState, useMemo } from 'react'
 import { clsx } from 'clsx'
 import { useNavigate } from 'react-router-dom'
 import { NewProjectModal } from '@/components/NewProjectModal'
+import { exportProjectsCsv } from '@/lib/exportCsv'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -231,12 +232,21 @@ export function ProjectsPage() {
             )}
           </p>
         </div>
-        <button
-          onClick={() => setShowNew(true)}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-        >
-          <Plus size={16} /> <span className="hidden sm:inline">New Project</span><span className="sm:hidden">New</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => exportProjectsCsv(filtered, 'cre-projects.csv')}
+            title="Export visible projects to CSV"
+            className="flex items-center gap-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm px-3 py-2 rounded-lg border border-slate-600 transition-colors"
+          >
+            <Download size={15} /><span className="hidden sm:inline text-xs">CSV</span>
+          </button>
+          <button
+            onClick={() => setShowNew(true)}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+          >
+            <Plus size={16} /> <span className="hidden sm:inline">New Project</span><span className="sm:hidden">New</span>
+          </button>
+        </div>
       </div>
 
       {/* ── Filter bar ── */}

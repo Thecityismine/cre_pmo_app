@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { clsx } from 'clsx'
 import {
   ArrowLeft, MapPin, DollarSign, Users, CheckSquare,
-  Calendar, TrendingUp, ChevronDown, ChevronRight, Pencil,
+  Calendar, TrendingUp, ChevronDown, ChevronRight, Pencil, FileDown,
 } from 'lucide-react'
 import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
@@ -14,6 +14,8 @@ import { EditProjectModal } from '@/components/EditProjectModal'
 import { BudgetTab } from '@/components/BudgetTab'
 import { AITab } from '@/components/AITab'
 import { DocumentsTab } from '@/components/DocumentsTab'
+import { useBudgetItems } from '@/hooks/useBudgetItems'
+import { exportProjectPdf } from '@/lib/exportPdf'
 import type { Task, TaskStatus } from '@/types'
 
 // ─── Stage gate progress ──────────────────────────────────────────────────────
@@ -171,6 +173,7 @@ export function ProjectDetailPage() {
   const { project, loading: projLoading } = useProject(id)
   const { tasks, loading: tasksLoading } = useTasks(id)
   const { team } = useProjectTeam(id)
+  const { items: budgetItems } = useBudgetItems(id)
   const [tab, setTab] = useState<Tab>('overview')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [showEdit, setShowEdit] = useState(false)
@@ -233,12 +236,21 @@ export function ProjectDetailPage() {
             <h1 className="text-xl md:text-2xl font-bold text-slate-100 truncate">{project.projectName}</h1>
             <span className="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded font-medium">{project.profile}</span>
             <StatusPill status={project.status} />
-            <button
-              onClick={() => setShowEdit(true)}
-              className="ml-auto flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-600 px-3 py-1.5 rounded-lg transition-colors shrink-0"
-            >
-              <Pencil size={13} /> Edit
-            </button>
+            <div className="ml-auto flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => exportProjectPdf(project, tasks, budgetItems)}
+                className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-600 px-3 py-1.5 rounded-lg transition-colors"
+                title="Export PDF report"
+              >
+                <FileDown size={13} /> <span className="hidden sm:inline">Export</span>
+              </button>
+              <button
+                onClick={() => setShowEdit(true)}
+                className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-600 px-3 py-1.5 rounded-lg transition-colors"
+              >
+                <Pencil size={13} /> Edit
+              </button>
+            </div>
           </div>
           <div className="flex items-center gap-1.5 text-slate-400 text-sm">
             <MapPin size={13} />
