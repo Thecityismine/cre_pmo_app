@@ -21,7 +21,7 @@ export function useTasks(projectId: string | undefined) {
         .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
       setTasks(sorted)
       setLoading(false)
-    })
+    }, () => setLoading(false))
     return unsub
   }, [projectId])
 

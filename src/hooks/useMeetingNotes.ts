@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
-  collection, onSnapshot, query, where, orderBy,
+  collection, onSnapshot, query, where,
   addDoc, deleteDoc, doc,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
@@ -27,12 +27,14 @@ export function useMeetingNotes(projectId: string | undefined) {
     const q = query(
       collection(db, 'meetingNotes'),
       where('projectId', '==', projectId),
-      orderBy('createdAt', 'desc')
     )
     const unsub = onSnapshot(q, (snap) => {
-      setNotes(snap.docs.map((d) => ({ id: d.id, ...d.data() } as MeetingNote)))
+      const sorted = snap.docs
+        .map((d) => ({ id: d.id, ...d.data() } as MeetingNote))
+        .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
+      setNotes(sorted)
       setLoading(false)
-    })
+    }, () => setLoading(false))
     return unsub
   }, [projectId])
 

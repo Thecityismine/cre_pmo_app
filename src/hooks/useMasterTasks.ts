@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { collection, onSnapshot, orderBy, query } from 'firebase/firestore'
+import { collection, onSnapshot, query } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
 export interface MasterTask {
@@ -19,11 +19,14 @@ export function useMasterTasks() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const q = query(collection(db, 'masterTasks'), orderBy('order', 'asc'))
+    const q = query(collection(db, 'masterTasks'))
     const unsub = onSnapshot(q, (snap) => {
-      setTasks(snap.docs.map((d) => ({ id: d.id, ...d.data() } as MasterTask)))
+      const sorted = snap.docs
+        .map((d) => ({ id: d.id, ...d.data() } as MasterTask))
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      setTasks(sorted)
       setLoading(false)
-    })
+    }, () => setLoading(false))
     return unsub
   }, [])
 
