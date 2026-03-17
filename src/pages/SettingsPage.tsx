@@ -367,6 +367,7 @@ function ApiKeysSection() {
 
 export function SettingsPage() {
   const user = useAuthStore((s) => s.user)
+  const setUser = useAuthStore((s) => s.setUser)
   const navigate = useNavigate()
 
   // Profile form
@@ -392,6 +393,8 @@ export function SettingsPage() {
           await updateProfile(auth.currentUser!, { photoURL: url })
           await updateDoc(doc(db, 'users', user.uid), { photoURL: url, updatedAt: new Date().toISOString() })
           setPhotoURL(url)
+          // Update auth store so Topbar avatar refreshes immediately
+          if (user) setUser({ ...user, photoURL: url })
           resolve()
         })
       })
