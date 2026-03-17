@@ -300,7 +300,7 @@ export function DashboardPage() {
                   {overdue.slice(0, 8).map(t => (
                     <button
                       key={t.id}
-                      onClick={() => navigate(`/projects/${t.projectId}`)}
+                      onClick={() => navigate(`/projects/${t.projectId}?tab=tasks`)}
                       className="w-full text-left px-4 py-2.5 hover:bg-slate-700/50 transition-colors"
                     >
                       <p className="text-sm text-slate-200 truncate">{t.title}</p>
@@ -332,7 +332,7 @@ export function DashboardPage() {
                     return (
                       <button
                         key={t.id}
-                        onClick={() => navigate(`/projects/${t.projectId}`)}
+                        onClick={() => navigate(`/projects/${t.projectId}?tab=tasks`)}
                         className="w-full text-left px-4 py-2.5 hover:bg-slate-700/50 transition-colors"
                       >
                         <p className="text-sm text-slate-200 truncate">{t.title}</p>

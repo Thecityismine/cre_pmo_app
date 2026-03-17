@@ -47,12 +47,19 @@ function AddTaskForm({ onSave, onCancel }: {
   const [saving, setSaving] = useState(false)
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }))
 
+  const [saveError, setSaveError] = useState('')
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.title.trim()) return
     setSaving(true)
-    await onSave(form)
-    setSaving(false)
+    setSaveError('')
+    try {
+      await onSave(form)
+    } catch (err: unknown) {
+      setSaveError((err as Error).message ?? 'Failed to save task.')
+      setSaving(false)
+    }
   }
 
   const inp = 'w-full bg-slate-900 text-slate-100 text-xs rounded-lg px-2.5 py-2 border border-slate-700 focus:outline-none focus:border-blue-500 placeholder-slate-600'
@@ -111,6 +118,9 @@ function AddTaskForm({ onSave, onCancel }: {
         </div>
       </div>
 
+      {saveError && (
+        <p className="text-xs text-red-400 bg-red-900/30 border border-red-800/50 rounded-lg px-3 py-2">{saveError}</p>
+      )}
       <div className="flex gap-2">
         <button type="submit" disabled={saving || !form.title.trim()}
           className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-2 rounded-lg disabled:opacity-50 transition-colors">

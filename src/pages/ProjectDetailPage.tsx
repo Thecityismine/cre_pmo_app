@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useProject } from '@/hooks/useProject'
 import { useTasks } from '@/hooks/useTasks'
 import { useProjectTeam } from '@/hooks/useProjectTeam'
@@ -252,6 +252,7 @@ type Tab = 'overview' | 'checklist' | 'schedule' | 'budget' | 'cos' | 'rfis' | '
 export function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { project, loading: projLoading } = useProject(id)
   const { tasks, loading: tasksLoading } = useTasks(id)
   const { tasks: masterTasks } = useMasterTasks()
@@ -262,7 +263,7 @@ export function ProjectDetailPage() {
   const { documents: recentDocs } = useProjectDocuments(id)
   const { openCount: openRfis, overdueCount: overdueRfis } = useRfis(id)
   const { openCount: openPunch } = usePunchList(id)
-  const [tab, setTab] = useState<Tab>('overview')
+  const [tab, setTab] = useState<Tab>((searchParams.get('tab') as Tab) || 'overview')
   const [disciplineFilter, setDisciplineFilter] = useState<string>('all')
   const [subdivisionFilter, setSubdivisionFilter] = useState<string>('all')
   const [showEdit, setShowEdit] = useState(false)
@@ -379,6 +380,7 @@ export function ProjectDetailPage() {
   const tabs: { id: Tab; label: string }[] = [
     { id: 'overview', label: 'Overview' },
     { id: 'checklist', label: `Checklist (${totalDone}/${tasks.length})` },
+    { id: 'tasks', label: 'Tasks' },
     { id: 'schedule', label: 'Schedule' },
     { id: 'budget', label: 'Budget' },
     { id: 'cos', label: 'Change Orders' },
@@ -390,7 +392,6 @@ export function ProjectDetailPage() {
     { id: 'meetings', label: 'Meetings' },
     { id: 'team', label: 'Team' },
     { id: 'docs', label: 'Docs' },
-    { id: 'tasks', label: 'Tasks' },
     { id: 'ai', label: '✦ AI' },
   ]
 
@@ -908,11 +909,11 @@ export function ProjectDetailPage() {
         <button
           onClick={() => setFabOpen(!fabOpen)}
           className={clsx(
-            'w-14 h-14 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-xl flex items-center justify-center transition-all duration-200',
+            'w-11 h-11 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-xl flex items-center justify-center transition-all duration-200',
             fabOpen && 'rotate-45'
           )}
         >
-          {fabOpen ? <X size={22} /> : <Plus size={22} />}
+          {fabOpen ? <X size={18} /> : <Plus size={18} />}
         </button>
       </div>
     </div>
