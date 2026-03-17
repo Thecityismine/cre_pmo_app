@@ -23,6 +23,7 @@ import { SubmittalsTab } from '@/components/SubmittalsTab'
 import { BidLogTab } from '@/components/BidLogTab'
 import { PunchListTab } from '@/components/PunchListTab'
 import { ScheduleTab } from '@/components/ScheduleTab'
+import { MeetingNotesTab } from '@/components/MeetingNotesTab'
 import { useBudgetItems } from '@/hooks/useBudgetItems'
 import { useChangeOrders } from '@/hooks/useChangeOrders'
 import { useProjectDocuments } from '@/hooks/useProjectDocuments'
@@ -408,7 +409,7 @@ function HealthScorecard({ project, taskCompletionPct }: { project: Project; tas
 }
 
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
-type Tab = 'overview' | 'checklist' | 'schedule' | 'budget' | 'cos' | 'rfis' | 'submittals' | 'bids' | 'punch' | 'raid' | 'team' | 'docs' | 'ai'
+type Tab = 'overview' | 'checklist' | 'schedule' | 'budget' | 'cos' | 'rfis' | 'submittals' | 'bids' | 'punch' | 'raid' | 'meetings' | 'team' | 'docs' | 'ai'
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export function ProjectDetailPage() {
@@ -511,6 +512,7 @@ export function ProjectDetailPage() {
     { id: 'bids', label: 'Bid Log' },
     { id: 'punch', label: 'Punch List' },
     { id: 'raid', label: 'RAID' },
+    { id: 'meetings', label: 'Meetings' },
     { id: 'team', label: 'Team' },
     { id: 'docs', label: 'Docs' },
     { id: 'ai', label: '✦ AI' },
@@ -932,6 +934,8 @@ export function ProjectDetailPage() {
       {tab === 'punch' && <PunchListTab project={project} />}
 
       {tab === 'raid' && <RaidTab project={project} />}
+
+      {tab === 'meetings' && <MeetingNotesTab project={project} />}
 
       {tab === 'docs' && <DocumentsTab project={project} />}
 
