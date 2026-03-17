@@ -308,7 +308,7 @@ function TaskRow({ task }: { task: Task }) {
 }
 
 function TaskGroup({ category, tasks }: { category: string; tasks: Task[] }) {
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(true)
   const done = tasks.filter(t => t.status === 'complete').length
   const pct = Math.round((done / tasks.length) * 100)
 

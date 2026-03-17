@@ -148,7 +148,7 @@ function AddTaskRow({ category, onDone }: { category: string; onDone: () => void
 function CategoryGroup({ category, tasks, onDelete }: {
   category: string; tasks: MasterTask[]; onDelete: (id: string) => void
 }) {
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(true)
   const [adding, setAdding] = useState(false)
 
   return (
@@ -184,16 +184,24 @@ function CategoryGroup({ category, tasks, onDelete }: {
 export function ChecklistPage() {
   const { tasks, loading } = useMasterTasks()
   const [search, setSearch] = useState('')
+  const [teamFilter, setTeamFilter] = useState('all')
+  const [subdivisionFilter, setSubdivisionFilter] = useState('all')
   const [showNewCategory, setShowNewCategory] = useState(false)
   const [newCategory, setNewCategory] = useState('')
 
-  const filtered = search
-    ? tasks.filter(t =>
-        t.title.toLowerCase().includes(search.toLowerCase()) ||
-        t.category.toLowerCase().includes(search.toLowerCase()) ||
-        t.assignedTeam.toLowerCase().includes(search.toLowerCase())
-      )
-    : tasks
+  const teams = Array.from(new Set(tasks.map(t => t.assignedTeam).filter(Boolean)))
+  const subdivisions = Array.from(new Set(tasks.map(t => t.category).filter(Boolean)))
+
+  const filtered = tasks.filter(t => {
+    const q = search.toLowerCase()
+    const matchSearch = !q ||
+      t.title.toLowerCase().includes(q) ||
+      t.category.toLowerCase().includes(q) ||
+      t.assignedTeam.toLowerCase().includes(q)
+    const matchTeam = teamFilter === 'all' || t.assignedTeam === teamFilter
+    const matchSub = subdivisionFilter === 'all' || t.category === subdivisionFilter
+    return matchSearch && matchTeam && matchSub
+  })
 
   const grouped = filtered.reduce<Record<string, MasterTask[]>>((acc, t) => {
     const cat = t.category || 'General'
@@ -260,15 +268,35 @@ export function ChecklistPage() {
         </div>
       )}
 
-      {/* Search */}
-      <div className="relative">
-        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-        <input
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Search tasks, categories, or teams..."
-          className="w-full bg-slate-800 text-slate-200 placeholder-slate-500 text-sm rounded-xl pl-9 pr-4 py-2.5 border border-slate-700 focus:outline-none focus:border-blue-500"
-        />
+      {/* Search + filters */}
+      <div className="space-y-2">
+        <div className="relative">
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search tasks, categories, or teams..."
+            className="w-full bg-slate-800 text-slate-200 placeholder-slate-500 text-sm rounded-xl pl-9 pr-4 py-2.5 border border-slate-700 focus:outline-none focus:border-blue-500"
+          />
+        </div>
+        <div className="flex gap-2">
+          <select
+            value={teamFilter}
+            onChange={e => setTeamFilter(e.target.value)}
+            className="flex-1 bg-slate-800 border border-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+          >
+            <option value="all">All Teams</option>
+            {teams.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+          <select
+            value={subdivisionFilter}
+            onChange={e => setSubdivisionFilter(e.target.value)}
+            className="flex-1 bg-slate-800 border border-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+          >
+            <option value="all">All Subdivisions</option>
+            {subdivisions.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </div>
       </div>
 
       {/* Stats bar */}
