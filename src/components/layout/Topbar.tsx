@@ -1,8 +1,9 @@
 import { Bell, Search, User, X } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useState } from 'react'
+import { AIChatButton } from '@/components/AIChatDrawer'
 
-export function Topbar() {
+export function Topbar({ onAIOpen }: { onAIOpen?: () => void }) {
   const user = useAuthStore((s) => s.user)
   const [searchOpen, setSearchOpen] = useState(false)
 
@@ -42,6 +43,7 @@ export function Topbar() {
 
           {/* Right actions */}
           <div className="flex items-center gap-2 md:gap-3">
+            {onAIOpen && <AIChatButton onClick={onAIOpen} />}
             {/* Mobile search icon */}
             <button
               onClick={() => setSearchOpen(true)}

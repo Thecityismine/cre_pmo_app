@@ -7,7 +7,8 @@ import {
 } from 'lucide-react'
 import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
-import { getOpenAI, hasOpenAIKey } from '@/lib/openai'
+import { getOpenAI } from '@/lib/openai'
+import { callClaude, hasClaudeKey, CRE_SYSTEM_PROMPT } from '@/lib/claude'
 import { useMeetingNotes, type MeetingNote } from '@/hooks/useMeetingNotes'
 import { useAuthStore } from '@/store/authStore'
 import type { Project, Task } from '@/types'
@@ -245,7 +246,7 @@ export function AITab({ project, tasks }: { project: Project; tasks: Task[] }) {
   const [scheduleError, setScheduleError] = useState('')
   const [applied, setApplied] = useState(false)
 
-  const noKey = !hasOpenAIKey()
+  const noKey = !hasClaudeKey()
 
   // ── Process meeting notes ──────────────────────────────────────────────────
 
@@ -267,17 +268,11 @@ export function AITab({ project, tasks }: { project: Project; tasks: Task[] }) {
         noteText = transcription.text
       }
 
-      const completion = await getOpenAI().chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: 'You are a concise CRE project management assistant.' },
-          { role: 'user', content: MEETING_PROMPT + noteText },
-        ],
-        max_tokens: 800,
-        temperature: 0.3,
-      })
-
-      const aiText = completion.choices[0]?.message?.content ?? ''
+      const aiText = await callClaude(
+        [{ role: 'user', content: MEETING_PROMPT + noteText }],
+        CRE_SYSTEM_PROMPT,
+        800,
+      )
       const parsed = parseAIResponse(aiText)
 
       await addNote({
@@ -337,16 +332,12 @@ Client: ${project.clientName || 'N/A'}
 `.trim()
 
     try {
-      const completion = await getOpenAI().chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: 'You are a senior CRE project management consultant. Write concise, professional project status briefs suitable for executive reporting.' },
-          { role: 'user', content: `Generate a concise project status brief (3-4 short paragraphs) for the following CRE project. Cover: overall status, budget health, schedule, and any notable risks or items to watch. Be direct and professional.\n\n${context}` },
-        ],
-        max_tokens: 500,
-        temperature: 0.4,
-      })
-      setBrief(completion.choices[0]?.message?.content ?? '')
+      const brief = await callClaude(
+        [{ role: 'user', content: `Generate a concise project status brief (3-4 short paragraphs) for the following CRE project. Cover: overall status, budget health, schedule, and any notable risks or items to watch. Be direct and professional.\n\n${context}` }],
+        'You are a senior CRE project management consultant. Write concise, professional project status briefs suitable for executive reporting.',
+        500,
+      )
+      setBrief(brief)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err)
       setBrief(`Error: ${msg}`)
@@ -396,19 +387,14 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
 }`
 
     try {
-      const completion = await getOpenAI().chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: 'You are a CRE scheduling expert. Return only valid JSON.' },
-          { role: 'user', content: prompt },
-        ],
-        max_tokens: 900,
-        temperature: 0.3,
-        response_format: { type: 'json_object' },
-      })
-
-      const raw = completion.choices[0]?.message?.content ?? '{}'
-      const parsed = JSON.parse(raw)
+      const raw = await callClaude(
+        [{ role: 'user', content: prompt }],
+        'You are a CRE scheduling expert. Return only valid JSON with no markdown formatting or code blocks.',
+        900,
+      )
+      // Strip any markdown code fences if present
+      const cleaned = raw.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim()
+      const parsed = JSON.parse(cleaned)
       setMilestones(parsed.milestones ?? [])
       setScheduleNotes(parsed.notes ?? '')
     } catch (err: unknown) {
@@ -437,15 +423,18 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
     return (
       <div className="bg-slate-800 border border-amber-700/50 rounded-xl p-6 text-center">
         <Sparkles size={32} className="mx-auto mb-3 text-amber-400" />
-        <h3 className="text-slate-100 font-semibold mb-2">OpenAI API Key Required</h3>
+        <h3 className="text-slate-100 font-semibold mb-2">Claude API Key Required</h3>
         <p className="text-slate-400 text-sm mb-4 max-w-sm mx-auto">
-          Add your OpenAI API key to <code className="bg-slate-700 px-1.5 py-0.5 rounded text-xs">.env.local</code> to enable AI features.
+          Add your Anthropic API key in <strong>Settings → AI API Keys</strong> to enable AI features.
         </p>
-        <div className="bg-slate-900 rounded-lg p-3 text-left max-w-sm mx-auto">
-          <p className="text-xs text-slate-400 font-mono">VITE_OPENAI_API_KEY=sk-...</p>
-        </div>
+        <a
+          href="/settings"
+          className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-sm px-4 py-2 rounded-lg transition-colors"
+        >
+          Go to Settings →
+        </a>
         <p className="text-slate-500 text-xs mt-3">
-          Get a key at platform.openai.com → restart the dev server after adding.
+          Get a key at console.anthropic.com
         </p>
       </div>
     )

@@ -127,9 +127,9 @@ function ApiKeysSection() {
         <div className="border-t border-slate-700" />
 
         <ApiKeyRow
-          label="Anthropic API Key"
+          label="Anthropic (Claude) API Key"
           storageKey="anthropic_api_key"
-          hint="Used for document Q&A and advanced AI features (coming soon)"
+          hint="Powers the AI Assistant chat, project brief, risk insights, and meeting notes analysis"
           docsUrl="https://console.anthropic.com/settings/keys"
         />
       </div>

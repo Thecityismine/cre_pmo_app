@@ -1,9 +1,10 @@
 import { useProjects } from '@/hooks/useProjects'
 import { usePortfolioTasks } from '@/hooks/usePortfolioTasks'
 import { usePortfolioMilestones } from '@/hooks/usePortfolioMilestones'
+import { usePortfolioInsights } from '@/hooks/useAIInsights'
 import {
   AlertTriangle, CheckCircle, DollarSign, FolderOpen, Clock,
-  ChevronRight, TrendingUp, TrendingDown, Calendar, Activity,
+  ChevronRight, TrendingUp, TrendingDown, Calendar, Activity, Sparkles, X,
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import { useNavigate } from 'react-router-dom'
@@ -143,6 +144,8 @@ export function DashboardPage() {
   const projectMap = Object.fromEntries(projects.map(p => [p.id, p.projectName]))
 
   const { milestones: upcomingMilestones } = usePortfolioMilestones(projectMap)
+  const activeIds = active.map(p => p.id)
+  const { insights: portfolioInsights } = usePortfolioInsights(activeIds)
 
   if (projLoading) {
     return (
@@ -352,6 +355,57 @@ export function DashboardPage() {
           </div>
         )}
       </div>
+
+      {/* Portfolio AI Insights */}
+      {portfolioInsights.length > 0 && (
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles size={14} className="text-blue-400" />
+            <h3 className="text-sm font-semibold text-slate-200">Portfolio Risk Insights</h3>
+            <span className="ml-1 px-1.5 py-0.5 rounded-full bg-slate-700 text-slate-400 text-[10px]">
+              {portfolioInsights.length}
+            </span>
+          </div>
+          <div className="space-y-2">
+            {portfolioInsights.slice(0, 5).map(insight => {
+              const projectName = projectMap[insight.projectId] ?? 'Unknown'
+              const isWarning = insight.severity === 'warning'
+              const isCritical = insight.severity === 'critical'
+              return (
+                <div key={insight.id} className={clsx(
+                  'flex items-start gap-2.5 px-3 py-2.5 rounded-lg border text-xs',
+                  isCritical ? 'bg-red-900/20 border-red-700/50' :
+                  isWarning ? 'bg-amber-900/20 border-amber-700/50' :
+                  'bg-blue-900/20 border-blue-700/50'
+                )}>
+                  <AlertTriangle size={13} className={clsx(
+                    'shrink-0 mt-0.5',
+                    isCritical ? 'text-red-400' : isWarning ? 'text-amber-400' : 'text-blue-400'
+                  )} />
+                  <div className="flex-1 min-w-0">
+                    <p className={clsx('font-medium', isCritical ? 'text-red-300' : isWarning ? 'text-amber-300' : 'text-blue-300')}>
+                      {insight.title}
+                    </p>
+                    <p className="text-slate-500 mt-0.5 truncate">
+                      <button
+                        onClick={() => navigate(`/projects/${insight.projectId}`)}
+                        className="text-slate-400 hover:text-slate-200 transition-colors"
+                      >
+                        {projectName} →
+                      </button>
+                    </p>
+                  </div>
+                </div>
+              )
+            })}
+            {portfolioInsights.length > 5 && (
+              <p className="text-xs text-slate-500 text-center py-1">
+                +{portfolioInsights.length - 5} more across portfolio
+              </p>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Budget utilization bars */}
       <BudgetSummaryBars projects={active} />

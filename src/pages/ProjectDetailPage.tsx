@@ -25,6 +25,9 @@ import { ScheduleTab } from '@/components/ScheduleTab'
 import { useBudgetItems } from '@/hooks/useBudgetItems'
 import { useChangeOrders } from '@/hooks/useChangeOrders'
 import { useProjectDocuments } from '@/hooks/useProjectDocuments'
+import { useRfis } from '@/hooks/useRfis'
+import { usePunchList } from '@/hooks/usePunchList'
+import { AIInsightsPanel } from '@/components/AIInsightsPanel'
 import { computeHealth } from '@/lib/healthScore'
 import { MilestoneTimeline } from '@/components/MilestoneTimeline'
 import { exportProjectPdf } from '@/lib/exportPdf'
@@ -415,6 +418,8 @@ export function ProjectDetailPage() {
   const { items: budgetItems } = useBudgetItems(id)
   const { approvedTotal: coApproved, pendingTotal: coPending } = useChangeOrders(id)
   const { documents: recentDocs } = useProjectDocuments(id)
+  const { openCount: openRfis, overdueCount: overdueRfis } = useRfis(id)
+  const { openCount: openPunch } = usePunchList(id)
   const [tab, setTab] = useState<Tab>('overview')
   const [disciplineFilter, setDisciplineFilter] = useState<string>('all')
   const [subdivisionFilter, setSubdivisionFilter] = useState<string>('all')
@@ -607,6 +612,24 @@ export function ProjectDetailPage() {
         <div className="space-y-4">
         {/* Health scorecard */}
         <HealthScorecard project={project} taskCompletionPct={totalPct} />
+
+        {/* AI Insights */}
+        <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-4">
+          <AIInsightsPanel
+            input={{
+              project,
+              taskCount: tasks.length,
+              completedTaskCount: totalDone,
+              blockedTaskCount: tasks.filter(t => t.status === 'blocked').length,
+              openRfiCount: openRfis,
+              overdueRfiCount: overdueRfis,
+              approvedCOs: coApproved,
+              pendingCOs: coPending,
+              openPunchCount: openPunch,
+            }}
+            maxShow={4}
+          />
+        </div>
 
         {/* Financial Summary */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
