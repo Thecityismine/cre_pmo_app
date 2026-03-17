@@ -7,7 +7,7 @@ import { clsx } from 'clsx'
 import {
   ArrowLeft, MapPin, DollarSign, Users, CheckSquare,
   Calendar, TrendingUp, ChevronDown, ChevronRight, Pencil, FileDown,
-  X, AlertCircle, Clock, ClipboardList, Plus,
+  AlertCircle, Clock, ClipboardList, Plus,
 } from 'lucide-react'
 import { doc, updateDoc, collection, writeBatch } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
@@ -51,22 +51,6 @@ const STATUS_STAGE_MAP: Record<string, number> = {
 const fmt = (n: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
 
-const TASK_STATUS_COLORS: Record<TaskStatus, string> = {
-  'complete':     'bg-emerald-900 text-emerald-300',
-  'in-progress':  'bg-blue-900 text-blue-300',
-  'not-started':  'bg-slate-700 text-slate-400',
-  'on-hold':      'bg-yellow-900 text-yellow-300',
-  'blocked':      'bg-red-900 text-red-300',
-  'n-a':          'bg-slate-800 text-slate-500',
-}
-
-const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
-  'complete': 'Complete', 'in-progress': 'In Progress', 'not-started': 'Not Started',
-  'on-hold': 'On Hold', 'blocked': 'Blocked', 'n-a': 'N/A',
-}
-
-const TASK_STATUSES: TaskStatus[] = ['not-started', 'in-progress', 'complete', 'on-hold', 'blocked', 'n-a']
-
 // ─── Sub-components ───────────────────────────────────────────────────────────
 function StatCard({ label, value, sub, icon: Icon, accent = false }: {
   label: string; value: string; sub?: string; icon: React.ElementType; accent?: boolean
@@ -82,14 +66,6 @@ function StatCard({ label, value, sub, icon: Icon, accent = false }: {
     </div>
   )
 }
-
-// ─── Task Edit Drawer ─────────────────────────────────────────────────────────
-
-const DISCIPLINES = [
-  'Architect', 'General Contractor', 'MEP Engineer', 'IT / AV',
-  'Furniture / FF&E', 'Client / Owner', 'Project Manager',
-  'Legal', 'Permits / Authority', 'Commissioning', 'Other',
-]
 
 const DISCIPLINE_COLORS: Record<string, string> = {
   'Architect':            'bg-blue-900/60 text-blue-300',
