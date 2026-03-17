@@ -14,16 +14,20 @@ const PROJECT_SUBCOLLECTIONS = [
 ]
 
 async function cascadeDeleteProject(projectId: string) {
-  // Delete all sub-collection docs in batches of 400
+  // Best-effort delete all sub-collection docs (skip on error)
   for (const col of PROJECT_SUBCOLLECTIONS) {
-    const snap = await getDocs(query(collection(db, col), where('projectId', '==', projectId)))
-    if (snap.empty) continue
-    const chunks: typeof snap.docs[] = []
-    for (let i = 0; i < snap.docs.length; i += 400) chunks.push(snap.docs.slice(i, i + 400))
-    for (const chunk of chunks) {
-      const batch = writeBatch(db)
-      chunk.forEach(d => batch.delete(d.ref))
-      await batch.commit()
+    try {
+      const snap = await getDocs(query(collection(db, col), where('projectId', '==', projectId)))
+      if (snap.empty) continue
+      const chunks: typeof snap.docs[] = []
+      for (let i = 0; i < snap.docs.length; i += 400) chunks.push(snap.docs.slice(i, i + 400))
+      for (const chunk of chunks) {
+        const batch = writeBatch(db)
+        chunk.forEach(d => batch.delete(d.ref))
+        await batch.commit()
+      }
+    } catch {
+      // Collection may not exist or be empty — continue
     }
   }
   // Delete the project itself
@@ -54,16 +58,20 @@ export function EditProjectModal({ project, onClose }: Props) {
   const [showDelete, setShowDelete] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState('')
   const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
+
+  const nameMatch = deleteConfirm.trim().toLowerCase() === project.projectName.trim().toLowerCase()
 
   const handleDelete = async () => {
-    if (deleteConfirm !== project.projectName) return
+    if (!nameMatch) return
     setDeleting(true)
+    setDeleteError('')
     try {
       await cascadeDeleteProject(project.id)
       onClose()
       navigate('/projects')
     } catch (err: unknown) {
-      setError((err as Error).message ?? 'Failed to delete project.')
+      setDeleteError((err as Error).message ?? 'Failed to delete project.')
       setDeleting(false)
     }
   }
@@ -278,7 +286,7 @@ export function EditProjectModal({ project, onClose }: Props) {
                   </div>
                 </div>
                 <div>
-                  <p className="text-xs text-red-400 mb-1">Type <span className="font-mono font-semibold">{project.projectName}</span> to confirm:</p>
+                  <p className="text-xs text-red-400 mb-1">Type the project name to confirm:</p>
                   <input
                     value={deleteConfirm}
                     onChange={e => setDeleteConfirm(e.target.value)}
@@ -290,7 +298,7 @@ export function EditProjectModal({ project, onClose }: Props) {
                   <button
                     type="button"
                     onClick={handleDelete}
-                    disabled={deleting || deleteConfirm !== project.projectName}
+                    disabled={deleting || !nameMatch}
                     className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-2 rounded-lg disabled:opacity-40 transition-colors"
                   >
                     <Trash2 size={13} />
@@ -298,12 +306,15 @@ export function EditProjectModal({ project, onClose }: Props) {
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setShowDelete(false); setDeleteConfirm('') }}
+                    onClick={() => { setShowDelete(false); setDeleteConfirm(''); setDeleteError('') }}
                     className="text-sm text-slate-500 hover:text-slate-300 px-3 py-2"
                   >
                     Cancel
                   </button>
                 </div>
+                {deleteError && (
+                  <p className="text-xs text-red-400 mt-1">{deleteError}</p>
+                )}
               </div>
             )}
           </div>
