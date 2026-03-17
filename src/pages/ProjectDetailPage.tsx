@@ -34,7 +34,7 @@ import { computeHealth } from '@/lib/healthScore'
 import { MilestoneTimeline } from '@/components/MilestoneTimeline'
 import { useMilestones } from '@/hooks/useMilestones'
 import { exportProjectPdf } from '@/lib/exportPdf'
-import type { Task, TaskStatus, Project } from '@/types'
+import type { Task, Project } from '@/types'
 
 // ─── Stage gate progress ──────────────────────────────────────────────────────
 const STAGES = [
