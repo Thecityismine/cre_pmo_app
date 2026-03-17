@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { signOut, updateProfile, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth'
 import { doc, updateDoc, setDoc, getDoc, collection, query, where, getDocs, writeBatch } from 'firebase/firestore'
-import { auth, db } from '@/lib/firebase'
+import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage'
+import { auth, db, storage } from '@/lib/firebase'
 import { useAuthStore } from '@/store/authStore'
 import { useNavigate } from 'react-router-dom'
-import { User, Lock, LogOut, Save, Shield, Bell, Key, Eye, EyeOff, Check, Tag, Plus, Trash2, Database } from 'lucide-react'
+import { User, Lock, LogOut, Save, Shield, Bell, Key, Eye, EyeOff, Check, Tag, Plus, Trash2, Database, Camera, Loader2 } from 'lucide-react'
 import { clsx } from 'clsx'
 import { useProjectTypes } from '@/hooks/useProjectTypes'
 import { useProjects } from '@/hooks/useProjects'
@@ -372,6 +373,36 @@ export function SettingsPage() {
   const [displayName, setDisplayName] = useState(user?.displayName ?? '')
   const [profileSaving, setProfileSaving] = useState(false)
   const [profileMsg, setProfileMsg] = useState('')
+  const [photoUploading, setPhotoUploading] = useState(false)
+  const [photoURL, setPhotoURL] = useState(user?.photoURL ?? '')
+  const photoInputRef = useRef<HTMLInputElement>(null)
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !auth.currentUser || !user) return
+    setPhotoUploading(true)
+    setProfileMsg('')
+    try {
+      const path = `users/${user.uid}/avatar/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`
+      const sRef = storageRef(storage, path)
+      await new Promise<void>((resolve, reject) => {
+        const task = uploadBytesResumable(sRef, file)
+        task.on('state_changed', null, reject, async () => {
+          const url = await getDownloadURL(task.snapshot.ref)
+          await updateProfile(auth.currentUser!, { photoURL: url })
+          await updateDoc(doc(db, 'users', user.uid), { photoURL: url, updatedAt: new Date().toISOString() })
+          setPhotoURL(url)
+          resolve()
+        })
+      })
+      setProfileMsg('Photo updated.')
+    } catch {
+      setProfileMsg('Failed to upload photo.')
+    } finally {
+      setPhotoUploading(false)
+      e.target.value = ''
+    }
+  }
 
   // Password form
   const [currentPassword, setCurrentPassword] = useState('')
@@ -443,13 +474,33 @@ export function SettingsPage() {
         <form onSubmit={saveProfile} className="space-y-4">
           {/* Avatar */}
           <div className="flex items-center gap-4 mb-2">
-            <div className="w-14 h-14 rounded-full bg-blue-600 flex items-center justify-center text-white text-xl font-bold shrink-0">
-              {(displayName || user?.displayName || 'U').charAt(0).toUpperCase()}
-            </div>
+            <button
+              type="button"
+              onClick={() => photoInputRef.current?.click()}
+              className="relative w-16 h-16 rounded-full shrink-0 group"
+              title="Change profile photo"
+            >
+              {photoURL ? (
+                <img src={photoURL} alt="Profile" className="w-16 h-16 rounded-full object-cover" />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center text-white text-2xl font-bold">
+                  {(displayName || user?.displayName || 'U').charAt(0).toUpperCase()}
+                </div>
+              )}
+              {/* Hover overlay */}
+              <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                {photoUploading
+                  ? <Loader2 size={18} className="text-white animate-spin" />
+                  : <Camera size={18} className="text-white" />
+                }
+              </div>
+            </button>
+            <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
             <div>
               <p className="text-slate-200 font-medium">{user?.displayName}</p>
               <p className="text-slate-500 text-sm">{user?.email}</p>
               <span className="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded mt-1 inline-block capitalize">{user?.role}</span>
+              <p className="text-xs text-slate-600 mt-1">Click photo to change</p>
             </div>
           </div>
 
