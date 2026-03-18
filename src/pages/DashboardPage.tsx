@@ -3,9 +3,10 @@ import { usePortfolioTasks } from '@/hooks/usePortfolioTasks'
 import { usePortfolioMilestones } from '@/hooks/usePortfolioMilestones'
 import { usePortfolioInsights } from '@/hooks/useAIInsights'
 import { usePortfolioTaskStats } from '@/hooks/usePortfolioTaskStats'
+import { useAuthStore } from '@/store/authStore'
 import {
   AlertTriangle, CheckCircle, DollarSign, FolderOpen, Clock,
-  ChevronRight, TrendingUp, TrendingDown, Calendar, Activity, Sparkles,
+  ChevronRight, TrendingUp, TrendingDown, Calendar, Activity, Sparkles, User,
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import { useNavigate } from 'react-router-dom'
@@ -127,6 +128,8 @@ function BudgetSummaryBars({ projects }: { projects: Project[] }) {
 export function DashboardPage() {
   const { projects, loading: projLoading } = useProjects()
   const { overdue, upcoming, loading: tasksLoading } = usePortfolioTasks()
+  const user    = useAuthStore(s => s.user)
+  const myName  = user?.displayName?.trim().toLowerCase() ?? ''
   const navigate = useNavigate()
 
   const active = projects.filter(p => p.isActive)
@@ -239,6 +242,62 @@ export function DashboardPage() {
           )}
         </div>
       )}
+
+      {/* My Tasks Today */}
+      {myName && (() => {
+        const myTasks = [...overdue, ...upcoming].filter(
+          t => t.source === 'project' && t.assignedTo?.trim().toLowerCase() === myName
+        )
+        if (myTasks.length === 0) return null
+        const myOverdue  = myTasks.filter(t => { const d = new Date(t.dueDate); d.setHours(0,0,0,0); const td = new Date(); td.setHours(0,0,0,0); return d < td })
+        const myToday    = myTasks.filter(t => { const d = new Date(t.dueDate); d.setHours(0,0,0,0); const td = new Date(); td.setHours(0,0,0,0); return d.getTime() === td.getTime() })
+        const myUpcoming = myTasks.filter(t => { const d = new Date(t.dueDate); d.setHours(0,0,0,0); const td = new Date(); td.setHours(0,0,0,0); return d > td })
+
+        return (
+          <div className="bg-slate-800 border border-blue-800/40 rounded-xl overflow-hidden">
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-700 bg-blue-950/20">
+              <User size={14} className="text-blue-400" />
+              <h3 className="text-sm font-semibold text-blue-300">My Tasks</h3>
+              <span className="text-xs text-slate-500">{user?.displayName}</span>
+              {myOverdue.length > 0 && (
+                <span className="ml-auto text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full font-medium">
+                  {myOverdue.length} overdue
+                </span>
+              )}
+            </div>
+            <div className="divide-y divide-slate-700/50 max-h-52 overflow-y-auto">
+              {myTasks.slice(0, 10).map(t => {
+                const dDate = new Date(t.dueDate); dDate.setHours(0,0,0,0)
+                const todayDate = new Date(); todayDate.setHours(0,0,0,0)
+                const isOvd = dDate < todayDate
+                const isToday = dDate.getTime() === todayDate.getTime()
+                const daysLeft = Math.ceil((dDate.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24))
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => navigate(`/projects/${t.projectId}?tab=tasks`)}
+                    className="w-full text-left px-4 py-2.5 hover:bg-slate-700/50 transition-colors"
+                  >
+                    <p className="text-sm text-slate-200 truncate">{t.title}</p>
+                    <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500">
+                      <span className={clsx(isOvd ? 'text-red-400' : isToday ? 'text-amber-400' : 'text-blue-400')}>
+                        {isOvd ? `${Math.abs(daysLeft)}d overdue` : isToday ? 'Due Today' : `${daysLeft} days`}
+                      </span>
+                      <span>·</span>
+                      <span className="truncate">{projects.find(p => p.id === t.projectId)?.projectName ?? 'Unknown'}</span>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+            <div className="flex gap-4 px-4 py-2 border-t border-slate-700/50 text-[10px] text-slate-500">
+              {myOverdue.length > 0  && <span className="text-red-400">{myOverdue.length} overdue</span>}
+              {myToday.length > 0   && <span className="text-amber-400">{myToday.length} due today</span>}
+              {myUpcoming.length > 0 && <span>{myUpcoming.length} upcoming</span>}
+            </div>
+          </div>
+        )
+      })()}
 
       {/* Two-column: milestones + tasks */}
       <div className="grid md:grid-cols-2 gap-4">
@@ -448,6 +507,9 @@ export function DashboardPage() {
                 <tbody>
                   {active.map((p, i) => {
                     const overBudget = p.forecastCost > p.totalBudget
+                    const h = computeHealth(p, { taskCompletionPct: taskStats[p.id]?.pct })
+                    const trafficLight = h.total >= 80 ? 'bg-emerald-500' : h.total >= 60 ? 'bg-amber-500' : 'bg-red-500'
+                    const trafficTitle = h.total >= 80 ? 'Healthy' : h.total >= 60 ? 'At Risk' : 'Critical'
                     return (
                       <tr
                         key={p.id}
@@ -458,8 +520,13 @@ export function DashboardPage() {
                         )}
                       >
                         <td className="px-5 py-3">
-                          <p className="text-slate-100 font-medium">{p.projectName}</p>
-                          <p className="text-slate-500 text-xs">{p.projectNumber} · {[p.city, p.state].filter(Boolean).join(', ')}</p>
+                          <div className="flex items-center gap-2">
+                            <span className={clsx('w-2 h-2 rounded-full shrink-0', trafficLight)} title={trafficTitle} />
+                            <div>
+                              <p className="text-slate-100 font-medium">{p.projectName}</p>
+                              <p className="text-slate-500 text-xs">{p.projectNumber} · {[p.city, p.state].filter(Boolean).join(', ')}</p>
+                            </div>
+                          </div>
                         </td>
                         <td className="px-5 py-3"><StatusBadge status={p.status} /></td>
                         <td className="px-5 py-3 text-right text-slate-300">{fmt(p.totalBudget)}</td>
@@ -481,6 +548,8 @@ export function DashboardPage() {
             <div className="md:hidden divide-y divide-slate-700">
               {active.map(p => {
                 const overBudget = p.forecastCost > p.totalBudget
+                const hm = computeHealth(p, { taskCompletionPct: taskStats[p.id]?.pct })
+                const tlm = hm.total >= 80 ? 'bg-emerald-500' : hm.total >= 60 ? 'bg-amber-500' : 'bg-red-500'
                 return (
                   <button
                     key={p.id}
@@ -488,7 +557,10 @@ export function DashboardPage() {
                     className="w-full text-left px-4 py-3 space-y-2 hover:bg-slate-700/40 transition-colors"
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-slate-100 font-medium text-sm truncate">{p.projectName}</p>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className={clsx('w-2 h-2 rounded-full shrink-0', tlm)} />
+                        <p className="text-slate-100 font-medium text-sm truncate">{p.projectName}</p>
+                      </div>
                       <StatusBadge status={p.status} />
                     </div>
                     <div className="flex items-center justify-between text-xs">

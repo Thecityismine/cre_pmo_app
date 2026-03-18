@@ -11,6 +11,7 @@ export interface PortfolioTask {
   dueDate: string
   projectId: string
   source: 'checklist' | 'project'
+  assignedTo?: string   // populated for project tasks
 }
 
 // Fetches both checklist tasks (with due dates) and manual project tasks
@@ -45,7 +46,7 @@ export function usePortfolioTasks() {
   today.setHours(0, 0, 0, 0)
   const in14 = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000)
 
-  // Project tasks take priority on dashboard — they are explicitly created by the user
+  // Project tasks take priority on dashboard
   const ptOverdue  = projectTasks.filter(t => t.dueDate && new Date(t.dueDate) < today)
   const ptUpcoming = projectTasks.filter(t => {
     if (!t.dueDate) return false
@@ -60,13 +61,13 @@ export function usePortfolioTasks() {
     return d >= today && d <= in14
   })
 
-  // Merged for the dashboard overdue panel — project tasks first
+  // Merged — project tasks first
   const overdue: PortfolioTask[] = [
-    ...ptOverdue.map(t => ({ id: t.id, title: t.title, dueDate: t.dueDate, projectId: t.projectId, source: 'project' as const })),
+    ...ptOverdue.map(t => ({ id: t.id, title: t.title, dueDate: t.dueDate, projectId: t.projectId, source: 'project' as const, assignedTo: t.assignedTo })),
     ...clOverdue.map(t => ({ id: t.id, title: t.title, dueDate: t.dueDate!, projectId: t.projectId, source: 'checklist' as const })),
   ]
   const upcoming: PortfolioTask[] = [
-    ...ptUpcoming.map(t => ({ id: t.id, title: t.title, dueDate: t.dueDate, projectId: t.projectId, source: 'project' as const })),
+    ...ptUpcoming.map(t => ({ id: t.id, title: t.title, dueDate: t.dueDate, projectId: t.projectId, source: 'project' as const, assignedTo: t.assignedTo })),
     ...clUpcoming.map(t => ({ id: t.id, title: t.title, dueDate: t.dueDate!, projectId: t.projectId, source: 'checklist' as const })),
   ]
 

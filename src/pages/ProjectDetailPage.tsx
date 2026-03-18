@@ -401,6 +401,11 @@ export function ProjectDetailPage() {
   const totalDone = tasks.filter(t => t.status === 'complete').length
   const totalPct = tasks.length > 0 ? Math.round((totalDone / tasks.length) * 100) : 0
 
+  const today0 = new Date(); today0.setHours(0, 0, 0, 0)
+  const overdueTaskCount = projectTasks.filter(
+    t => t.status === 'open' && t.dueDate && new Date(t.dueDate) < today0
+  ).length
+
   const tabs: { id: Tab; label: string }[] = [
     { id: 'overview', label: 'Overview' },
     { id: 'checklist', label: `Checklist (${totalDone}/${tasks.length})` },
@@ -542,11 +547,13 @@ export function ProjectDetailPage() {
             key={t.id}
             onClick={() => setTab(t.id)}
             className={clsx(
-              'shrink-0 py-2 px-3 rounded-lg text-xs font-medium transition-colors whitespace-nowrap',
+              'shrink-0 py-2 px-3 rounded-lg text-xs font-medium transition-colors whitespace-nowrap flex items-center gap-1.5',
               tab === t.id ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
             )}
           >
-            {t.label}
+            {t.id === 'tasks' && overdueTaskCount > 0 ? (
+              <>Tasks <span className={clsx('text-[9px] px-1.5 py-0.5 rounded-full font-bold', tab === t.id ? 'bg-white/20 text-white' : 'bg-red-500 text-white')}>{overdueTaskCount}</span></>
+            ) : t.label}
           </button>
         ))}
       </div>

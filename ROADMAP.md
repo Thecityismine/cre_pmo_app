@@ -87,10 +87,10 @@
 ### 2.4 — Tasks "Daily Driver" Upgrade
 **Problem:** No concept of "what do I need to do today."
 **Goal:** Tasks become the daily workflow tool.
-- [ ] "Assigned to Me" filter (filter by logged-in user's name)
-- [ ] "Due Today" quick filter
-- [ ] "Overdue" badge on Tasks tab label
-- [ ] Task priority sorting (Urgent → High → Medium → Low)
+- [x] "Assigned to Me" filter (filter by logged-in user's name)
+- [x] "Due Today" quick filter
+- [x] "Overdue" badge on Tasks tab label (red count badge)
+- [x] Task priority sorting (Urgent → High → Medium → Low)
 - [ ] Recurring tasks (daily standup, weekly report)
 - [ ] Tasks linked to Milestones (completing tasks advances milestone %)
 - [ ] Push notification / in-app alert when task goes overdue
@@ -104,9 +104,9 @@
 **Problem:** Dashboard shows data but doesn't tell you what to do.
 **Goal:** First thing every morning you open the app and know exactly what needs attention.
 - [ ] "Attention Required" panel: auto-populated from risks, overdue items, budget alerts
-- [ ] Traffic light summary: 🔴 At Risk / 🟡 Watch / 🟢 On Track per project
+- [x] Traffic light summary: 🔴 At Risk / 🟡 Watch / 🟢 On Track per project (colored dot on table)
 - [ ] "Pending Decisions" section: open RFIs + Change Orders awaiting approval
-- [ ] "My Tasks Today" widget: tasks assigned to me due today/overdue
+- [x] "My Tasks Today" widget: tasks assigned to me due today/overdue
 - [ ] Remove empty/zero cards when no data — replace with contextual prompts
 - [ ] Portfolio burn rate: total $ committed across all projects this month
 

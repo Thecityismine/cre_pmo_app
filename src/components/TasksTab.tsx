@@ -2,15 +2,20 @@ import { useState } from 'react'
 import { clsx } from 'clsx'
 import {
   Plus, Check, Trash2, ChevronDown, ChevronRight,
-  Clock, AlertTriangle, CheckSquare, Circle, Loader2,
+  Clock, AlertTriangle, CheckSquare, Circle, Loader2, User,
 } from 'lucide-react'
 import { useProjectTasks } from '@/hooks/useProjectTasks'
+import { useAuthStore } from '@/store/authStore'
 import type { ProjectTask, ProjectTaskPriority } from '@/hooks/useProjectTasks'
 import type { Project } from '@/types'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const PRIORITIES: ProjectTaskPriority[] = ['low', 'medium', 'high', 'urgent']
+
+const PRIORITY_ORDER: Record<ProjectTaskPriority, number> = {
+  urgent: 0, high: 1, medium: 2, low: 3,
+}
 
 const PRIORITY_COLORS: Record<ProjectTaskPriority, string> = {
   low:    'bg-slate-700 text-slate-300',
@@ -31,6 +36,13 @@ function isOverdue(dueDate: string) {
   return new Date(dueDate) < today
 }
 
+function isDueToday(dueDate: string) {
+  if (!dueDate) return false
+  const today = new Date(); today.setHours(0, 0, 0, 0)
+  const d = new Date(dueDate); d.setHours(0, 0, 0, 0)
+  return d.getTime() === today.getTime()
+}
+
 // ─── Blank form ───────────────────────────────────────────────────────────────
 
 function blankForm() {
@@ -45,9 +57,8 @@ function AddTaskForm({ onSave, onCancel }: {
 }) {
   const [form, setForm] = useState(blankForm())
   const [saving, setSaving] = useState(false)
-  const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }))
-
   const [saveError, setSaveError] = useState('')
+  const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }))
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -72,48 +83,29 @@ function AddTaskForm({ onSave, onCancel }: {
         value={form.title}
         onChange={e => set('title', e.target.value)}
         placeholder="Task title *"
-        required
-        autoFocus
-        className={inp}
+        required autoFocus className={inp}
       />
 
       <textarea
         value={form.description}
         onChange={e => set('description', e.target.value)}
         placeholder="Description (optional)"
-        rows={2}
-        className={`${inp} resize-none`}
+        rows={2} className={`${inp} resize-none`}
       />
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
         <div>
           <label className="text-[10px] text-slate-500 mb-1 block">Due Date</label>
-          <input
-            type="date"
-            value={form.dueDate}
-            onChange={e => set('dueDate', e.target.value)}
-            className={inp}
-          />
+          <input type="date" value={form.dueDate} onChange={e => set('dueDate', e.target.value)} className={inp} />
         </div>
         <div>
           <label className="text-[10px] text-slate-500 mb-1 block">Assigned To</label>
-          <input
-            value={form.assignedTo}
-            onChange={e => set('assignedTo', e.target.value)}
-            placeholder="Name or role"
-            className={inp}
-          />
+          <input value={form.assignedTo} onChange={e => set('assignedTo', e.target.value)} placeholder="Name or role" className={inp} />
         </div>
         <div>
           <label className="text-[10px] text-slate-500 mb-1 block">Priority</label>
-          <select
-            value={form.priority}
-            onChange={e => set('priority', e.target.value)}
-            className={inp}
-          >
-            {PRIORITIES.map(p => (
-              <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
-            ))}
+          <select value={form.priority} onChange={e => set('priority', e.target.value)} className={inp}>
+            {PRIORITIES.map(p => <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>)}
           </select>
         </div>
       </div>
@@ -144,7 +136,8 @@ function TaskRow({ task, onComplete, onDelete }: {
 }) {
   const [expanded, setExpanded] = useState(false)
   const [completing, setCompleting] = useState(false)
-  const overdue = task.status === 'open' && isOverdue(task.dueDate)
+  const overdue  = task.status === 'open' && isOverdue(task.dueDate)
+  const today    = task.status === 'open' && isDueToday(task.dueDate)
 
   const handleComplete = async () => {
     setCompleting(true)
@@ -153,7 +146,7 @@ function TaskRow({ task, onComplete, onDelete }: {
   }
 
   return (
-    <div className="border-b border-slate-700/50 last:border-0">
+    <div className={clsx('border-b border-slate-700/50 last:border-0', overdue && 'bg-red-950/10')}>
       <div className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/30 transition-colors group">
         {/* Checkbox */}
         <button
@@ -185,13 +178,15 @@ function TaskRow({ task, onComplete, onDelete }: {
           </div>
           <div className="flex items-center gap-3 mt-0.5 flex-wrap">
             {task.dueDate && (
-              <span className={clsx('text-xs flex items-center gap-1', overdue ? 'text-red-400' : 'text-slate-500')}>
+              <span className={clsx('text-xs flex items-center gap-1', overdue ? 'text-red-400' : today ? 'text-amber-400' : 'text-slate-500')}>
                 <Clock size={10} />
-                {overdue ? 'Overdue · ' : ''}{fmtShort(task.dueDate)}
+                {overdue ? 'Overdue · ' : today ? 'Due Today · ' : ''}{fmtShort(task.dueDate)}
               </span>
             )}
             {task.assignedTo && (
-              <span className="text-xs text-slate-500">{task.assignedTo}</span>
+              <span className="text-xs text-slate-500 flex items-center gap-1">
+                <User size={10} /> {task.assignedTo}
+              </span>
             )}
             {task.status === 'completed' && task.completedAt && (
               <span className="text-xs text-emerald-500">Completed {fmtShort(task.completedAt)}</span>
@@ -202,28 +197,19 @@ function TaskRow({ task, onComplete, onDelete }: {
         {/* Actions */}
         <div className="flex items-center gap-1 shrink-0">
           {task.description && (
-            <button
-              onClick={() => setExpanded(!expanded)}
-              className="p-1 text-slate-500 hover:text-slate-300 transition-colors"
-            >
+            <button onClick={() => setExpanded(!expanded)} className="p-1 text-slate-500 hover:text-slate-300 transition-colors">
               {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             </button>
           )}
-          <button
-            onClick={onDelete}
-            className="p-1 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
-          >
+          <button onClick={onDelete} className="p-1 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all">
             <Trash2 size={13} />
           </button>
         </div>
       </div>
 
-      {/* Expanded description */}
       {expanded && task.description && (
         <div className="px-12 pb-3">
-          <p className="text-xs text-slate-400 bg-slate-900/60 rounded-lg px-3 py-2 leading-relaxed">
-            {task.description}
-          </p>
+          <p className="text-xs text-slate-400 bg-slate-900/60 rounded-lg px-3 py-2 leading-relaxed">{task.description}</p>
         </div>
       )}
     </div>
@@ -232,7 +218,7 @@ function TaskRow({ task, onComplete, onDelete }: {
 
 // ─── Main TasksTab ─────────────────────────────────────────────────────────────
 
-type Filter = 'open' | 'overdue' | 'completed' | 'all'
+type Filter = 'open' | 'overdue' | 'today' | 'mine' | 'all'
 
 export function TasksTab({ project, showAddForm: externalShowForm, onFormClose }: {
   project: Project
@@ -240,9 +226,16 @@ export function TasksTab({ project, showAddForm: externalShowForm, onFormClose }
   onFormClose?: () => void
 }) {
   const { tasks, loading, addTask, completeTask, deleteTask, open, completed, overdue, dueSoon } = useProjectTasks(project.id)
+  const user    = useAuthStore(s => s.user)
+  const myName  = user?.displayName?.trim().toLowerCase() ?? ''
   const [filter, setFilter] = useState<Filter>('open')
   const [showForm, setShowForm] = useState(false)
   const [showArchive, setShowArchive] = useState(false)
+
+  const todayDate = new Date(); todayDate.setHours(0, 0, 0, 0)
+
+  const dueToday = open.filter(t => isDueToday(t.dueDate))
+  const mine     = open.filter(t => myName && t.assignedTo?.trim().toLowerCase() === myName)
 
   const isFormVisible = showForm || (externalShowForm ?? false)
   const closeForm = () => { setShowForm(false); onFormClose?.() }
@@ -266,11 +259,26 @@ export function TasksTab({ project, showAddForm: externalShowForm, onFormClose }
     await deleteTask(id)
   }
 
-  const visibleOpen = filter === 'overdue'
-    ? overdue
-    : filter === 'all'
-      ? tasks.filter(t => t.status === 'open')
-      : open
+  // Build filtered + priority-sorted list
+  const visibleOpen = (() => {
+    let list: ProjectTask[]
+    switch (filter) {
+      case 'overdue': list = overdue; break
+      case 'today':   list = dueToday; break
+      case 'mine':    list = mine; break
+      case 'all':     list = tasks.filter(t => t.status === 'open'); break
+      default:        list = open; break
+    }
+    return [...list].sort((a, b) => PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority])
+  })()
+
+  const filters: { id: Filter; label: string; count?: number; badge?: 'red' | 'amber' }[] = [
+    { id: 'open',    label: 'Open' },
+    { id: 'overdue', label: 'Overdue',  count: overdue.length,   badge: 'red' },
+    { id: 'today',   label: 'Due Today', count: dueToday.length, badge: 'amber' },
+    ...(myName ? [{ id: 'mine' as Filter, label: 'Assigned to Me', count: mine.length }] : []),
+    { id: 'all',     label: 'All Open' },
+  ]
 
   if (loading) {
     return <div className="flex justify-center py-16"><Loader2 size={20} className="animate-spin text-slate-500" /></div>
@@ -282,10 +290,10 @@ export function TasksTab({ project, showAddForm: externalShowForm, onFormClose }
       {/* ── KPI Cards ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: 'Open',       value: open.length,      color: 'text-slate-100',    icon: Circle },
-          { label: 'Overdue',    value: overdue.length,   color: overdue.length > 0 ? 'text-red-400' : 'text-slate-100', icon: AlertTriangle },
-          { label: 'Due This Week', value: dueSoon.length, color: dueSoon.length > 0 ? 'text-amber-300' : 'text-slate-100', icon: Clock },
-          { label: 'Completed',  value: completed.length, color: 'text-emerald-400',  icon: CheckSquare },
+          { label: 'Open',          value: open.length,      color: 'text-slate-100',    icon: Circle },
+          { label: 'Overdue',       value: overdue.length,   color: overdue.length > 0 ? 'text-red-400' : 'text-slate-100',   icon: AlertTriangle },
+          { label: 'Due This Week', value: dueSoon.length,   color: dueSoon.length > 0 ? 'text-amber-300' : 'text-slate-100', icon: Clock },
+          { label: 'Completed',     value: completed.length, color: 'text-emerald-400',  icon: CheckSquare },
         ].map(({ label, value, color, icon: Icon }) => (
           <div key={label} className="bg-slate-800 border border-slate-700 rounded-xl p-3 flex items-center gap-3">
             <Icon size={18} className={clsx('shrink-0', color)} />
@@ -298,17 +306,26 @@ export function TasksTab({ project, showAddForm: externalShowForm, onFormClose }
       </div>
 
       {/* ── Toolbar ── */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex gap-1.5">
-          {(['open', 'overdue', 'all'] as Filter[]).map(f => (
-            <button key={f} onClick={() => setFilter(f)}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex gap-1.5 flex-wrap">
+          {filters.map(f => (
+            <button key={f.id} onClick={() => setFilter(f.id)}
               className={clsx(
-                'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors capitalize',
-                filter === f ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700'
+                'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5',
+                filter === f.id ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700'
               )}>
-              {f === 'all' ? 'All Open' : f}
-              {f === 'overdue' && overdue.length > 0 && (
-                <span className="ml-1.5 bg-red-500 text-white text-[9px] px-1 rounded-full">{overdue.length}</span>
+              {f.label}
+              {f.count != null && f.count > 0 && (
+                <span className={clsx(
+                  'text-[9px] px-1 rounded-full min-w-[14px] text-center',
+                  filter === f.id
+                    ? 'bg-white/20 text-white'
+                    : f.badge === 'red' ? 'bg-red-500 text-white'
+                    : f.badge === 'amber' ? 'bg-amber-500 text-white'
+                    : 'bg-slate-600 text-slate-300'
+                )}>
+                  {f.count}
+                </span>
               )}
             </button>
           ))}
@@ -323,8 +340,11 @@ export function TasksTab({ project, showAddForm: externalShowForm, onFormClose }
       </div>
 
       {/* ── Add Form ── */}
-      {isFormVisible && (
-        <AddTaskForm onSave={handleAdd} onCancel={closeForm} />
+      {isFormVisible && <AddTaskForm onSave={handleAdd} onCancel={closeForm} />}
+
+      {/* ── Priority sort hint ── */}
+      {visibleOpen.length > 1 && (
+        <p className="text-[10px] text-slate-600 text-right">Sorted by priority: Urgent → High → Medium → Low</p>
       )}
 
       {/* ── Open Tasks ── */}
@@ -333,7 +353,10 @@ export function TasksTab({ project, showAddForm: externalShowForm, onFormClose }
           <div className="py-12 text-center">
             <CheckSquare size={32} className="mx-auto text-slate-600 mb-3" />
             <p className="text-slate-500 text-sm">
-              {filter === 'overdue' ? 'No overdue tasks.' : 'No open tasks. Click "Add Task" to get started.'}
+              {filter === 'overdue'  ? 'No overdue tasks.' :
+               filter === 'today'   ? 'Nothing due today.' :
+               filter === 'mine'    ? `No open tasks assigned to ${user?.displayName ?? 'you'}.` :
+               'No open tasks. Click "Add Task" to get started.'}
             </p>
           </div>
         ) : (
