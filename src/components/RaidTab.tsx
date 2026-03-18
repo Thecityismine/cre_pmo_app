@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { clsx } from 'clsx'
-import { Plus, Trash2, ChevronDown, ChevronRight, Check, AlertTriangle, Zap, Bug, Lightbulb } from 'lucide-react'
+import { Plus, Trash2, ChevronDown, ChevronRight, Check, AlertTriangle, Zap, Bug, Lightbulb, Bot } from 'lucide-react'
 import { useRaidLog } from '@/hooks/useRaidLog'
 import type { RaidItem, RaidType, RaidStatus, RaidPriority } from '@/hooks/useRaidLog'
 import type { Project } from '@/types'
@@ -171,9 +171,16 @@ function RaidRow({
 
         {/* Title */}
         <button className="flex-1 text-left min-w-0" onClick={() => setExpanded(!expanded)}>
-          <p className={clsx('text-sm font-medium', item.status === 'closed' ? 'line-through text-slate-500' : 'text-slate-100')}>
-            {item.title}
-          </p>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <p className={clsx('text-sm font-medium', item.status === 'closed' ? 'line-through text-slate-500' : 'text-slate-100')}>
+              {item.title}
+            </p>
+            {item.isSystemGenerated && (
+              <span className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded bg-slate-700/80 text-slate-400 font-medium shrink-0">
+                <Bot size={9} /> Auto
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-2 mt-0.5 flex-wrap">
             {item.owner && <span className="text-xs text-slate-500">{item.owner}</span>}
             {item.dueDate && (

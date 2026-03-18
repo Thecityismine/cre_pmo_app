@@ -26,6 +26,9 @@ import { PunchListTab } from '@/components/PunchListTab'
 import { ScheduleTab } from '@/components/ScheduleTab'
 import { MeetingNotesTab } from '@/components/MeetingNotesTab'
 import { TasksTab } from '@/components/TasksTab'
+import { useRaidLog } from '@/hooks/useRaidLog'
+import { useProjectTasks } from '@/hooks/useProjectTasks'
+import { useRiskEngine } from '@/hooks/useRiskEngine'
 import { useBudgetItems } from '@/hooks/useBudgetItems'
 import { useChangeOrders } from '@/hooks/useChangeOrders'
 import { useProjectDocuments } from '@/hooks/useProjectDocuments'
@@ -214,8 +217,12 @@ function ScoreBar({ label, score, max, detail }: { label: string; score: number;
   )
 }
 
-function HealthScorecard({ project, taskCompletionPct }: { project: Project; taskCompletionPct?: number }) {
-  const h = computeHealth(project, { taskCompletionPct })
+function HealthScorecard({ project, taskCompletionPct, raidItems }: {
+  project: Project
+  taskCompletionPct?: number
+  raidItems?: import('@/hooks/useRaidLog').RaidItem[]
+}) {
+  const h = computeHealth(project, { taskCompletionPct, raidItems })
   const ringColor = h.total >= 80 ? 'text-emerald-400' : h.total >= 60 ? 'text-amber-400' : 'text-red-400'
   const ringBg   = h.total >= 80 ? 'border-emerald-500' : h.total >= 60 ? 'border-amber-500' : 'border-red-500'
 
@@ -235,9 +242,10 @@ function HealthScorecard({ project, taskCompletionPct }: { project: Project; tas
             <span className="text-xs text-slate-500 uppercase tracking-wide font-medium">Project Health</span>
           </div>
           <div className="space-y-2">
-            <ScoreBar label="Budget"   score={h.budget}   max={40} detail={h.budgetLabel} />
-            <ScoreBar label="Schedule" score={h.schedule} max={35} detail={h.scheduleLabel} />
-            <ScoreBar label="Stage"    score={h.stage}    max={25} detail={h.stageLabel} />
+            <ScoreBar label="Budget"   score={h.budget}         max={30} detail={h.budgetLabel} />
+            <ScoreBar label="Schedule" score={h.schedule}       max={30} detail={h.scheduleLabel} />
+            <ScoreBar label="Risk"     score={h.risk}           max={20} detail={h.riskLabel} />
+            <ScoreBar label="Tasks"    score={h.taskCompletion} max={20} detail={h.taskCompletionLabel} />
           </div>
         </div>
       </div>
@@ -263,6 +271,22 @@ export function ProjectDetailPage() {
   const { documents: recentDocs } = useProjectDocuments(id)
   const { openCount: openRfis, overdueCount: overdueRfis } = useRfis(id)
   const { openCount: openPunch } = usePunchList(id)
+  const { items: raidItems, loading: raidLoading, addItem: addRaidItem, updateItem: updateRaidItem } = useRaidLog(id)
+  const { tasks: projectTasks } = useProjectTasks(id)
+
+  // Risk Engine — auto-creates RAID items from project conditions
+  useRiskEngine({
+    project: project ?? null,
+    projectTasks,
+    milestones,
+    budgetItems,
+    overdueRfis,
+    coApproved,
+    raidItems,
+    addRaidItem,
+    updateRaidItem,
+    raidLoading,
+  })
   const [tab, setTab] = useState<Tab>((searchParams.get('tab') as Tab) || 'overview')
   const [disciplineFilter, setDisciplineFilter] = useState<string>('all')
   const [subdivisionFilter, setSubdivisionFilter] = useState<string>('all')
@@ -590,7 +614,7 @@ export function ProjectDetailPage() {
         })()}
 
         {/* Health scorecard */}
-        <HealthScorecard project={project} taskCompletionPct={totalPct} />
+        <HealthScorecard project={project} taskCompletionPct={totalPct} raidItems={raidItems} />
 
         {/* ── Milestone Mini-Timeline ───────────────────────────────────── */}
         {(() => {

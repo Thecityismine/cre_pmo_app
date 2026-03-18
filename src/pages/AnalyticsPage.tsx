@@ -213,32 +213,38 @@ export function AnalyticsPage() {
                       <span className={clsx('text-sm font-bold tabular-nums w-8 text-right', healthColor(h.total))}>{h.total}</span>
                     </div>
                   </div>
-                  {/* Segmented bar: budget / schedule / stage */}
+                  {/* Segmented bar: budget / schedule / risk / tasks */}
                   <div className="flex gap-0.5 h-2 rounded-full overflow-hidden">
                     <div
-                      className={clsx('rounded-l-full', h.budget >= 32 ? 'bg-emerald-500' : h.budget >= 22 ? 'bg-amber-500' : 'bg-red-500')}
+                      className={clsx('rounded-l-full', h.budget >= 24 ? 'bg-emerald-500' : h.budget >= 16 ? 'bg-amber-500' : 'bg-red-500')}
                       style={{ width: `${(h.budget / 100) * 100}%` }}
-                      title={`Budget: ${h.budget}/40 — ${h.budgetLabel}`}
+                      title={`Budget: ${h.budget}/30 — ${h.budgetLabel}`}
                     />
                     <div
-                      className={clsx(h.schedule >= 28 ? 'bg-emerald-500/80' : h.schedule >= 18 ? 'bg-amber-500/80' : 'bg-red-500/80')}
+                      className={clsx(h.schedule >= 24 ? 'bg-emerald-500/80' : h.schedule >= 15 ? 'bg-amber-500/80' : 'bg-red-500/80')}
                       style={{ width: `${(h.schedule / 100) * 100}%` }}
-                      title={`Schedule: ${h.schedule}/35 — ${h.scheduleLabel}`}
+                      title={`Schedule: ${h.schedule}/30 — ${h.scheduleLabel}`}
                     />
                     <div
-                      className={clsx('rounded-r-full', h.stage >= 22 ? 'bg-emerald-500/60' : 'bg-amber-500/60')}
-                      style={{ width: `${(h.stage / 100) * 100}%` }}
-                      title={`Stage: ${h.stage}/25 — ${h.stageLabel}`}
+                      className={clsx(h.risk >= 16 ? 'bg-emerald-500/60' : h.risk >= 8 ? 'bg-amber-500/60' : 'bg-red-500/60')}
+                      style={{ width: `${(h.risk / 100) * 100}%` }}
+                      title={`Risk: ${h.risk}/20 — ${h.riskLabel}`}
+                    />
+                    <div
+                      className={clsx('rounded-r-full', h.taskCompletion >= 15 ? 'bg-blue-500/60' : h.taskCompletion >= 8 ? 'bg-amber-500/50' : 'bg-red-500/50')}
+                      style={{ width: `${(h.taskCompletion / 100) * 100}%` }}
+                      title={`Tasks: ${h.taskCompletion}/20 — ${h.taskCompletionLabel}`}
                     />
                   </div>
                 </div>
               ))}
           </div>
           {/* Legend */}
-          <div className="flex gap-4 mt-3 pt-3 border-t border-slate-700">
-            <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-emerald-500" /><span className="text-xs text-slate-400">Budget (40pts)</span></div>
-            <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-emerald-500/80" /><span className="text-xs text-slate-400">Schedule (35pts)</span></div>
-            <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-emerald-500/60" /><span className="text-xs text-slate-400">Stage (25pts)</span></div>
+          <div className="flex flex-wrap gap-4 mt-3 pt-3 border-t border-slate-700">
+            <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-emerald-500" /><span className="text-xs text-slate-400">Budget (30pts)</span></div>
+            <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-emerald-500/80" /><span className="text-xs text-slate-400">Schedule (30pts)</span></div>
+            <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-emerald-500/60" /><span className="text-xs text-slate-400">Risk (20pts)</span></div>
+            <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-blue-500/60" /><span className="text-xs text-slate-400">Tasks (20pts)</span></div>
           </div>
         </div>
       )}

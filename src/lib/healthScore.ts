@@ -1,12 +1,18 @@
 import type { Project } from '@/types'
+import type { RaidItem } from '@/hooks/useRaidLog'
 
 export interface HealthBreakdown {
-  total: number           // 0–100
-  budget: number          // 0–40
-  schedule: number        // 0–35
-  stage: number           // 0–25
+  total: number               // 0–100
+  budget: number              // 0–30
+  schedule: number            // 0–30
+  risk: number                // 0–20  (was "stage")
+  taskCompletion: number      // 0–20  (new)
   budgetLabel: string
   scheduleLabel: string
+  riskLabel: string
+  taskCompletionLabel: string
+  // Legacy alias so existing callers don't break
+  stage: number
   stageLabel: string
   color: 'emerald' | 'amber' | 'red'
   label: 'Healthy' | 'At Risk' | 'Critical'
@@ -16,11 +22,14 @@ export interface HealthBreakdown {
 }
 
 export interface HealthOptions {
-  taskCompletionPct?: number   // 0–100, used for SPI (EV)
+  taskCompletionPct?: number   // 0–100
+  raidItems?: RaidItem[]       // open RAID items for risk score
 }
 
 export function computeHealth(p: Project, opts: HealthOptions = {}): HealthBreakdown {
-  // ── Budget component (40 pts) ────────────────────────────────────────────
+  const { taskCompletionPct, raidItems = [] } = opts
+
+  // ── Budget component (30 pts) ────────────────────────────────────────────
   let budget = 0
   let budgetLabel = 'Budget not set'
   let budgetVariancePct: number | null = null
@@ -29,22 +38,19 @@ export function computeHealth(p: Project, opts: HealthOptions = {}): HealthBreak
     const pct = (p.forecastCost - p.totalBudget) / p.totalBudget
     budgetVariancePct = Math.round(pct * 100)
     if (pct <= 0) {
-      budget = 40; budgetLabel = 'Under budget'
+      budget = 30; budgetLabel = 'Under budget'
     } else if (pct <= 0.03) {
-      budget = 32; budgetLabel = '1–3% over budget'
+      budget = 24; budgetLabel = '1–3% over budget'
     } else if (pct <= 0.07) {
-      budget = 22; budgetLabel = '3–7% over budget'
+      budget = 16; budgetLabel = '3–7% over budget'
     } else if (pct <= 0.15) {
-      budget = 10; budgetLabel = '7–15% over budget'
+      budget = 8;  budgetLabel = '7–15% over budget'
     } else {
-      budget = 0; budgetLabel = '>15% over budget'
+      budget = 0;  budgetLabel = '>15% over budget'
     }
   }
 
-  // ── Schedule component (35 pts) ─────────────────────────────────────────
-  // Uses SPI = EV / PV when both task completion % and project dates are known.
-  // EV = taskCompletionPct / 100
-  // PV = elapsed time / total project duration (0–1)
+  // ── Schedule component (30 pts) ─────────────────────────────────────────
   let schedule = 0
   let scheduleLabel = 'No schedule set'
   let daysToCompletion: number | null = null
@@ -52,50 +58,40 @@ export function computeHealth(p: Project, opts: HealthOptions = {}): HealthBreak
 
   const closedStatuses = ['closed', 'closeout', 'defect-period']
   if (closedStatuses.includes(p.status)) {
-    schedule = p.targetCompletionDate ? 35 : 20; scheduleLabel = 'Project closing'
+    schedule = p.targetCompletionDate ? 30 : 18; scheduleLabel = 'Project closing'
   } else if (p.startDate && p.targetCompletionDate) {
     const start = new Date(p.startDate).getTime()
     const end   = new Date(p.targetCompletionDate).getTime()
     const now   = Date.now()
     const totalDuration = end - start
-
     daysToCompletion = Math.ceil((end - now) / (1000 * 60 * 60 * 24))
-
-    // Phases where task tracking is expected — no tasks = can't assess schedule
     const activeDeliveryPhase = ['design', 'construction', 'handover'].includes(p.status)
 
-    if (totalDuration > 0 && opts.taskCompletionPct !== undefined) {
-      const pv = Math.min(1, Math.max(0, (now - start) / totalDuration))  // planned progress
-      const ev = opts.taskCompletionPct / 100                              // earned value
+    if (totalDuration > 0 && taskCompletionPct !== undefined) {
+      const pv = Math.min(1, Math.max(0, (now - start) / totalDuration))
+      const ev = taskCompletionPct / 100
       if (pv > 0) {
         spi = Math.round((ev / pv) * 100) / 100
-        if (spi >= 1.0) {
-          schedule = 35; scheduleLabel = `SPI ${spi.toFixed(2)} — On schedule`
-        } else if (spi >= 0.9) {
-          schedule = 28; scheduleLabel = `SPI ${spi.toFixed(2)} — Slightly behind`
-        } else if (spi >= 0.8) {
-          schedule = 18; scheduleLabel = `SPI ${spi.toFixed(2)} — Behind schedule`
-        } else {
-          schedule = 6; scheduleLabel = `SPI ${spi.toFixed(2)} — Significantly behind`
-        }
+        if (spi >= 1.0)  { schedule = 30; scheduleLabel = `SPI ${spi.toFixed(2)} — On schedule` }
+        else if (spi >= 0.9) { schedule = 24; scheduleLabel = `SPI ${spi.toFixed(2)} — Slightly behind` }
+        else if (spi >= 0.8) { schedule = 15; scheduleLabel = `SPI ${spi.toFixed(2)} — Behind schedule` }
+        else                  { schedule = 5;  scheduleLabel = `SPI ${spi.toFixed(2)} — Significantly behind` }
       } else {
-        // Project just started, no elapsed time yet
-        schedule = 35; scheduleLabel = 'Project started'
+        schedule = 30; scheduleLabel = 'Project started'
       }
     } else if (p.targetCompletionDate) {
-      // No task data — penalize active delivery phases that should be tracking tasks
       if (activeDeliveryPhase) {
-        schedule = 15; scheduleLabel = 'No tasks tracked'
+        schedule = 12; scheduleLabel = 'No tasks tracked'
       } else if (daysToCompletion > 60) {
-        schedule = 35; scheduleLabel = 'On schedule'
+        schedule = 30; scheduleLabel = 'On schedule'
       } else if (daysToCompletion > 30) {
-        schedule = 28; scheduleLabel = `${daysToCompletion}d to completion`
+        schedule = 24; scheduleLabel = `${daysToCompletion}d to completion`
       } else if (daysToCompletion > 0) {
-        schedule = 18; scheduleLabel = `${daysToCompletion}d to completion`
+        schedule = 15; scheduleLabel = `${daysToCompletion}d to completion`
       } else if (daysToCompletion > -14) {
-        schedule = 8; scheduleLabel = `${Math.abs(daysToCompletion)}d past target`
+        schedule = 6;  scheduleLabel = `${Math.abs(daysToCompletion)}d past target`
       } else {
-        schedule = 0; scheduleLabel = `${Math.abs(daysToCompletion)}d past target`
+        schedule = 0;  scheduleLabel = `${Math.abs(daysToCompletion)}d past target`
       }
     }
   } else if (p.targetCompletionDate) {
@@ -105,42 +101,76 @@ export function computeHealth(p: Project, opts: HealthOptions = {}): HealthBreak
     daysToCompletion = days
     const activeDeliveryPhase = ['design', 'construction', 'handover'].includes(p.status)
     if (activeDeliveryPhase) {
-      schedule = 15; scheduleLabel = 'No tasks tracked'
+      schedule = 12; scheduleLabel = 'No tasks tracked'
     } else if (days > 60) {
-      schedule = 35; scheduleLabel = 'On schedule'
+      schedule = 30; scheduleLabel = 'On schedule'
     } else if (days > 30) {
-      schedule = 28; scheduleLabel = `${days}d to completion`
+      schedule = 24; scheduleLabel = `${days}d to completion`
     } else if (days > 0) {
-      schedule = 18; scheduleLabel = `${days}d to completion`
+      schedule = 15; scheduleLabel = `${days}d to completion`
     } else if (days > -14) {
-      schedule = 8; scheduleLabel = `${Math.abs(days)}d past target`
+      schedule = 6;  scheduleLabel = `${Math.abs(days)}d past target`
     } else {
-      schedule = 0; scheduleLabel = `${Math.abs(days)}d past target`
+      schedule = 0;  scheduleLabel = `${Math.abs(days)}d past target`
     }
   }
 
-  // ── Stage component (25 pts) — early-stage projects penalized lightly ────
-  let stage = 25
-  let stageLabel = 'Active'
-  switch (p.status) {
-    case 'pre-project':   stage = 25; stageLabel = 'Pre-Project'; break
-    case 'initiate':      stage = 25; stageLabel = 'Initiate'; break
-    case 'planning':      stage = 25; stageLabel = 'Planning'; break
-    case 'design':        stage = 25; stageLabel = 'Design'; break
-    case 'construction':  stage = 22; stageLabel = 'Construction'; break
-    case 'handover':      stage = 20; stageLabel = 'Handover'; break
-    case 'closeout':      stage = 25; stageLabel = 'Closeout'; break
-    case 'defect-period': stage = 18; stageLabel = 'Defect Period'; break
-    case 'closed':        stage = 25; stageLabel = 'Closed'; break
+  // ── Risk component (20 pts) — based on open RAID items ───────────────────
+  let riskScore = 20
+  let riskLabel = 'No open risks'
+
+  const openItems  = raidItems.filter(i => i.status === 'open' || i.status === 'in-progress')
+  const highRisks  = openItems.filter(i => i.priority === 'high')
+  const medRisks   = openItems.filter(i => i.priority === 'medium')
+
+  if (highRisks.length >= 3) {
+    riskScore = 2;  riskLabel = `${highRisks.length} high-priority risks open`
+  } else if (highRisks.length === 2) {
+    riskScore = 6;  riskLabel = '2 high-priority risks open'
+  } else if (highRisks.length === 1) {
+    riskScore = 12; riskLabel = '1 high-priority risk open'
+  } else if (medRisks.length >= 3) {
+    riskScore = 12; riskLabel = `${medRisks.length} medium risks open`
+  } else if (medRisks.length > 0) {
+    riskScore = 16; riskLabel = `${medRisks.length} medium risk${medRisks.length > 1 ? 's' : ''} open`
+  } else if (openItems.length > 0) {
+    riskScore = 18; riskLabel = `${openItems.length} low-priority item${openItems.length > 1 ? 's' : ''} open`
   }
 
-  const total = Math.min(100, budget + schedule + stage)
+  // ── Task completion component (20 pts) ───────────────────────────────────
+  let taskCompletion = 20
+  let taskCompletionLabel = 'No tasks yet'
+
+  const earlyStage = ['pre-project', 'initiate', 'planning'].includes(p.status)
+
+  if (taskCompletionPct !== undefined) {
+    if (taskCompletionPct >= 80) {
+      taskCompletion = 20; taskCompletionLabel = `${taskCompletionPct}% complete`
+    } else if (taskCompletionPct >= 60) {
+      taskCompletion = 15; taskCompletionLabel = `${taskCompletionPct}% complete`
+    } else if (taskCompletionPct >= 40) {
+      taskCompletion = 10; taskCompletionLabel = `${taskCompletionPct}% complete`
+    } else if (taskCompletionPct >= 20) {
+      taskCompletion = 5;  taskCompletionLabel = `${taskCompletionPct}% complete`
+    } else if (earlyStage) {
+      taskCompletion = 20; taskCompletionLabel = 'Early stage'
+    } else {
+      taskCompletion = 2;  taskCompletionLabel = `${taskCompletionPct}% complete — low progress`
+    }
+  } else if (earlyStage) {
+    taskCompletion = 20; taskCompletionLabel = 'Early stage'
+  }
+
+  const total = Math.min(100, budget + schedule + riskScore + taskCompletion)
   const color = total >= 80 ? 'emerald' : total >= 60 ? 'amber' : 'red'
   const label = total >= 80 ? 'Healthy' : total >= 60 ? 'At Risk' : 'Critical'
 
   return {
-    total, budget, schedule, stage,
-    budgetLabel, scheduleLabel, stageLabel,
+    total, budget, schedule, risk: riskScore, taskCompletion,
+    budgetLabel, scheduleLabel, riskLabel, taskCompletionLabel,
+    // Legacy aliases
+    stage: riskScore,
+    stageLabel: riskLabel,
     color, label,
     daysToCompletion, budgetVariancePct, spi,
   }

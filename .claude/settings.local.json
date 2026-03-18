@@ -2,7 +2,18 @@
   "permissions": {
     "allow": [
       "Bash(grep -l \"Schedule\\\\|schedule\" /c/Users/gmedi/Desktop/cre-pmo-v2/src/components/*.tsx)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npm install:*)",
+      "Bash(git add:*)",
+      "Bash(git push:*)",
+      "Bash(npm run:*)",
+      "Bash(python3 -c \"from PIL import Image; print\\(''pillow ok''\\)\")",
+      "Bash(python3 -c \":*)",
+      "Bash(py -c \":*)",
+      "Bash(find /c/Users/gmedi/Desktop/cre-pmo-v2/src/components -name *AI* -o -name *ai*)",
+      "Bash(npx firebase:*)",
+      "Bash(xargs grep:*)",
+      "Bash(vercel ls:*)"
     ]
   }
 }

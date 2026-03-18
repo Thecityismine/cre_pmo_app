@@ -17,6 +17,8 @@ export interface RaidItem {
   status: RaidStatus
   dueDate: string
   closedDate: string
+  isSystemGenerated?: boolean   // true = auto-created by Risk Engine
+  systemKey?: string            // unique key for dedup (e.g. "budget-overrun-{projectId}")
   createdAt: string
   updatedAt: string
 }
