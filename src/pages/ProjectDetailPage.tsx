@@ -8,7 +8,7 @@ import {
   ArrowLeft, MapPin, DollarSign, Users, CheckSquare,
   Calendar, TrendingUp, ChevronDown, ChevronRight, Pencil, FileDown,
   AlertCircle, Clock, ClipboardList, Plus, X,
-  ClipboardCheck, FileText, BookOpen,
+  ClipboardCheck, FileText, BookOpen, ShieldAlert,
 } from 'lucide-react'
 import { doc, updateDoc, collection, writeBatch } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
@@ -615,6 +615,94 @@ export function ProjectDetailPage() {
 
         {/* Health scorecard */}
         <HealthScorecard project={project} taskCompletionPct={totalPct} raidItems={raidItems} />
+
+        {/* ── RAID Risk Widget ──────────────────────────────────────────── */}
+        {(() => {
+          const openRaid = raidItems.filter(i => i.status === 'open' || i.status === 'in-progress')
+          const highCount = openRaid.filter(i => i.priority === 'high').length
+          const medCount  = openRaid.filter(i => i.priority === 'medium').length
+          const lowCount  = openRaid.filter(i => i.priority === 'low').length
+          const totalCostExposure = openRaid.reduce((s, i) => s + (i.costImpact ?? 0), 0)
+          const totalScheduleExposure = openRaid.reduce((s, i) => s + (i.scheduleImpact ?? 0), 0)
+          const fmt$ = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
+
+          if (openRaid.length === 0 && !raidLoading) {
+            return (
+              <button
+                onClick={() => setTab('raid')}
+                className="w-full flex items-center gap-3 bg-slate-800 border border-slate-700 rounded-xl p-4 hover:border-slate-600 transition-colors text-left"
+              >
+                <ShieldAlert size={16} className="text-slate-500 shrink-0" />
+                <div>
+                  <p className="text-sm text-slate-400">No open risks</p>
+                  <p className="text-xs text-slate-600 mt-0.5">All RAID items resolved. Go to RAID tab to add items.</p>
+                </div>
+              </button>
+            )
+          }
+
+          return (
+            <button
+              onClick={() => setTab('raid')}
+              className="w-full bg-slate-800 border border-slate-700 rounded-xl p-4 hover:border-slate-600 transition-colors text-left"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <ShieldAlert size={15} className={highCount > 0 ? 'text-red-400' : medCount > 0 ? 'text-amber-400' : 'text-slate-400'} />
+                  <span className="text-sm font-semibold text-slate-100">Open Risks &amp; Issues</span>
+                  <span className="text-xs text-slate-500">{openRaid.length} open</span>
+                </div>
+                <span className="text-xs text-blue-400">View RAID →</span>
+              </div>
+
+              <div className="flex items-center gap-3 flex-wrap">
+                {highCount > 0 && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-red-500" />
+                    <span className="text-sm font-bold text-red-400">{highCount}</span>
+                    <span className="text-xs text-slate-500">High</span>
+                  </div>
+                )}
+                {medCount > 0 && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-amber-500" />
+                    <span className="text-sm font-bold text-amber-400">{medCount}</span>
+                    <span className="text-xs text-slate-500">Medium</span>
+                  </div>
+                )}
+                {lowCount > 0 && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-slate-500" />
+                    <span className="text-sm font-bold text-slate-400">{lowCount}</span>
+                    <span className="text-xs text-slate-500">Low</span>
+                  </div>
+                )}
+                {(totalCostExposure > 0 || totalScheduleExposure > 0) && (
+                  <div className="ml-auto flex items-center gap-3 text-xs text-slate-500">
+                    {totalCostExposure > 0 && (
+                      <span className="text-amber-400 font-medium">{fmt$(totalCostExposure)} exposure</span>
+                    )}
+                    {totalScheduleExposure > 0 && (
+                      <span className="text-blue-400 font-medium">{totalScheduleExposure}d schedule risk</span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Mini list: top 3 high-priority items */}
+              {highCount > 0 && (
+                <div className="mt-3 space-y-1.5 border-t border-slate-700/50 pt-3">
+                  {openRaid.filter(i => i.priority === 'high').slice(0, 3).map(i => (
+                    <div key={i.id} className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
+                      <span className="text-xs text-slate-300 truncate">{i.title}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </button>
+          )
+        })()}
 
         {/* ── Milestone Mini-Timeline ───────────────────────────────────── */}
         {(() => {

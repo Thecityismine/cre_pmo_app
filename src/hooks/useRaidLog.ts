@@ -3,7 +3,7 @@ import { collection, onSnapshot, query, where, addDoc, updateDoc, deleteDoc, doc
 import { db } from '@/lib/firebase'
 
 export type RaidType = 'risk' | 'action' | 'issue' | 'decision'
-export type RaidStatus = 'open' | 'in-progress' | 'closed' | 'accepted'
+export type RaidStatus = 'open' | 'in-progress' | 'mitigated' | 'closed' | 'accepted'
 export type RaidPriority = 'high' | 'medium' | 'low'
 
 export interface RaidItem {
@@ -17,6 +17,10 @@ export interface RaidItem {
   status: RaidStatus
   dueDate: string
   closedDate: string
+  // Impact fields
+  costImpact?: number       // $ amount
+  scheduleImpact?: number   // days
+  scopeImpact?: string      // description
   isSystemGenerated?: boolean   // true = auto-created by Risk Engine
   systemKey?: string            // unique key for dedup (e.g. "budget-overrun-{projectId}")
   createdAt: string

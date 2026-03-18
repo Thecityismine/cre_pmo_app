@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { clsx } from 'clsx'
-import { Plus, Trash2, ChevronDown, ChevronRight, Check, AlertTriangle, Zap, Bug, Lightbulb, Bot } from 'lucide-react'
+import { Plus, Trash2, ChevronDown, ChevronRight, Check, AlertTriangle, Zap, Bug, Lightbulb, Bot, Download, DollarSign, Clock3, Layers } from 'lucide-react'
 import { useRaidLog } from '@/hooks/useRaidLog'
 import type { RaidItem, RaidType, RaidStatus, RaidPriority } from '@/hooks/useRaidLog'
 import type { Project } from '@/types'
@@ -15,10 +15,11 @@ const TYPE_CONFIG: Record<RaidType, { label: string; color: string; bg: string; 
 }
 
 const STATUS_CONFIG: Record<RaidStatus, { label: string; color: string }> = {
-  'open':        { label: 'Open',        color: 'bg-slate-700 text-slate-300' },
+  'open':        { label: 'Open',       color: 'bg-slate-700 text-slate-300' },
   'in-progress': { label: 'In Progress', color: 'bg-blue-900/60 text-blue-300' },
-  'closed':      { label: 'Closed',      color: 'bg-emerald-900/60 text-emerald-300' },
-  'accepted':    { label: 'Accepted',    color: 'bg-purple-900/60 text-purple-300' },
+  'mitigated':   { label: 'Mitigated',  color: 'bg-teal-900/60 text-teal-300' },
+  'closed':      { label: 'Closed',     color: 'bg-emerald-900/60 text-emerald-300' },
+  'accepted':    { label: 'Accepted',   color: 'bg-purple-900/60 text-purple-300' },
 }
 
 const PRIORITY_CONFIG: Record<RaidPriority, { label: string; dot: string }> = {
@@ -28,8 +29,62 @@ const PRIORITY_CONFIG: Record<RaidPriority, { label: string; dot: string }> = {
 }
 
 const RAID_TYPES: RaidType[] = ['risk', 'action', 'issue', 'decision']
-const RAID_STATUSES: RaidStatus[] = ['open', 'in-progress', 'closed', 'accepted']
+const RAID_STATUSES: RaidStatus[] = ['open', 'in-progress', 'mitigated', 'closed', 'accepted']
 const RAID_PRIORITIES: RaidPriority[] = ['high', 'medium', 'low']
+
+const fmt$ = (n: number) =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
+
+// ─── CSV export ───────────────────────────────────────────────────────────────
+
+function exportToCSV(items: RaidItem[], projectName: string) {
+  const headers = ['Type', 'Title', 'Status', 'Priority', 'Owner', 'Due Date', 'Cost Impact ($)', 'Schedule Impact (days)', 'Scope Impact', 'Description']
+  const rows = items.map(i => [
+    i.type,
+    `"${i.title.replace(/"/g, '""')}"`,
+    i.status,
+    i.priority,
+    i.owner || '',
+    i.dueDate || '',
+    i.costImpact ?? '',
+    i.scheduleImpact ?? '',
+    `"${(i.scopeImpact || '').replace(/"/g, '""')}"`,
+    `"${(i.description || '').replace(/"/g, '""')}"`,
+  ])
+  const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n')
+  const blob = new Blob([csv], { type: 'text/csv' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${projectName.replace(/[^a-z0-9]/gi, '_')}_RAID_Log.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+// ─── Impact chips (compact display) ──────────────────────────────────────────
+
+function ImpactChips({ item }: { item: RaidItem }) {
+  if (!item.costImpact && !item.scheduleImpact && !item.scopeImpact) return null
+  return (
+    <div className="flex items-center gap-2 flex-wrap mt-1.5">
+      {!!item.costImpact && (
+        <span className="flex items-center gap-1 text-[10px] bg-slate-800 border border-slate-700 rounded px-1.5 py-0.5 text-amber-300">
+          <DollarSign size={9} /> {fmt$(item.costImpact)}
+        </span>
+      )}
+      {!!item.scheduleImpact && (
+        <span className="flex items-center gap-1 text-[10px] bg-slate-800 border border-slate-700 rounded px-1.5 py-0.5 text-blue-300">
+          <Clock3 size={9} /> {item.scheduleImpact}d
+        </span>
+      )}
+      {item.scopeImpact && (
+        <span className="flex items-center gap-1 text-[10px] bg-slate-800 border border-slate-700 rounded px-1.5 py-0.5 text-slate-400">
+          <Layers size={9} /> Scope
+        </span>
+      )}
+    </div>
+  )
+}
 
 // ─── Item row ─────────────────────────────────────────────────────────────────
 
@@ -51,6 +106,9 @@ function RaidRow({
   const [status, setStatus] = useState<RaidStatus>(item.status)
   const [priority, setPriority] = useState<RaidPriority>(item.priority)
   const [dueDate, setDueDate] = useState(item.dueDate)
+  const [costImpact, setCostImpact] = useState(item.costImpact?.toString() ?? '')
+  const [scheduleImpact, setScheduleImpact] = useState(item.scheduleImpact?.toString() ?? '')
+  const [scopeImpact, setScopeImpact] = useState(item.scopeImpact ?? '')
   const [saving, setSaving] = useState(false)
 
   const { Icon, color, bg } = TYPE_CONFIG[item.type]
@@ -58,7 +116,12 @@ function RaidRow({
   const save = async () => {
     if (!title.trim()) return
     setSaving(true)
-    await onUpdate(item.id, { title, description, owner, type, status, priority, dueDate })
+    await onUpdate(item.id, {
+      title, description, owner, type, status, priority, dueDate,
+      costImpact: costImpact ? parseFloat(costImpact) : undefined,
+      scheduleImpact: scheduleImpact ? parseInt(scheduleImpact, 10) : undefined,
+      scopeImpact: scopeImpact.trim() || undefined,
+    })
     setSaving(false)
     setEditing(false)
   }
@@ -66,6 +129,9 @@ function RaidRow({
   const cancel = () => {
     setTitle(item.title); setDescription(item.description); setOwner(item.owner)
     setType(item.type); setStatus(item.status); setPriority(item.priority); setDueDate(item.dueDate)
+    setCostImpact(item.costImpact?.toString() ?? '')
+    setScheduleImpact(item.scheduleImpact?.toString() ?? '')
+    setScopeImpact(item.scopeImpact ?? '')
     setEditing(false)
   }
 
@@ -121,6 +187,36 @@ function RaidRow({
             type="date"
             value={dueDate}
             onChange={e => setDueDate(e.target.value)}
+            className="bg-slate-900/60 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500"
+          />
+        </div>
+
+        {/* Impact fields */}
+        <div className="grid grid-cols-3 gap-2">
+          <div className="relative">
+            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs">$</span>
+            <input
+              type="number"
+              value={costImpact}
+              onChange={e => setCostImpact(e.target.value)}
+              placeholder="Cost impact"
+              className="w-full bg-slate-900/60 text-slate-300 text-sm rounded-lg pl-5 pr-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500"
+            />
+          </div>
+          <div className="relative">
+            <input
+              type="number"
+              value={scheduleImpact}
+              onChange={e => setScheduleImpact(e.target.value)}
+              placeholder="Days impact"
+              className="w-full bg-slate-900/60 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500"
+            />
+            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 text-[10px]">days</span>
+          </div>
+          <input
+            value={scopeImpact}
+            onChange={e => setScopeImpact(e.target.value)}
+            placeholder="Scope impact"
             className="bg-slate-900/60 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500"
           />
         </div>
@@ -189,6 +285,7 @@ function RaidRow({
               </span>
             )}
           </div>
+          <ImpactChips item={item} />
         </button>
 
         {/* Priority dot */}
@@ -217,9 +314,17 @@ function RaidRow({
       </div>
 
       {/* Expanded description */}
-      {expanded && item.description && (
-        <div className="px-4 pb-3 border-t border-slate-700/40">
-          <p className="text-sm text-slate-400 mt-2 leading-relaxed">{item.description}</p>
+      {expanded && (item.description || item.scopeImpact) && (
+        <div className="px-4 pb-3 border-t border-slate-700/40 space-y-2">
+          {item.description && (
+            <p className="text-sm text-slate-400 mt-2 leading-relaxed">{item.description}</p>
+          )}
+          {item.scopeImpact && (
+            <div className="flex items-start gap-2 mt-1">
+              <Layers size={12} className="text-slate-500 mt-0.5 shrink-0" />
+              <p className="text-xs text-slate-500">{item.scopeImpact}</p>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -243,6 +348,9 @@ function AddRaidForm({
   const [owner, setOwner] = useState('')
   const [priority, setPriority] = useState<RaidPriority>('medium')
   const [dueDate, setDueDate] = useState('')
+  const [costImpact, setCostImpact] = useState('')
+  const [scheduleImpact, setScheduleImpact] = useState('')
+  const [scopeImpact, setScopeImpact] = useState('')
   const [saving, setSaving] = useState(false)
 
   const save = async () => {
@@ -251,6 +359,9 @@ function AddRaidForm({
     await onAdd({
       projectId, type, title: title.trim(), description: description.trim(),
       owner: owner.trim(), priority, status: 'open', dueDate, closedDate: '',
+      costImpact: costImpact ? parseFloat(costImpact) : undefined,
+      scheduleImpact: scheduleImpact ? parseInt(scheduleImpact, 10) : undefined,
+      scopeImpact: scopeImpact.trim() || undefined,
     })
     setSaving(false)
     onCancel()
@@ -303,6 +414,36 @@ function AddRaidForm({
         />
       </div>
 
+      {/* Impact fields */}
+      <div className="grid grid-cols-3 gap-2">
+        <div className="relative">
+          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs">$</span>
+          <input
+            type="number"
+            value={costImpact}
+            onChange={e => setCostImpact(e.target.value)}
+            placeholder="Cost impact"
+            className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg pl-5 pr-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500"
+          />
+        </div>
+        <div className="relative">
+          <input
+            type="number"
+            value={scheduleImpact}
+            onChange={e => setScheduleImpact(e.target.value)}
+            placeholder="Days impact"
+            className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500"
+          />
+          <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 text-[10px]">days</span>
+        </div>
+        <input
+          value={scopeImpact}
+          onChange={e => setScopeImpact(e.target.value)}
+          placeholder="Scope impact"
+          className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500"
+        />
+      </div>
+
       <textarea
         value={description}
         onChange={e => setDescription(e.target.value)}
@@ -348,22 +489,30 @@ function AddRaidForm({
 export function RaidTab({ project }: { project: Project }) {
   const { items, loading, addItem, updateItem, deleteItem } = useRaidLog(project.id)
   const [typeFilter, setTypeFilter] = useState<RaidType | 'all'>('all')
-  const [statusFilter, setStatusFilter] = useState<RaidStatus | 'all'>('all')
+  const [statusFilter, setStatusFilter] = useState<RaidStatus | 'all'>('open')
   const [showAdd, setShowAdd] = useState(false)
 
   const filtered = items.filter(i => {
     const matchType = typeFilter === 'all' || i.type === typeFilter
-    const matchStatus = statusFilter === 'all' || i.status === statusFilter
-    return matchType && matchStatus
+    // "open" filter shows open + in-progress + mitigated (not resolved)
+    if (statusFilter === 'open') {
+      return matchType && (i.status === 'open' || i.status === 'in-progress' || i.status === 'mitigated')
+    }
+    return matchType && (statusFilter === 'all' || i.status === statusFilter)
   })
 
-  // Summary counts
+  // Summary counts (open + in-progress only)
   const counts = {
-    risk: items.filter(i => i.type === 'risk' && i.status !== 'closed').length,
-    action: items.filter(i => i.type === 'action' && i.status !== 'closed').length,
-    issue: items.filter(i => i.type === 'issue' && i.status !== 'closed').length,
+    risk: items.filter(i => i.type === 'risk' && (i.status === 'open' || i.status === 'in-progress')).length,
+    action: items.filter(i => i.type === 'action' && (i.status === 'open' || i.status === 'in-progress')).length,
+    issue: items.filter(i => i.type === 'issue' && (i.status === 'open' || i.status === 'in-progress')).length,
     decision: items.filter(i => i.type === 'decision').length,
   }
+
+  // Total cost/schedule exposure
+  const openItems = items.filter(i => i.status === 'open' || i.status === 'in-progress')
+  const totalCostExposure = openItems.reduce((s, i) => s + (i.costImpact ?? 0), 0)
+  const totalScheduleExposure = openItems.reduce((s, i) => s + (i.scheduleImpact ?? 0), 0)
 
   return (
     <div className="space-y-4">
@@ -388,18 +537,51 @@ export function RaidTab({ project }: { project: Project }) {
         })}
       </div>
 
+      {/* Exposure summary */}
+      {(totalCostExposure > 0 || totalScheduleExposure > 0) && (
+        <div className="flex gap-3">
+          {totalCostExposure > 0 && (
+            <div className="flex items-center gap-2 bg-amber-900/20 border border-amber-700/30 rounded-lg px-3 py-2">
+              <DollarSign size={13} className="text-amber-400 shrink-0" />
+              <div>
+                <p className="text-xs text-slate-500">Total Cost Exposure</p>
+                <p className="text-sm font-semibold text-amber-300">{fmt$(totalCostExposure)}</p>
+              </div>
+            </div>
+          )}
+          {totalScheduleExposure > 0 && (
+            <div className="flex items-center gap-2 bg-blue-900/20 border border-blue-700/30 rounded-lg px-3 py-2">
+              <Clock3 size={13} className="text-blue-400 shrink-0" />
+              <div>
+                <p className="text-xs text-slate-500">Schedule Exposure</p>
+                <p className="text-sm font-semibold text-blue-300">{totalScheduleExposure} days</p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Toolbar */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <select
           value={statusFilter}
           onChange={e => setStatusFilter(e.target.value as RaidStatus | 'all')}
           className="bg-slate-800 border border-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
         >
+          <option value="open">Open Items</option>
           <option value="all">All Statuses</option>
           {RAID_STATUSES.map(s => <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>)}
         </select>
 
         <div className="flex-1" />
+
+        <button
+          onClick={() => exportToCSV(items, project.projectName)}
+          className="flex items-center gap-1.5 text-slate-400 hover:text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm px-3 py-2 rounded-lg transition-colors"
+          title="Export to CSV"
+        >
+          <Download size={13} /> <span className="hidden sm:inline">CSV</span>
+        </button>
 
         <button
           onClick={() => setShowAdd(true)}
