@@ -44,6 +44,37 @@ type ExtBudgetItem = BudgetItem & {
   invoicedAmount?: number
   paidAmount?: number
   paymentStatus?: string
+  costToComplete?: number
+}
+
+// ─── Health helpers ────────────────────────────────────────────────────────────
+
+function lineHealth(forecast: number, budget: number): 'green' | 'amber' | 'red' {
+  if (budget <= 0) return 'green'
+  const ratio = forecast / budget
+  if (ratio <= 1.0) return 'green'
+  if (ratio <= 1.10) return 'amber'
+  return 'red'
+}
+
+function HealthDot({ forecast, budget }: { forecast: number; budget: number }) {
+  const h = lineHealth(forecast, budget)
+  return (
+    <span
+      className={clsx(
+        'inline-block w-2 h-2 rounded-full shrink-0',
+        h === 'green' ? 'bg-emerald-500' : h === 'amber' ? 'bg-amber-500' : 'bg-red-500',
+      )}
+      title={h === 'green' ? 'On budget' : h === 'amber' ? 'Slightly over budget' : 'Over budget'}
+    />
+  )
+}
+
+// Compute forecast from form values (EAC = AC + ETC)
+function computeForecast(paid: number, ctc: number, budget: number, manualForecast: number): number {
+  if (ctc > 0) return paid + ctc
+  if (manualForecast > 0) return manualForecast
+  return budget
 }
 
 // ─── Blank form state ─────────────────────────────────────────────────────────
@@ -52,11 +83,11 @@ function blankForm(category: string) {
   return {
     description: '', vendorName: '', category,
     budgetAmount: '', contractAmount: '', invoicedAmount: '', paidAmount: '',
-    forecastAmount: '', actualAmount: '', paymentStatus: 'Pending', notes: '',
+    forecastAmount: '', costToComplete: '', paymentStatus: 'Pending', notes: '',
   }
 }
 
-// ─── Inline line-item form (simplified) ──────────────────────────────────────
+// ─── Inline line-item form ────────────────────────────────────────────────────
 
 function LineItemForm({
   category,
@@ -92,14 +123,19 @@ function LineItemForm({
           placeholder="Budget $  *" required className={inp} />
       </div>
 
-      {/* Status row */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <select value={form.paymentStatus} onChange={e => set('paymentStatus', e.target.value)} className={`${inp} w-auto`}>
+      {/* Status + CTC row */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <select value={form.paymentStatus} onChange={e => set('paymentStatus', e.target.value)} className={inp}>
           {PAYMENT_STATUS.map(s => <option key={s}>{s}</option>)}
         </select>
+        <div className="relative">
+          <input type="number" value={form.costToComplete} onChange={e => set('costToComplete', e.target.value)}
+            placeholder="Cost to Complete $" className={inp} />
+          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-slate-600 pointer-events-none">ETC</span>
+        </div>
         <button type="button" onClick={() => setShowAdvanced(!showAdvanced)}
-          className="text-xs text-slate-500 hover:text-slate-300 underline">
-          {showAdvanced ? 'Hide' : 'Show'} contract/invoiced/paid fields
+          className="col-span-2 text-xs text-slate-500 hover:text-slate-300 underline text-left">
+          {showAdvanced ? 'Hide' : 'Show'} contract / invoiced / paid fields
         </button>
       </div>
 
@@ -144,7 +180,7 @@ function LineItemRow({ item, onDelete }: { item: ExtBudgetItem; onDelete: (id: s
     invoicedAmount: String(item.invoicedAmount ?? 0),
     paidAmount:     String(item.paidAmount ?? 0),
     forecastAmount: String(item.forecastAmount),
-    actualAmount:   String(item.actualAmount),
+    costToComplete: String(item.costToComplete ?? ''),
     paymentStatus:  item.paymentStatus ?? 'Pending',
     notes:          item.notes,
   })
@@ -153,8 +189,11 @@ function LineItemRow({ item, onDelete }: { item: ExtBudgetItem; onDelete: (id: s
 
   const save = async () => {
     setSaving(true)
-    const budget   = Number(form.budgetAmount) || 0
-    const forecast = Number(form.forecastAmount) || budget
+    const budget  = Number(form.budgetAmount) || 0
+    const paid    = Number(form.paidAmount) || 0
+    const ctc     = Number(form.costToComplete) || 0
+    const manual  = Number(form.forecastAmount) || 0
+    const forecast = computeForecast(paid, ctc, budget, manual)
     await updateDoc(doc(db, 'budgetItems', item.id), {
       description:     form.description,
       vendorName:      form.vendorName,
@@ -163,9 +202,10 @@ function LineItemRow({ item, onDelete }: { item: ExtBudgetItem; onDelete: (id: s
       committedAmount: Number(form.contractAmount) || 0,
       contractAmount:  Number(form.contractAmount) || 0,
       invoicedAmount:  Number(form.invoicedAmount) || 0,
-      paidAmount:      Number(form.paidAmount) || 0,
+      paidAmount:      paid,
       forecastAmount:  forecast,
-      actualAmount:    Number(form.actualAmount) || 0,
+      costToComplete:  ctc > 0 ? ctc : null,
+      actualAmount:    paid,
       paymentStatus:   form.paymentStatus,
       variance:        budget - forecast,
       notes:           form.notes,
@@ -175,16 +215,25 @@ function LineItemRow({ item, onDelete }: { item: ExtBudgetItem; onDelete: (id: s
     setEditing(false)
   }
 
-  const contractAmt  = item.contractAmount ?? item.committedAmount
-  const invoicedAmt  = item.invoicedAmount ?? 0
-  const paidAmt      = item.paidAmount ?? 0
+  const contractAmt   = item.contractAmount ?? item.committedAmount
+  const invoicedAmt   = item.invoicedAmount ?? 0
+  const paidAmt       = item.paidAmount ?? 0
   const paymentStatus = item.paymentStatus ?? 'Pending'
-  const variance      = item.budgetAmount - item.forecastAmount
+  const forecast      = item.forecastAmount
+  const variance      = item.budgetAmount - forecast
 
   if (editing) {
+    // Preview forecast based on current form values
+    const prevForecast = computeForecast(
+      Number(form.paidAmount) || 0,
+      Number(form.costToComplete) || 0,
+      Number(form.budgetAmount) || 0,
+      Number(form.forecastAmount) || 0,
+    )
+
     return (
       <tr className="bg-slate-900/80 border-t border-slate-700">
-        <td className="px-3 py-2" colSpan={7}>
+        <td className="px-3 py-2" colSpan={8}>
           <div className="space-y-2">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <input value={form.description} onChange={e => set('description', e.target.value)}
@@ -200,9 +249,17 @@ function LineItemRow({ item, onDelete }: { item: ExtBudgetItem; onDelete: (id: s
               <input type="number" value={form.contractAmount} onChange={e => set('contractAmount', e.target.value)} placeholder="Contract $" className={inp} />
               <input type="number" value={form.invoicedAmount} onChange={e => set('invoicedAmount', e.target.value)} placeholder="Invoiced $" className={inp} />
               <input type="number" value={form.paidAmount}     onChange={e => set('paidAmount', e.target.value)}     placeholder="Paid $"     className={inp} />
-              <input type="number" value={form.forecastAmount} onChange={e => set('forecastAmount', e.target.value)} placeholder="Forecast $" className={inp} />
+              <div className="relative">
+                <input type="number" value={form.costToComplete} onChange={e => set('costToComplete', e.target.value)} placeholder="Cost to Complete $" className={inp} />
+                <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] text-slate-600 pointer-events-none">ETC</span>
+              </div>
               <input value={form.notes} onChange={e => set('notes', e.target.value)} placeholder="Notes" className={inp} />
             </div>
+            {Number(form.costToComplete) > 0 && (
+              <p className="text-[10px] text-blue-400">
+                Auto-forecast: {fmt(prevForecast)} (Paid + Cost to Complete)
+              </p>
+            )}
             <div className="flex gap-2">
               <button onClick={save} disabled={saving}
                 className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-lg">
@@ -221,9 +278,15 @@ function LineItemRow({ item, onDelete }: { item: ExtBudgetItem; onDelete: (id: s
 
   return (
     <tr className="border-t border-slate-700/50 hover:bg-slate-800/40 group cursor-pointer" onClick={() => setEditing(true)}>
+      <td className="px-3 py-2.5 w-4">
+        <HealthDot forecast={forecast} budget={item.budgetAmount} />
+      </td>
       <td className="px-3 py-2.5">
         <p className="text-slate-200 text-sm">{item.description || '—'}</p>
         {item.vendorName && <p className="text-xs text-slate-500 mt-0.5">{item.vendorName}</p>}
+        {item.costToComplete != null && item.costToComplete > 0 && (
+          <p className="text-[10px] text-blue-400 mt-0.5">ETC: {fmt(item.costToComplete)}</p>
+        )}
       </td>
       <td className="px-3 py-2.5 text-right text-slate-300 text-sm tabular-nums">{fmt(item.budgetAmount)}</td>
       <td className="px-3 py-2.5 text-right text-slate-400 text-sm tabular-nums">{contractAmt > 0 ? fmt(contractAmt) : '—'}</td>
@@ -272,15 +335,19 @@ function CategoryCard({
 
   const cfg = CATEGORY_COLORS[category] ?? { pill: 'bg-slate-700 text-slate-300', bar: 'bg-slate-500', border: 'border-slate-600/40' }
 
-  // Category totals
   const catBudget   = items.reduce((s, i) => s + i.budgetAmount, 0)
   const catContract = items.reduce((s, i) => s + (i.contractAmount ?? i.committedAmount), 0)
-  const catInvoiced = items.reduce((s, i) => s + (i.invoicedAmount ?? 0), 0)
   const catPaid     = items.reduce((s, i) => s + (i.paidAmount ?? 0), 0)
+  const catInvoiced = items.reduce((s, i) => s + (i.invoicedAmount ?? 0), 0)
+  const catForecast = items.reduce((s, i) => s + i.forecastAmount, 0)
 
-  // Progress bar: paid+invoiced vs budget
-  const usedPct   = catBudget > 0 ? Math.min(100, ((catPaid + catInvoiced) / catBudget) * 100) : 0
-  const barColor  = usedPct >= 100 ? 'bg-red-500' : usedPct >= 85 ? 'bg-amber-500' : 'bg-emerald-500'
+  const overItems = items.filter(i => lineHealth(i.forecastAmount, i.budgetAmount) !== 'green')
+
+  const usedPct  = catBudget > 0 ? Math.min(100, ((catPaid + catInvoiced) / catBudget) * 100) : 0
+  const barColor = usedPct >= 100 ? 'bg-red-500' : usedPct >= 85 ? 'bg-amber-500' : 'bg-emerald-500'
+
+  const catVariance = catBudget - catForecast
+  const catHealth = lineHealth(catForecast, catBudget)
 
   const handleAdd = async (form: ReturnType<typeof blankForm>) => {
     await onAdd({ ...form, category })
@@ -290,7 +357,6 @@ function CategoryCard({
 
   return (
     <div className={clsx('bg-slate-800 border rounded-xl overflow-hidden', expanded ? cfg.border : 'border-slate-700')}>
-      {/* Header row — always visible */}
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-700/20 transition-colors text-left"
@@ -303,18 +369,25 @@ function CategoryCard({
           {category}
         </span>
 
+        {/* Health indicator for the category */}
+        {items.length > 0 && overItems.length > 0 && (
+          <span className={clsx(
+            'text-[9px] px-1.5 py-0.5 rounded font-medium shrink-0',
+            catHealth === 'amber' ? 'bg-amber-900/60 text-amber-300' : 'bg-red-900/60 text-red-300',
+          )}>
+            {overItems.length} over budget
+          </span>
+        )}
+
         <div className="flex-1 min-w-0">
-          {/* Progress bar */}
           <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
             <div className={clsx('h-full rounded-l-full transition-all', barColor)} style={{ width: `${usedPct}%` }} />
           </div>
-          <div className="flex items-center gap-1 mt-0.5">
-            {usedPct > 0 && (
-              <span className={clsx('text-[10px] font-medium', usedPct >= 100 ? 'text-red-400' : usedPct >= 85 ? 'text-amber-400' : 'text-emerald-400')}>
-                {Math.round(usedPct)}% used
-              </span>
-            )}
-          </div>
+          {usedPct > 0 && (
+            <span className={clsx('text-[10px] font-medium mt-0.5 block', usedPct >= 100 ? 'text-red-400' : usedPct >= 85 ? 'text-amber-400' : 'text-emerald-400')}>
+              {Math.round(usedPct)}% utilized
+            </span>
+          )}
         </div>
 
         <div className="hidden sm:flex items-center gap-4 text-xs text-right shrink-0">
@@ -323,12 +396,16 @@ function CategoryCard({
             <p className="text-slate-200 font-medium tabular-nums">{catBudget > 0 ? fmt(catBudget) : '—'}</p>
           </div>
           <div>
-            <p className="text-slate-500 text-[10px]">Contracted</p>
-            <p className="text-slate-400 tabular-nums">{catContract > 0 ? fmt(catContract) : '—'}</p>
+            <p className="text-slate-500 text-[10px]">Forecast</p>
+            <p className={clsx('font-medium tabular-nums', catHealth === 'green' ? 'text-emerald-400' : catHealth === 'amber' ? 'text-amber-400' : 'text-red-400')}>
+              {catForecast > 0 ? fmt(catForecast) : '—'}
+            </p>
           </div>
           <div>
-            <p className="text-slate-500 text-[10px]">Paid</p>
-            <p className="text-emerald-400 tabular-nums">{catPaid > 0 ? fmt(catPaid) : '—'}</p>
+            <p className="text-slate-500 text-[10px]">Variance</p>
+            <p className={clsx('font-medium tabular-nums', catVariance >= 0 ? 'text-emerald-400' : 'text-red-400')}>
+              {catBudget > 0 ? (catVariance >= 0 ? fmt(catVariance) : `(${fmt(Math.abs(catVariance))})`) : '—'}
+            </p>
           </div>
         </div>
 
@@ -337,7 +414,6 @@ function CategoryCard({
         </span>
       </button>
 
-      {/* Expanded content */}
       {expanded && (
         <div className="border-t border-slate-700/50">
           {items.length > 0 ? (
@@ -345,6 +421,7 @@ function CategoryCard({
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-slate-500 text-[10px] uppercase tracking-wide border-b border-slate-700/50">
+                    <th className="px-3 py-2 w-4" />
                     <th className="text-left px-3 py-2">Description / Vendor</th>
                     <th className="text-right px-3 py-2">Budget</th>
                     <th className="text-right px-3 py-2">Contract</th>
@@ -360,6 +437,7 @@ function CategoryCard({
                   ))}
                   {/* Category subtotal */}
                   <tr className="border-t border-slate-700/50 bg-slate-900/30 text-xs font-semibold">
+                    <td className="px-3 py-2" />
                     <td className="px-3 py-2 text-slate-400">Subtotal</td>
                     <td className="px-3 py-2 text-right text-slate-200 tabular-nums">{fmt(catBudget)}</td>
                     <td className="px-3 py-2 text-right text-slate-400 tabular-nums">{catContract > 0 ? fmt(catContract) : '—'}</td>
@@ -368,8 +446,8 @@ function CategoryCard({
                     <td className="px-3 py-2" />
                     <td className="px-3 py-2 text-right">
                       {catBudget > 0 && (
-                        <span className={clsx('tabular-nums', (catBudget - catPaid) >= 0 ? 'text-emerald-400' : 'text-red-400')}>
-                          {fmt(Math.abs(catBudget - catPaid))}
+                        <span className={clsx('tabular-nums', catVariance >= 0 ? 'text-emerald-400' : 'text-red-400')}>
+                          {catVariance >= 0 ? fmt(catVariance) : `(${fmt(Math.abs(catVariance))})`}
                         </span>
                       )}
                     </td>
@@ -384,7 +462,6 @@ function CategoryCard({
             </div>
           )}
 
-          {/* Add line item form / button */}
           <div className="px-4 pb-4">
             {showForm ? (
               <LineItemForm
@@ -423,7 +500,7 @@ function EmptyOnboardingCard() {
         {[
           { step: '1', text: 'Click any category card below to expand it' },
           { step: '2', text: 'Click "+ Add Line Item" and enter a vendor name, description, and budget amount' },
-          { step: '3', text: 'Update contract / invoiced / paid amounts as the project progresses' },
+          { step: '3', text: 'Add a "Cost to Complete" (ETC) to auto-calculate the forecast for each line' },
         ].map(({ step, text }) => (
           <div key={step} className="flex items-start gap-3">
             <span className="shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center mt-0.5">
@@ -437,13 +514,66 @@ function EmptyOnboardingCard() {
   )
 }
 
+// ─── Contingency drawdown tracker ─────────────────────────────────────────────
+
+function ContingencyTracker({ items, coApproved }: { items: ExtBudgetItem[]; coApproved: number }) {
+  const contingencyItems = items.filter(i => i.category === 'Contingency' || i.category === "Owner's Reserve")
+  const nonContingencyItems = items.filter(i => i.category !== 'Contingency' && i.category !== "Owner's Reserve")
+
+  if (contingencyItems.length === 0) return null
+
+  const totalContingency = contingencyItems.reduce((s, i) => s + i.budgetAmount, 0)
+  const nonConBudget     = nonContingencyItems.reduce((s, i) => s + i.budgetAmount, 0)
+  const nonConForecast   = nonContingencyItems.reduce((s, i) => s + i.forecastAmount, 0)
+  const overrun          = Math.max(0, nonConForecast - nonConBudget)
+  const effectiveContingency = totalContingency + coApproved
+  const remaining        = effectiveContingency - overrun
+  const drawdownPct      = effectiveContingency > 0 ? Math.min(100, (overrun / effectiveContingency) * 100) : 0
+
+  return (
+    <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
+      <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-3">Contingency Drawdown</p>
+      <div className="flex items-center gap-4 flex-wrap text-xs mb-3">
+        <div>
+          <p className="text-slate-500">Total Contingency</p>
+          <p className="text-slate-200 font-semibold tabular-nums">{fmt(effectiveContingency)}</p>
+        </div>
+        <div>
+          <p className="text-slate-500">Consumed by Overruns</p>
+          <p className={clsx('font-semibold tabular-nums', overrun > 0 ? 'text-amber-400' : 'text-slate-400')}>
+            {overrun > 0 ? fmt(overrun) : '—'}
+          </p>
+        </div>
+        <div>
+          <p className="text-slate-500">Remaining</p>
+          <p className={clsx('font-semibold tabular-nums', remaining < 0 ? 'text-red-400' : remaining < effectiveContingency * 0.25 ? 'text-amber-400' : 'text-emerald-400')}>
+            {fmt(Math.max(0, remaining))}
+          </p>
+        </div>
+        {remaining < 0 && (
+          <div>
+            <p className="text-slate-500">Contingency Exhausted</p>
+            <p className="text-red-400 font-semibold tabular-nums">{fmt(Math.abs(remaining))} over</p>
+          </div>
+        )}
+      </div>
+      <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+        <div
+          className={clsx('h-full rounded-full transition-all', drawdownPct >= 100 ? 'bg-red-500' : drawdownPct >= 75 ? 'bg-amber-500' : 'bg-slate-500')}
+          style={{ width: `${drawdownPct}%` }}
+        />
+      </div>
+      <p className="text-[10px] text-slate-600 mt-1">{Math.round(drawdownPct)}% of contingency consumed by line-item overruns</p>
+    </div>
+  )
+}
+
 // ─── Main BudgetTab ───────────────────────────────────────────────────────────
 
 export function BudgetTab({ project }: { project: Project }) {
   const { items, loading } = useBudgetItems(project.id)
   const { approvedTotal: coApproved, pendingTotal: coPending } = useChangeOrders(project.id)
 
-  // ── Totals ────────────────────────────────────────────────────────────────
   const ext = items as ExtBudgetItem[]
   const totalBudget   = ext.reduce((s, i) => s + i.budgetAmount, 0)
   const totalForecast = ext.reduce((s, i) => s + i.forecastAmount, 0)
@@ -455,10 +585,15 @@ export function BudgetTab({ project }: { project: Project }) {
   const netBudget     = baseBudget + coApproved
   const totalVariance = netBudget - totalForecast
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
+  // Budget health
+  const budgetHealth = lineHealth(totalForecast, netBudget)
+
   const handleAdd = async (form: ReturnType<typeof blankForm>) => {
-    const budget   = Number(form.budgetAmount) || 0
-    const forecast = Number(form.forecastAmount) || budget
+    const budget  = Number(form.budgetAmount) || 0
+    const paid    = Number(form.paidAmount) || 0
+    const ctc     = Number(form.costToComplete) || 0
+    const manual  = Number(form.forecastAmount) || 0
+    const forecast = computeForecast(paid, ctc, budget, manual)
     const now = new Date().toISOString()
     await addDoc(collection(db, 'budgetItems'), {
       projectId:       project.id,
@@ -469,9 +604,10 @@ export function BudgetTab({ project }: { project: Project }) {
       committedAmount: Number(form.contractAmount) || 0,
       contractAmount:  Number(form.contractAmount) || 0,
       invoicedAmount:  Number(form.invoicedAmount) || 0,
-      paidAmount:      Number(form.paidAmount) || 0,
+      paidAmount:      paid,
       forecastAmount:  forecast,
-      actualAmount:    Number(form.actualAmount) || 0,
+      costToComplete:  ctc > 0 ? ctc : null,
+      actualAmount:    paid,
       paymentStatus:   form.paymentStatus,
       variance:        budget - forecast,
       notes:           form.notes,
@@ -497,13 +633,30 @@ export function BudgetTab({ project }: { project: Project }) {
   return (
     <div className="space-y-4">
 
+      {/* ── Budget health banner ──────────────────────────────────────────── */}
+      {hasItems && budgetHealth !== 'green' && (
+        <div className={clsx(
+          'flex items-center gap-3 rounded-xl px-4 py-3 border text-sm',
+          budgetHealth === 'amber'
+            ? 'bg-amber-900/20 border-amber-700/40 text-amber-300'
+            : 'bg-red-900/20 border-red-700/40 text-red-300',
+        )}>
+          <AlertTriangle size={15} className="shrink-0" />
+          <span>
+            {budgetHealth === 'amber'
+              ? `Forecast is slightly over net budget by ${fmt(Math.abs(totalVariance))}.`
+              : `Budget overrun — forecast exceeds net budget by ${fmt(Math.abs(totalVariance))}.`}
+          </span>
+        </div>
+      )}
+
       {/* ── 4 KPI cards ──────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
           { label: 'Approved Budget',  value: fmt(baseBudget),    color: 'text-slate-100' },
           { label: 'Net w/ COs',       value: fmt(netBudget),     color: coApproved > 0 ? 'text-amber-300' : 'text-slate-100' },
-          { label: 'Total Forecast',   value: fmt(totalForecast), color: totalForecast > netBudget ? 'text-red-400' : 'text-blue-300' },
-          { label: 'Actual Spent',     value: fmt(totalActual),   color: 'text-slate-200' },
+          { label: 'Total Forecast',   value: fmt(totalForecast), color: budgetHealth === 'green' ? 'text-blue-300' : budgetHealth === 'amber' ? 'text-amber-400' : 'text-red-400' },
+          { label: 'Actual Spent',     value: fmt(totalActual || totalPaid), color: 'text-slate-200' },
         ].map(s => (
           <div key={s.label} className="bg-slate-800 border border-slate-700 rounded-xl p-3">
             <p className="text-xs text-slate-500 mb-1">{s.label}</p>
@@ -574,6 +727,9 @@ export function BudgetTab({ project }: { project: Project }) {
         </div>
       )}
 
+      {/* ── Contingency drawdown ──────────────────────────────────────────── */}
+      {hasItems && <ContingencyTracker items={ext} coApproved={coApproved} />}
+
       {/* ── Empty onboarding card ─────────────────────────────────────────── */}
       {!hasItems && <EmptyOnboardingCard />}
 
@@ -591,7 +747,6 @@ export function BudgetTab({ project }: { project: Project }) {
             />
           )
         })}
-        {/* Catch-all for items imported with unrecognized categories */}
         {(() => {
           const orphans = ext.filter(i => !CATEGORIES.includes(i.category))
           if (orphans.length === 0) return null
@@ -608,11 +763,7 @@ export function BudgetTab({ project }: { project: Project }) {
                     <span className="flex-1 truncate">{item.description || '(no description)'}</span>
                     <span className="text-slate-500">{item.category}</span>
                     <span className="tabular-nums text-slate-300">{fmt(item.forecastAmount || item.budgetAmount || 0)}</span>
-                    <button
-                      onClick={() => handleDelete(item.id)}
-                      className="p-1 text-slate-600 hover:text-red-400 transition-colors"
-                      title="Delete item"
-                    >
+                    <button onClick={() => handleDelete(item.id)} className="p-1 text-slate-600 hover:text-red-400 transition-colors">
                       <Trash2 size={12} />
                     </button>
                   </div>

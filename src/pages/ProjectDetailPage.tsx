@@ -555,6 +555,102 @@ export function ProjectDetailPage() {
       {tab === 'overview' && (
         <div className="space-y-4">
 
+        {/* ── War Room: Attention Required ─────────────────────────────── */}
+        {(() => {
+          const today = new Date(); today.setHours(0, 0, 0, 0)
+          const netBudgetWR = (project.totalBudget || 0) + coApproved
+          const overdueProjectTasks = projectTasks.filter(
+            t => t.status === 'open' && t.dueDate && new Date(t.dueDate) < today
+          )
+          const missedMilestones = milestones.filter(
+            m => m.status !== 'complete' && m.targetDate && new Date(m.targetDate) < today
+          )
+          const highRaid = raidItems.filter(
+            i => i.priority === 'high' && (i.status === 'open' || i.status === 'in-progress')
+          )
+          const budgetOverrun = netBudgetWR > 0 && (project.forecastCost || 0) > netBudgetWR
+          const overrunAmt = budgetOverrun ? (project.forecastCost || 0) - netBudgetWR : 0
+
+          type AlertLevel = 'red' | 'amber'
+          const alerts: { level: AlertLevel; title: string; desc: string; tab: string }[] = []
+
+          if (budgetOverrun) alerts.push({
+            level: 'red', tab: 'budget',
+            title: 'Budget Overrun',
+            desc: `Forecast exceeds net budget by ${fmt(overrunAmt)}`,
+          })
+          if (missedMilestones.length > 0) alerts.push({
+            level: 'red', tab: 'schedule',
+            title: `${missedMilestones.length} Missed Milestone${missedMilestones.length > 1 ? 's' : ''}`,
+            desc: missedMilestones.slice(0, 2).map(m => m.name).join(', '),
+          })
+          if (highRaid.length > 0) alerts.push({
+            level: 'red', tab: 'raid',
+            title: `${highRaid.length} High-Priority Risk${highRaid.length > 1 ? 's' : ''}`,
+            desc: highRaid[0].title,
+          })
+          if (overdueProjectTasks.length > 0) alerts.push({
+            level: 'amber', tab: 'tasks',
+            title: `${overdueProjectTasks.length} Overdue Task${overdueProjectTasks.length > 1 ? 's' : ''}`,
+            desc: overdueProjectTasks.slice(0, 2).map(t => t.title).join(', '),
+          })
+          if (overdueRfis > 0) alerts.push({
+            level: 'amber', tab: 'rfis',
+            title: `${overdueRfis} Overdue RFI${overdueRfis > 1 ? 's' : ''}`,
+            desc: 'Awaiting response past due date',
+          })
+          if (coPending > 0) alerts.push({
+            level: 'amber', tab: 'cos',
+            title: 'Pending Change Orders',
+            desc: `${fmt(coPending)} awaiting approval`,
+          })
+
+          if (alerts.length === 0) return (
+            <div className="flex items-center gap-3 bg-emerald-900/20 border border-emerald-700/30 rounded-xl px-4 py-3">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+              <p className="text-sm text-emerald-300 font-medium">All clear — no critical alerts on this project.</p>
+            </div>
+          )
+
+          return (
+            <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
+                <div className="flex items-center gap-2">
+                  <AlertCircle size={15} className="text-red-400" />
+                  <p className="text-sm font-semibold text-slate-100">Attention Required</p>
+                  <span className="text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full font-medium">
+                    {alerts.length}
+                  </span>
+                </div>
+              </div>
+              <div className="divide-y divide-slate-700/50">
+                {alerts.map((a, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setTab(a.tab as Tab)}
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-700/30 transition-colors text-left"
+                  >
+                    <span className={clsx(
+                      'w-2 h-2 rounded-full shrink-0',
+                      a.level === 'red' ? 'bg-red-500' : 'bg-amber-500',
+                    )} />
+                    <div className="flex-1 min-w-0">
+                      <p className={clsx(
+                        'text-sm font-medium',
+                        a.level === 'red' ? 'text-red-300' : 'text-amber-300',
+                      )}>
+                        {a.title}
+                      </p>
+                      <p className="text-xs text-slate-500 truncate mt-0.5">{a.desc}</p>
+                    </div>
+                    <span className="text-xs text-slate-600 shrink-0">→</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )
+        })()}
+
         {/* ── 6 Financial Metric Tiles ─────────────────────────────────── */}
         {(() => {
           const extItems = budgetItems as (typeof budgetItems[0] & { contractAmount?: number; paidAmount?: number })[]
@@ -700,6 +796,46 @@ export function ProjectDetailPage() {
                   ))}
                 </div>
               )}
+            </button>
+          )
+        })()}
+
+        {/* ── Next Milestone Countdown ──────────────────────────────────── */}
+        {(() => {
+          const today = new Date(); today.setHours(0, 0, 0, 0)
+          const next = milestones
+            .filter(m => m.status !== 'complete' && m.targetDate && new Date(m.targetDate) >= today)
+            .sort((a, b) => a.targetDate.localeCompare(b.targetDate))[0]
+          if (!next) return null
+          const daysUntil = Math.ceil((new Date(next.targetDate).getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+          const urgency = daysUntil <= 7 ? 'red' : daysUntil <= 21 ? 'amber' : 'blue'
+          return (
+            <button
+              onClick={() => setTab('schedule')}
+              className={clsx(
+                'w-full flex items-center gap-4 rounded-xl px-4 py-3 border text-left transition-colors',
+                urgency === 'red'   ? 'bg-red-900/20 border-red-700/30 hover:border-red-600/50'
+                : urgency === 'amber' ? 'bg-amber-900/20 border-amber-700/30 hover:border-amber-600/50'
+                : 'bg-blue-900/20 border-blue-700/30 hover:border-blue-600/50',
+              )}
+            >
+              <div className={clsx(
+                'shrink-0 text-center px-3 py-2 rounded-lg',
+                urgency === 'red' ? 'bg-red-900/40' : urgency === 'amber' ? 'bg-amber-900/40' : 'bg-blue-900/40',
+              )}>
+                <p className={clsx('text-2xl font-bold leading-none tabular-nums', urgency === 'red' ? 'text-red-300' : urgency === 'amber' ? 'text-amber-300' : 'text-blue-300')}>
+                  {daysUntil}
+                </p>
+                <p className="text-[10px] text-slate-500 mt-0.5">days</p>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-slate-500 uppercase tracking-wide font-medium mb-0.5">Next Milestone</p>
+                <p className="text-sm font-semibold text-slate-100 truncate">{next.name}</p>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  {new Date(next.targetDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                </p>
+              </div>
+              <span className="text-xs text-slate-600 shrink-0">View Schedule →</span>
             </button>
           )
         })()}

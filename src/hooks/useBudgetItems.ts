@@ -13,6 +13,7 @@ export interface BudgetItem {
   actualAmount: number
   variance: number
   notes: string
+  costToComplete?: number   // ETC: estimate to complete (auto-computes forecast when set)
   createdAt: string
   updatedAt: string
 }
