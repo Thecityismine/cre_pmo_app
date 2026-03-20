@@ -484,30 +484,33 @@ function CategoryCard({
           </span>
         </div>
 
-        {/* Row 2: Budget | Forecast | Remaining — full width, larger numbers */}
-        <div className="flex items-start w-full pl-5 gap-0">
+        {/* Row 2: Budget | Forecast | Remaining — full width, numbers aligned */}
+        <div className="flex items-end w-full pl-5">
+          {/* Budget — left */}
           <div className="flex-1">
-            <p className="text-[10px] text-slate-500 uppercase tracking-wide mb-0.5">Budget</p>
+            <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-1">Budget</p>
             <button
               onClick={openBudgetEdit}
-              className={clsx('font-semibold tabular-nums hover:underline text-sm leading-tight', approvedBudget ? 'text-slate-100' : 'text-blue-400 text-xs')}
+              className={clsx('font-semibold tabular-nums hover:underline leading-none', approvedBudget ? 'text-slate-100 text-base' : 'text-blue-400 text-sm')}
               title="Click to set approved budget"
             >
               {approvedBudget ? fmt(approvedBudget) : '+ Set budget'}
             </button>
           </div>
-          <div className="flex-1">
-            <p className="text-[10px] text-slate-500 uppercase tracking-wide mb-0.5">Forecast</p>
-            <p className={clsx('font-semibold tabular-nums text-sm leading-tight', catHealth === 'red' ? 'text-red-400' : catHealth === 'amber' ? 'text-amber-400' : 'text-emerald-400')}>
+          {/* Forecast — centered */}
+          <div className="flex-1 text-center">
+            <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-1">Forecast</p>
+            <p className="text-slate-100 font-semibold text-base tabular-nums leading-none">
               {totalDrawn > 0 ? fmt(totalDrawn) : '—'}
             </p>
           </div>
+          {/* Remaining — right */}
           {catBudget > 0 && (
             <div className="flex-1 text-right">
-              <p className="text-[10px] text-slate-500 uppercase tracking-wide mb-0.5">Remaining</p>
-              <p className={clsx('font-semibold tabular-nums text-sm leading-tight', (catRemaining ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400')}>
+              <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-1">Remaining</p>
+              <p className={clsx('font-semibold text-base tabular-nums leading-none', (catRemaining ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400')}>
                 {catRemaining !== null ? fmt(Math.abs(catRemaining)) : '—'}
-                {(catRemaining ?? 0) < 0 && <span className="text-[10px] ml-0.5">over</span>}
+                {(catRemaining ?? 0) < 0 && <span className="text-xs ml-0.5">over</span>}
               </p>
             </div>
           )}
@@ -519,12 +522,12 @@ function CategoryCard({
             <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
               <div className={clsx('h-full rounded-l-full transition-all', barColor)} style={{ width: `${barWidth}%` }} />
             </div>
-            <span className={clsx('text-[10px] font-medium mt-1 block', catHealth === 'red' ? 'text-red-400' : catHealth === 'amber' ? 'text-amber-400' : 'text-emerald-400')}>
+            <span className={clsx('text-sm font-semibold mt-1 block', catHealth === 'red' ? 'text-red-400' : catHealth === 'amber' ? 'text-amber-400' : 'text-emerald-400')}>
               {Math.round(drawnPct)}% utilized
             </span>
           </div>
         ) : (
-          <p className="pl-5 text-[10px] text-slate-600">No approved budget set — click "+ Set budget" to add one</p>
+          <p className="pl-5 text-xs text-slate-500">No approved budget set — click "+ Set budget" to add one</p>
         )}
       </button>
 
