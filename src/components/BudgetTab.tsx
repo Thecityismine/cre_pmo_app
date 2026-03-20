@@ -41,6 +41,7 @@ type ExtBudgetItem = BudgetItem & {
   paidAmount?: number
   paymentStatus?: string
   costToComplete?: number
+  isBudgetEnvelope?: boolean  // marks this item as the category budget ceiling
   // Variance trend tracking
   forecastTrend?: 'up' | 'down' | 'flat'
   forecastPrev?: number
@@ -83,6 +84,7 @@ function blankForm(category: string) {
     description: '', vendorName: '', contractNumber: '', contactEmail: '', category,
     budgetAmount: '', contractAmount: '', invoicedAmount: '', paidAmount: '',
     forecastAmount: '', costToComplete: '', paymentStatus: 'Pending', notes: '',
+    isBudgetEnvelope: false,
   }
 }
 
@@ -132,8 +134,17 @@ function LineItemForm({
             placeholder="Cost to Complete $" className={inp} />
           <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-slate-600 pointer-events-none">ETC</span>
         </div>
+        <label className="col-span-2 flex items-center gap-2 cursor-pointer select-none">
+          <input type="checkbox" checked={form.isBudgetEnvelope}
+            onChange={e => setForm(f => ({ ...f, isBudgetEnvelope: e.target.checked }))}
+            className="accent-amber-500 w-3.5 h-3.5" />
+          <span className="text-xs text-slate-400">Set as budget envelope (draws from this amount)</span>
+        </label>
+      </div>
+
+      <div>
         <button type="button" onClick={() => setShowAdvanced(!showAdvanced)}
-          className="col-span-2 text-xs text-slate-500 hover:text-slate-300 underline text-left">
+          className="text-xs text-slate-500 hover:text-slate-300 underline text-left">
           {showAdvanced ? 'Hide' : 'Show'} contract / invoiced / paid fields
         </button>
       </div>
@@ -176,24 +187,31 @@ function LineItemForm({
 
 // ─── Editable line item row ───────────────────────────────────────────────────
 
-function LineItemRow({ item, onDelete }: { item: ExtBudgetItem; onDelete: (id: string) => void }) {
+function LineItemRow({ item, onDelete, isEnvelope, envelopeMode, totalDrawn }: {
+  item: ExtBudgetItem
+  onDelete: (id: string) => void
+  isEnvelope?: boolean
+  envelopeMode?: boolean
+  totalDrawn?: number
+}) {
   const [editing, setEditing] = useState(false)
   const [invoicing, setInvoicing] = useState(false)
   const [invoiceAmt, setInvoiceAmt] = useState('')
   const [form, setForm] = useState({
-    description:    item.description,
-    vendorName:     item.vendorName ?? '',
-    contractNumber: item.contractNumber ?? '',
-    contactEmail:   item.contactEmail ?? '',
-    category:       item.category,
-    budgetAmount:   String(item.budgetAmount),
-    contractAmount: String(item.contractAmount ?? item.committedAmount),
-    invoicedAmount: String(item.invoicedAmount ?? 0),
-    paidAmount:     String(item.paidAmount ?? 0),
-    forecastAmount: String(item.forecastAmount),
-    costToComplete: String(item.costToComplete ?? ''),
-    paymentStatus:  item.paymentStatus ?? 'Pending',
-    notes:          item.notes,
+    description:      item.description,
+    vendorName:       item.vendorName ?? '',
+    contractNumber:   item.contractNumber ?? '',
+    contactEmail:     item.contactEmail ?? '',
+    category:         item.category,
+    budgetAmount:     String(item.budgetAmount),
+    contractAmount:   String(item.contractAmount ?? item.committedAmount),
+    invoicedAmount:   String(item.invoicedAmount ?? 0),
+    paidAmount:       String(item.paidAmount ?? 0),
+    forecastAmount:   String(item.forecastAmount),
+    costToComplete:   String(item.costToComplete ?? ''),
+    paymentStatus:    item.paymentStatus ?? 'Pending',
+    notes:            item.notes,
+    isBudgetEnvelope: item.isBudgetEnvelope ?? false,
   })
   const [saving, setSaving] = useState(false)
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }))
@@ -211,25 +229,26 @@ function LineItemRow({ item, onDelete }: { item: ExtBudgetItem; onDelete: (id: s
     const forecastTrend: 'up' | 'down' | 'flat' =
       Math.abs(delta) < 1 ? 'flat' : delta > 0 ? 'up' : 'down'
     await updateDoc(doc(db, 'budgetItems', item.id), {
-      description:     form.description,
-      vendorName:      form.vendorName,
-      contractNumber:  form.contractNumber,
-      contactEmail:    form.contactEmail,
-      category:        form.category,
-      budgetAmount:    budget,
-      committedAmount: Number(form.contractAmount) || 0,
-      contractAmount:  Number(form.contractAmount) || 0,
-      invoicedAmount:  Number(form.invoicedAmount) || 0,
-      paidAmount:      paid,
-      forecastAmount:  forecast,
-      costToComplete:  ctc > 0 ? ctc : null,
-      actualAmount:    paid,
-      paymentStatus:   form.paymentStatus,
-      variance:        budget - forecast,
-      notes:           form.notes,
+      description:      form.description,
+      vendorName:       form.vendorName,
+      contractNumber:   form.contractNumber,
+      contactEmail:     form.contactEmail,
+      category:         form.category,
+      budgetAmount:     budget,
+      committedAmount:  Number(form.contractAmount) || 0,
+      contractAmount:   Number(form.contractAmount) || 0,
+      invoicedAmount:   Number(form.invoicedAmount) || 0,
+      paidAmount:       paid,
+      forecastAmount:   forecast,
+      costToComplete:   ctc > 0 ? ctc : null,
+      actualAmount:     paid,
+      paymentStatus:    form.paymentStatus,
+      variance:         budget - forecast,
+      notes:            form.notes,
+      isBudgetEnvelope: form.isBudgetEnvelope,
       forecastTrend,
-      forecastPrev:    prevForecast,
-      updatedAt:       new Date().toISOString(),
+      forecastPrev:     prevForecast,
+      updatedAt:        new Date().toISOString(),
     })
     setSaving(false)
     setEditing(false)
@@ -353,6 +372,13 @@ function LineItemRow({ item, onDelete }: { item: ExtBudgetItem; onDelete: (id: s
               </p>
             )}
 
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input type="checkbox" checked={form.isBudgetEnvelope}
+                onChange={e => setForm(f => ({ ...f, isBudgetEnvelope: e.target.checked }))}
+                className="accent-amber-500 w-3.5 h-3.5" />
+              <span className="text-xs text-slate-400">Budget envelope — other line items draw from this amount</span>
+            </label>
+
             <div className="flex gap-2 pt-1">
               <button onClick={save} disabled={saving}
                 className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-2 rounded-lg">
@@ -376,17 +402,33 @@ function LineItemRow({ item, onDelete }: { item: ExtBudgetItem; onDelete: (id: s
           <HealthDot forecast={forecast} budget={item.budgetAmount} />
         </td>
         <td className="px-3 py-2.5">
-          <p className="text-slate-200 text-sm">{item.description || '—'}</p>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <p className="text-slate-200 text-sm">{item.description || '—'}</p>
+            {isEnvelope && (
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-900/60 text-amber-300 font-medium shrink-0">Envelope</span>
+            )}
+          </div>
           {item.vendorName && <p className="text-xs text-slate-500 mt-0.5">{item.vendorName}</p>}
           {item.costToComplete != null && item.costToComplete > 0 && (
             <p className="text-[10px] text-blue-400 mt-0.5">ETC: {fmt(item.costToComplete)}</p>
           )}
+          {isEnvelope && envelopeMode && totalDrawn !== undefined && (
+            <p className="text-[10px] text-slate-500 mt-0.5">
+              Remaining: <span className={clsx('font-medium', (item.budgetAmount - totalDrawn) >= 0 ? 'text-emerald-400' : 'text-red-400')}>
+                {fmt(item.budgetAmount - totalDrawn)}
+              </span>
+            </p>
+          )}
         </td>
         <td className="px-3 py-2.5 text-right text-slate-300 text-sm tabular-nums">{fmt(item.budgetAmount)}</td>
         <td className="px-3 py-2.5 text-right text-sm tabular-nums font-medium">
-          <span className={clsx(lineHealth(forecast, item.budgetAmount) === 'green' ? 'text-emerald-400' : lineHealth(forecast, item.budgetAmount) === 'amber' ? 'text-amber-400' : 'text-red-400')}>
-            {fmt(forecast)}
-          </span>
+          {isEnvelope && envelopeMode && totalDrawn !== undefined ? (
+            <span className="text-slate-500 text-xs">—</span>
+          ) : (
+            <span className={clsx(lineHealth(forecast, item.budgetAmount) === 'green' ? 'text-emerald-400' : lineHealth(forecast, item.budgetAmount) === 'amber' ? 'text-amber-400' : 'text-red-400')}>
+              {fmt(forecast)}
+            </span>
+          )}
         </td>
         <td className="px-3 py-2.5 text-right text-slate-400 text-sm tabular-nums hidden sm:table-cell">{contractAmt > 0 ? fmt(contractAmt) : '—'}</td>
         <td className="px-3 py-2.5 text-right text-slate-400 text-sm tabular-nums hidden sm:table-cell">{invoicedAmt > 0 ? fmt(invoicedAmt) : '—'}</td>
@@ -489,15 +531,22 @@ function CategoryCard({
 
   const cfg = CATEGORY_COLORS[category] ?? { pill: 'bg-slate-700 text-slate-300', bar: 'bg-slate-500', border: 'border-slate-600/40' }
 
-  const catBudget   = items.reduce((s, i) => s + i.budgetAmount, 0)
+  // Envelope mode: one item sets the budget ceiling; all others draw from it
+  const envelopeItem = items.find(i => i.isBudgetEnvelope)
+  const envelopeMode = !!envelopeItem
+  const drawItems    = envelopeMode ? items.filter(i => !i.isBudgetEnvelope) : items
+
+  const catBudget   = envelopeMode ? (envelopeItem?.budgetAmount ?? 0) : items.reduce((s, i) => s + i.budgetAmount, 0)
+  const totalDrawn  = drawItems.reduce((s, i) => s + i.forecastAmount, 0)
   const catContract = items.reduce((s, i) => s + (i.contractAmount ?? i.committedAmount), 0)
   const catPaid     = items.reduce((s, i) => s + (i.paidAmount ?? 0), 0)
   const catInvoiced = items.reduce((s, i) => s + (i.invoicedAmount ?? 0), 0)
-  const catForecast = items.reduce((s, i) => s + i.forecastAmount, 0)
+  const catForecast = envelopeMode ? totalDrawn : items.reduce((s, i) => s + i.forecastAmount, 0)
+  const catRemaining = envelopeMode ? catBudget - totalDrawn : null
 
-  const overItems    = items.filter(i => lineHealth(i.forecastAmount, i.budgetAmount) !== 'green')
-  const trendingUp   = items.filter(i => i.forecastTrend === 'up').length
-  const trendingDown = items.filter(i => i.forecastTrend === 'down').length
+  const overItems    = drawItems.filter(i => lineHealth(i.forecastAmount, i.budgetAmount) !== 'green')
+  const trendingUp   = drawItems.filter(i => i.forecastTrend === 'up').length
+  const trendingDown = drawItems.filter(i => i.forecastTrend === 'down').length
 
   const usedPct  = catBudget > 0 ? Math.min(100, ((catPaid + catInvoiced) / catBudget) * 100) : 0
   const barColor = usedPct >= 100 ? 'bg-red-500' : usedPct >= 85 ? 'bg-amber-500' : 'bg-emerald-500'
@@ -559,21 +608,38 @@ function CategoryCard({
 
         <div className="hidden sm:flex items-center gap-4 text-xs text-right shrink-0">
           <div>
-            <p className="text-slate-500 text-[10px]">Budgeted</p>
+            <p className="text-slate-500 text-[10px]">Budget</p>
             <p className="text-slate-200 font-medium tabular-nums">{catBudget > 0 ? fmt(catBudget) : '—'}</p>
           </div>
-          <div>
-            <p className="text-slate-500 text-[10px]">Forecast</p>
-            <p className={clsx('font-medium tabular-nums', catHealth === 'green' ? 'text-emerald-400' : catHealth === 'amber' ? 'text-amber-400' : 'text-red-400')}>
-              {catForecast > 0 ? fmt(catForecast) : '—'}
-            </p>
-          </div>
-          <div>
-            <p className="text-slate-500 text-[10px]">Variance</p>
-            <p className={clsx('font-medium tabular-nums', catVariance >= 0 ? 'text-emerald-400' : 'text-red-400')}>
-              {catBudget > 0 ? (catVariance >= 0 ? fmt(catVariance) : `(${fmt(Math.abs(catVariance))})`) : '—'}
-            </p>
-          </div>
+          {envelopeMode ? (
+            <>
+              <div>
+                <p className="text-slate-500 text-[10px]">Drawn</p>
+                <p className="text-amber-400 font-medium tabular-nums">{totalDrawn > 0 ? fmt(totalDrawn) : '—'}</p>
+              </div>
+              <div>
+                <p className="text-slate-500 text-[10px]">Remaining</p>
+                <p className={clsx('font-medium tabular-nums', (catRemaining ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400')}>
+                  {catBudget > 0 ? fmt(Math.max(0, catRemaining ?? 0)) : '—'}
+                </p>
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <p className="text-slate-500 text-[10px]">Forecast</p>
+                <p className={clsx('font-medium tabular-nums', catHealth === 'green' ? 'text-emerald-400' : catHealth === 'amber' ? 'text-amber-400' : 'text-red-400')}>
+                  {catForecast > 0 ? fmt(catForecast) : '—'}
+                </p>
+              </div>
+              <div>
+                <p className="text-slate-500 text-[10px]">Variance</p>
+                <p className={clsx('font-medium tabular-nums', catVariance >= 0 ? 'text-emerald-400' : 'text-red-400')}>
+                  {catBudget > 0 ? (catVariance >= 0 ? fmt(catVariance) : `(${fmt(Math.abs(catVariance))})`) : '—'}
+                </p>
+              </div>
+            </>
+          )}
         </div>
 
         <span className="text-xs text-slate-500 shrink-0 ml-2">
@@ -600,26 +666,50 @@ function CategoryCard({
                 </thead>
                 <tbody>
                   {items.map(item => (
-                    <LineItemRow key={item.id} item={item} onDelete={onDelete} />
+                    <LineItemRow
+                      key={item.id}
+                      item={item}
+                      onDelete={onDelete}
+                      isEnvelope={item.isBudgetEnvelope === true}
+                      envelopeMode={envelopeMode}
+                      totalDrawn={totalDrawn}
+                    />
                   ))}
                   {/* Category subtotal */}
                   <tr className="border-t border-slate-700/50 bg-slate-900/30 text-xs font-semibold">
                     <td className="px-3 py-2" />
-                    <td className="px-3 py-2 text-slate-400">Subtotal</td>
+                    <td className="px-3 py-2 text-slate-400">
+                      {envelopeMode ? (
+                        <span>
+                          Drawn <span className="text-slate-600 font-normal">of {fmt(catBudget)}</span>
+                        </span>
+                      ) : 'Subtotal'}
+                    </td>
                     <td className="px-3 py-2 text-right text-slate-200 tabular-nums">{fmt(catBudget)}</td>
                     <td className="px-3 py-2 text-right tabular-nums font-semibold">
-                      <span className={clsx(catHealth === 'green' ? 'text-emerald-400' : catHealth === 'amber' ? 'text-amber-400' : 'text-red-400')}>
-                        {catForecast > 0 ? fmt(catForecast) : '—'}
-                      </span>
+                      {envelopeMode ? (
+                        <span className="text-amber-400">{totalDrawn > 0 ? fmt(totalDrawn) : '—'}</span>
+                      ) : (
+                        <span className={clsx(catHealth === 'green' ? 'text-emerald-400' : catHealth === 'amber' ? 'text-amber-400' : 'text-red-400')}>
+                          {catForecast > 0 ? fmt(catForecast) : '—'}
+                        </span>
+                      )}
                     </td>
                     <td className="px-3 py-2 text-right text-slate-400 tabular-nums hidden sm:table-cell">{catContract > 0 ? fmt(catContract) : '—'}</td>
                     <td className="px-3 py-2 text-right text-slate-400 tabular-nums hidden sm:table-cell">{catInvoiced > 0 ? fmt(catInvoiced) : '—'}</td>
                     <td className="px-3 py-2 text-right text-emerald-400 tabular-nums hidden sm:table-cell">{catPaid > 0 ? fmt(catPaid) : '—'}</td>
                     <td className="px-3 py-2 text-right">
-                      {catBudget > 0 && (
-                        <span className={clsx('tabular-nums', catVariance >= 0 ? 'text-emerald-400' : 'text-red-400')}>
-                          {catVariance >= 0 ? fmt(catVariance) : `(${fmt(Math.abs(catVariance))})`}
+                      {envelopeMode ? (
+                        <span className={clsx('tabular-nums', (catRemaining ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400')}>
+                          {(catRemaining ?? 0) >= 0 ? fmt(catRemaining ?? 0) : `(${fmt(Math.abs(catRemaining ?? 0))})`}
+                          <span className="text-slate-600 font-normal ml-1 text-[9px]">remaining</span>
                         </span>
+                      ) : (
+                        catBudget > 0 && (
+                          <span className={clsx('tabular-nums', catVariance >= 0 ? 'text-emerald-400' : 'text-red-400')}>
+                            {catVariance >= 0 ? fmt(catVariance) : `(${fmt(Math.abs(catVariance))})`}
+                          </span>
+                        )
                       )}
                     </td>
                   </tr>
@@ -765,21 +855,22 @@ export function BudgetTab({ project }: { project: Project }) {
     const forecast = computeForecast(paid, ctc, budget, manual)
     const now = new Date().toISOString()
     await addDoc(collection(db, 'budgetItems'), {
-      projectId:       project.id,
-      category:        form.category,
-      description:     form.description,
-      vendorName:      form.vendorName,
-      budgetAmount:    budget,
-      committedAmount: Number(form.contractAmount) || 0,
-      contractAmount:  Number(form.contractAmount) || 0,
-      invoicedAmount:  Number(form.invoicedAmount) || 0,
-      paidAmount:      paid,
-      forecastAmount:  forecast,
-      costToComplete:  ctc > 0 ? ctc : null,
-      actualAmount:    paid,
-      paymentStatus:   form.paymentStatus,
-      variance:        budget - forecast,
-      notes:           form.notes,
+      projectId:        project.id,
+      category:         form.category,
+      description:      form.description,
+      vendorName:       form.vendorName,
+      budgetAmount:     budget,
+      committedAmount:  Number(form.contractAmount) || 0,
+      contractAmount:   Number(form.contractAmount) || 0,
+      invoicedAmount:   Number(form.invoicedAmount) || 0,
+      paidAmount:       paid,
+      forecastAmount:   forecast,
+      costToComplete:   ctc > 0 ? ctc : null,
+      actualAmount:     paid,
+      paymentStatus:    form.paymentStatus,
+      variance:         budget - forecast,
+      notes:            form.notes,
+      isBudgetEnvelope: form.isBudgetEnvelope || false,
       createdAt: now, updatedAt: now,
     })
   }
