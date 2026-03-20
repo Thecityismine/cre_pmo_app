@@ -1078,7 +1078,18 @@ export function ProjectDetailPage() {
 
       {tab === 'docs' && <DocumentsTab project={project} />}
 
-      {tab === 'ai' && <AITab project={project} tasks={tasks} />}
+      {tab === 'ai' && (
+        <AITab
+          project={project}
+          tasks={tasks}
+          raidItems={raidItems}
+          projectTasks={projectTasks}
+          budgetItems={budgetItems}
+          milestones={milestones}
+          openRfis={openRfis}
+          overdueRfis={overdueRfis}
+        />
+      )}
 
       {tab === 'team' && (
         <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">

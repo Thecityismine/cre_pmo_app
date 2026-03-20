@@ -74,13 +74,13 @@
 ### 2.3 — Schedule / Gantt Upgrade
 **Problem:** Schedule is a task list pretending to be a schedule.
 **Goal:** Visual timeline with dependencies and delay impact.
-- [ ] Gantt chart view (horizontal bar timeline)
+- [x] Gantt chart view (horizontal bar timeline)
 - [ ] Task dependencies: link activities (A must finish before B starts)
 - [ ] Critical path auto-detection (longest dependency chain)
-- [ ] Baseline vs actual comparison (original dates vs current dates)
+- [x] Baseline vs actual comparison (original dates vs current dates)
 - [ ] Delay impact: if activity slips, show downstream impact
-- [ ] Forecast completion date: calculated from current progress
-- [ ] Milestone markers on Gantt
+- [x] Forecast completion date: calculated from current progress
+- [x] Milestone markers on Gantt
 
 ---
 
@@ -127,12 +127,12 @@
 ### 3.3 — Executive / Analytics View Upgrade
 **Problem:** Analytics shows numbers but not narrative.
 **Goal:** One-page view a VP can read in 60 seconds.
-- [ ] Portfolio health matrix: project name × health score × status (table view)
+- [x] Portfolio health matrix: project name × health score × status (table view)
 - [ ] Forecast vs baseline trend chart per project
-- [ ] Budget utilization across all projects (stacked bar)
+- [x] Budget utilization across all projects (stacked bar)
 - [ ] Risk trajectory: number of open risks over time
-- [ ] "Off-track projects" summary card
-- [ ] Export analytics to PDF
+- [x] "Off-track projects" summary card
+- [x] Export analytics to PDF
 
 ---
 
@@ -140,20 +140,20 @@
 *Make AI the co-PM, not a side button.*
 
 ### 4.1 — AI Risk Detection
-- [ ] AI scans project data weekly and flags risks not yet in RAID
+- [x] AI scans project data weekly and flags risks not yet in RAID
 - [ ] AI suggests risk mitigation for existing RAID items
 - [ ] AI compares project to similar past projects and flags anomalies
 
 ### 4.2 — AI Status Report Generator
-- [ ] One-click: pulls budget, schedule, risks, tasks → outputs executive summary
-- [ ] Formats as: "This week · Accomplishments · Risks · Next Steps"
-- [ ] Copies to clipboard or exports as PDF
+- [x] One-click: pulls budget, schedule, risks, tasks → outputs executive summary
+- [x] Formats as: "Summary · Accomplishments · Risks · Next Steps"
+- [x] Copies to clipboard or exports as PDF
 - [ ] Tailored for OAC meetings, owner updates, internal reviews
 
 ### 4.3 — AI Daily Briefing
-- [ ] On dashboard load: AI generates a 3-bullet "Today's Focus" summary
-- [ ] Pulls from: overdue tasks, upcoming milestones, open risks
-- [ ] Refreshes daily
+- [x] On dashboard load: AI generates a 3-bullet "Today's Focus" summary
+- [x] Pulls from: overdue tasks, upcoming milestones, open risks
+- [x] Refreshes daily
 
 ### 4.4 — Natural Language Project Queries
 - [ ] "What's the biggest risk on Las Olas?"
@@ -167,10 +167,10 @@
 *The one thing that makes people use this daily.*
 
 ### 5.1 — Auto Weekly Report
-- [ ] Scheduled or on-demand: click "Generate Weekly Report"
-- [ ] Pulls: budget status, schedule, risks, completed tasks, upcoming milestones
-- [ ] Outputs formatted report: Executive Summary + Action Items + Talking Points
-- [ ] Export as PDF or copy as formatted email
+- [x] Scheduled or on-demand: click "Generate Weekly Report"
+- [x] Pulls: budget status, schedule, risks, completed tasks, upcoming milestones
+- [x] Outputs formatted report: Executive Summary + Action Items + Talking Points
+- [x] Export as PDF or copy as formatted email
 - [ ] Distribute via email directly from the app (SendGrid / Resend integration)
 
 ---

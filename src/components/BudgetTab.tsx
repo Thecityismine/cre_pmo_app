@@ -40,6 +40,8 @@ const inp = 'w-full bg-slate-900 text-slate-100 text-xs rounded px-2 py-1.5 bord
 // Extended BudgetItem type with optional extra fields stored in Firestore
 type ExtBudgetItem = BudgetItem & {
   vendorName?: string
+  contractNumber?: string
+  contactEmail?: string
   contractAmount?: number
   invoicedAmount?: number
   paidAmount?: number
@@ -81,7 +83,7 @@ function computeForecast(paid: number, ctc: number, budget: number, manualForeca
 
 function blankForm(category: string) {
   return {
-    description: '', vendorName: '', category,
+    description: '', vendorName: '', contractNumber: '', contactEmail: '', category,
     budgetAmount: '', contractAmount: '', invoicedAmount: '', paidAmount: '',
     forecastAmount: '', costToComplete: '', paymentStatus: 'Pending', notes: '',
   }
@@ -141,16 +143,24 @@ function LineItemForm({
 
       {/* Advanced row */}
       {showAdvanced && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          <input type="number" value={form.contractAmount} onChange={e => set('contractAmount', e.target.value)}
-            placeholder="Contract $" className={inp} />
-          <input type="number" value={form.invoicedAmount} onChange={e => set('invoicedAmount', e.target.value)}
-            placeholder="Invoiced $" className={inp} />
-          <input type="number" value={form.paidAmount} onChange={e => set('paidAmount', e.target.value)}
-            placeholder="Paid $" className={inp} />
-          <input value={form.notes} onChange={e => set('notes', e.target.value)}
-            placeholder="Notes" className={inp} />
-        </div>
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <input value={form.contractNumber} onChange={e => set('contractNumber', e.target.value)}
+              placeholder="Contract #" className={inp} />
+            <input value={form.contactEmail} onChange={e => set('contactEmail', e.target.value)}
+              placeholder="Contact email" className={`${inp} col-span-1`} />
+            <input type="number" value={form.contractAmount} onChange={e => set('contractAmount', e.target.value)}
+              placeholder="Contract $" className={inp} />
+            <input type="number" value={form.invoicedAmount} onChange={e => set('invoicedAmount', e.target.value)}
+              placeholder="Invoiced $" className={inp} />
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <input type="number" value={form.paidAmount} onChange={e => set('paidAmount', e.target.value)}
+              placeholder="Paid $" className={inp} />
+            <input value={form.notes} onChange={e => set('notes', e.target.value)}
+              placeholder="Notes" className={`${inp} col-span-3`} />
+          </div>
+        </>
       )}
 
       <div className="flex gap-2">
@@ -174,6 +184,8 @@ function LineItemRow({ item, onDelete }: { item: ExtBudgetItem; onDelete: (id: s
   const [form, setForm] = useState({
     description:    item.description,
     vendorName:     item.vendorName ?? '',
+    contractNumber: item.contractNumber ?? '',
+    contactEmail:   item.contactEmail ?? '',
     category:       item.category,
     budgetAmount:   String(item.budgetAmount),
     contractAmount: String(item.contractAmount ?? item.committedAmount),
@@ -197,6 +209,8 @@ function LineItemRow({ item, onDelete }: { item: ExtBudgetItem; onDelete: (id: s
     await updateDoc(doc(db, 'budgetItems', item.id), {
       description:     form.description,
       vendorName:      form.vendorName,
+      contractNumber:  form.contractNumber,
+      contactEmail:    form.contactEmail,
       category:        form.category,
       budgetAmount:    budget,
       committedAmount: Number(form.contractAmount) || 0,
@@ -243,6 +257,12 @@ function LineItemRow({ item, onDelete }: { item: ExtBudgetItem; onDelete: (id: s
               <select value={form.paymentStatus} onChange={e => set('paymentStatus', e.target.value)} className={inp}>
                 {PAYMENT_STATUS.map(s => <option key={s}>{s}</option>)}
               </select>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <input value={form.contractNumber} onChange={e => set('contractNumber', e.target.value)}
+                placeholder="Contract #" className={inp} />
+              <input value={form.contactEmail} onChange={e => set('contactEmail', e.target.value)}
+                placeholder="Contact email" className={`${inp} col-span-3`} />
             </div>
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
               <input type="number" value={form.budgetAmount}   onChange={e => set('budgetAmount', e.target.value)}   placeholder="Budget $"   className={inp} />

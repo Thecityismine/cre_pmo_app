@@ -1,13 +1,15 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { clsx } from 'clsx'
 import {
   Plus, ChevronDown, ChevronRight, CheckCircle2, AlertTriangle,
   Clock, Calendar, Trash2, Pencil, BarChart2, Flag, Download, Lock,
+  List, GanttChartSquare,
 } from 'lucide-react'
 import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { useScheduleItems } from '@/hooks/useScheduleItems'
 import type { ScheduleItem } from '@/hooks/useScheduleItems'
+import { useMilestones } from '@/hooks/useMilestones'
 import type { Project } from '@/types'
 
 // ─── CSV export ───────────────────────────────────────────────────────────────
@@ -56,6 +58,10 @@ function fmt(d: string) {
   return new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
+function fmtShort(d: Date) {
+  return d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+}
+
 function daysBetween(a: string, b: string) {
   if (!a || !b) return null
   return Math.ceil((new Date(b).getTime() - new Date(a).getTime()) / (1000 * 60 * 60 * 24))
@@ -74,10 +80,329 @@ function itemStatus(item: ScheduleItem): 'complete' | 'behind' | 'in-progress' |
 }
 
 const STATUS_CFG = {
-  complete:    { label: 'Complete',    color: 'text-emerald-300', bg: 'bg-emerald-900/40 border-emerald-700/40', dot: 'bg-emerald-500' },
-  'in-progress': { label: 'In Progress', color: 'text-blue-300',    bg: 'bg-blue-900/40 border-blue-700/40',    dot: 'bg-blue-500'    },
-  behind:      { label: 'Behind',      color: 'text-red-300',     bg: 'bg-red-900/40 border-red-700/40',      dot: 'bg-red-500'     },
-  upcoming:    { label: 'Upcoming',    color: 'text-slate-400',   bg: 'bg-slate-800/50 border-slate-700/40',  dot: 'bg-slate-500'   },
+  complete:    { label: 'Complete',    color: 'text-emerald-300', bg: 'bg-emerald-900/40 border-emerald-700/40', dot: 'bg-emerald-500', bar: 'bg-emerald-500' },
+  'in-progress': { label: 'In Progress', color: 'text-blue-300',    bg: 'bg-blue-900/40 border-blue-700/40',    dot: 'bg-blue-500',    bar: 'bg-blue-500'    },
+  behind:      { label: 'Behind',      color: 'text-red-300',     bg: 'bg-red-900/40 border-red-700/40',      dot: 'bg-red-500',     bar: 'bg-red-500'     },
+  upcoming:    { label: 'Upcoming',    color: 'text-slate-400',   bg: 'bg-slate-800/50 border-slate-700/40',  dot: 'bg-slate-500',   bar: 'bg-slate-600'   },
+}
+
+// ─── Gantt View ───────────────────────────────────────────────────────────────
+
+interface GanttProps {
+  items: ScheduleItem[]
+  milestones: Array<{ id: string; name: string; targetDate: string; status: string }>
+}
+
+function GanttView({ items, milestones }: GanttProps) {
+  // Compute date window
+  const { windowStart, totalDays, months, todayPct, forecastDate } = useMemo(() => {
+    const dates: Date[] = []
+    for (const i of items) {
+      if (i.startDate)     dates.push(new Date(i.startDate))
+      if (i.endDate)       dates.push(new Date(i.endDate))
+      if (i.baselineStart) dates.push(new Date(i.baselineStart))
+      if (i.baselineEnd)   dates.push(new Date(i.baselineEnd))
+    }
+    for (const m of milestones) {
+      if (m.targetDate) dates.push(new Date(m.targetDate))
+    }
+
+    const today = new Date()
+    if (dates.length === 0) {
+      // No dates — show 6-month window around today
+      const s = new Date(today); s.setMonth(s.getMonth() - 1); s.setDate(1)
+      const e = new Date(s); e.setMonth(e.getMonth() + 7)
+      dates.push(s, e)
+    }
+
+    const minDate = new Date(Math.min(...dates.map(d => d.getTime())))
+    const maxDate = new Date(Math.max(...dates.map(d => d.getTime())))
+
+    // Pad by 2 weeks on each side
+    const windowStart = new Date(minDate); windowStart.setDate(windowStart.getDate() - 14)
+    const windowEnd   = new Date(maxDate); windowEnd.setDate(windowEnd.getDate() + 14)
+    const totalDays   = Math.ceil((windowEnd.getTime() - windowStart.getTime()) / (1000 * 60 * 60 * 24))
+
+    const todayPct = Math.max(0, Math.min(100,
+      ((today.getTime() - windowStart.getTime()) / (windowEnd.getTime() - windowStart.getTime())) * 100
+    ))
+
+    // Month tick marks
+    const months: Array<{ label: string; leftPct: number }> = []
+    const cur = new Date(windowStart); cur.setDate(1)
+    while (cur <= windowEnd) {
+      const pct = ((cur.getTime() - windowStart.getTime()) / (windowEnd.getTime() - windowStart.getTime())) * 100
+      if (pct >= 0 && pct <= 100) months.push({ label: fmtShort(cur), leftPct: pct })
+      cur.setMonth(cur.getMonth() + 1)
+    }
+
+    // Forecast completion date: estimate from current progress
+    // Find items with dates, compute weighted finish estimate
+    const itemsWithDates = items.filter(i => i.startDate && i.endDate)
+    let forecastDate: Date | null = null
+    if (itemsWithDates.length > 0) {
+      // Find the latest end date among in-progress/behind items adjusted for remaining work
+      let latestForecast = new Date(0)
+      let hasEstimate = false
+      for (const i of itemsWithDates) {
+        const end = new Date(i.endDate)
+        if (i.percentComplete === 100) {
+          // Complete — use actual end
+          if (end > latestForecast) { latestForecast = end; hasEstimate = true }
+        } else {
+          const start = new Date(i.startDate)
+          const duration = (end.getTime() - start.getTime())
+          const remaining = duration * (1 - i.percentComplete / 100)
+          const estimated = new Date(today.getTime() + remaining)
+          if (estimated > latestForecast) { latestForecast = estimated; hasEstimate = true }
+        }
+      }
+      if (hasEstimate && latestForecast.getTime() > 0) forecastDate = latestForecast
+    }
+
+    return { windowStart, windowEnd, totalDays, months, todayPct, forecastDate }
+  }, [items, milestones])
+
+  function pct(dateStr: string) {
+    if (!dateStr) return null
+    const d = new Date(dateStr)
+    return Math.max(0, Math.min(100,
+      ((d.getTime() - windowStart.getTime()) / (totalDays * 24 * 60 * 60 * 1000)) * 100
+    ))
+  }
+
+  const ROW_H = 40 // px per activity row
+  const LABEL_W = 180 // px for name column
+
+  const milestonesWithDates = milestones.filter(m => m.targetDate)
+
+  return (
+    <div className="bg-slate-800/40 border border-slate-700/50 rounded-xl overflow-hidden">
+      <div className="flex" style={{ minWidth: 640 }}>
+        {/* Label column */}
+        <div className="shrink-0 border-r border-slate-700/50" style={{ width: LABEL_W }}>
+          {/* Header */}
+          <div className="h-8 flex items-center px-3 border-b border-slate-700/50 bg-slate-800/60">
+            <span className="text-xs text-slate-500 font-medium">Activity</span>
+          </div>
+          {items.map(item => {
+            const status = itemStatus(item)
+            const cfg = STATUS_CFG[status]
+            return (
+              <div key={item.id}
+                className="flex items-center gap-1.5 px-3 border-b border-slate-700/30"
+                style={{ height: ROW_H }}>
+                <span className={clsx('w-1.5 h-1.5 rounded-full shrink-0', cfg.dot)} />
+                <span className={clsx(
+                  'text-xs truncate',
+                  item.percentComplete === 100 ? 'text-slate-500 line-through' : 'text-slate-200'
+                )} title={item.name}>
+                  {item.name}
+                </span>
+                {item.isCriticalPath && (
+                  <Flag size={9} className="text-red-400 shrink-0" />
+                )}
+              </div>
+            )
+          })}
+          {/* Milestone rows */}
+          {milestonesWithDates.length > 0 && (
+            <>
+              <div className="h-6 flex items-center px-3 border-b border-slate-700/50 bg-slate-800/40">
+                <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wide">Milestones</span>
+              </div>
+              {milestonesWithDates.map(m => (
+                <div key={m.id}
+                  className="flex items-center gap-1.5 px-3 border-b border-slate-700/30"
+                  style={{ height: ROW_H - 8 }}>
+                  <span className={clsx(
+                    'w-2 h-2 rotate-45 shrink-0',
+                    m.status === 'complete' ? 'bg-emerald-400' : m.status === 'delayed' ? 'bg-red-400' : 'bg-amber-400'
+                  )} />
+                  <span className="text-[11px] text-slate-400 truncate" title={m.name}>{m.name}</span>
+                </div>
+              ))}
+            </>
+          )}
+        </div>
+
+        {/* Timeline area */}
+        <div className="flex-1 overflow-x-auto">
+          <div style={{ minWidth: 460, position: 'relative' }}>
+            {/* Month headers */}
+            <div className="h-8 border-b border-slate-700/50 bg-slate-800/60 relative select-none">
+              {months.map((m, i) => (
+                <div key={i}
+                  className="absolute top-0 h-full flex items-center border-l border-slate-700/40 pl-1"
+                  style={{ left: `${m.leftPct}%` }}>
+                  <span className="text-[10px] text-slate-500 whitespace-nowrap">{m.label}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Today line */}
+            <div
+              className="absolute top-8 bottom-0 w-px bg-amber-400/70 z-10 pointer-events-none"
+              style={{ left: `${todayPct}%` }}
+            >
+              <span className="absolute -top-0 -translate-x-1/2 bg-amber-400 text-slate-900 text-[9px] font-bold px-1 rounded whitespace-nowrap">
+                Today
+              </span>
+            </div>
+
+            {/* Forecast line */}
+            {forecastDate && (() => {
+              const forecastStr = forecastDate.toISOString().slice(0, 10)
+              const fp = pct(forecastStr)
+              return fp !== null && fp !== todayPct ? (
+                <div
+                  className="absolute top-8 bottom-0 w-px border-l border-dashed border-blue-400/50 z-10 pointer-events-none"
+                  style={{ left: `${fp}%` }}
+                >
+                  <span className="absolute -top-0 -translate-x-full bg-blue-900 text-blue-300 text-[9px] font-medium px-1 rounded whitespace-nowrap border border-blue-700/50">
+                    Forecast
+                  </span>
+                </div>
+              ) : null
+            })()}
+
+            {/* Activity bars */}
+            {items.map(item => {
+              const status = itemStatus(item)
+              const cfg = STATUS_CFG[status]
+              const startP = pct(item.startDate)
+              const endP   = pct(item.endDate)
+              const baseStartP = pct(item.baselineStart)
+              const baseEndP   = pct(item.baselineEnd)
+              const hasBar     = startP !== null && endP !== null && endP > startP
+              const hasBase    = baseStartP !== null && baseEndP !== null && baseEndP > baseStartP
+
+              return (
+                <div key={item.id}
+                  className="relative border-b border-slate-700/30"
+                  style={{ height: ROW_H }}>
+                  {/* Grid lines */}
+                  {months.map((m, i) => (
+                    <div key={i}
+                      className="absolute top-0 bottom-0 w-px bg-slate-700/20"
+                      style={{ left: `${m.leftPct}%` }} />
+                  ))}
+
+                  {/* Baseline bar (thin, behind) */}
+                  {hasBase && (
+                    <div
+                      className="absolute rounded-sm bg-slate-600/50 border border-slate-500/40"
+                      style={{
+                        left:   `${baseStartP}%`,
+                        width:  `${baseEndP! - baseStartP!}%`,
+                        top:    '60%',
+                        height: 4,
+                        transform: 'translateY(-50%)',
+                      }}
+                      title={`Baseline: ${fmt(item.baselineStart)} → ${fmt(item.baselineEnd)}`}
+                    />
+                  )}
+
+                  {/* Actual bar */}
+                  {hasBar && (
+                    <div
+                      className={clsx(
+                        'absolute rounded flex items-center overflow-hidden',
+                        item.isCriticalPath ? 'ring-1 ring-red-500/60' : '',
+                        cfg.bar,
+                      )}
+                      style={{
+                        left:   `${startP}%`,
+                        width:  `${endP! - startP!}%`,
+                        top:    '20%',
+                        height: '38%',
+                      }}
+                      title={`${item.name}: ${fmt(item.startDate)} → ${fmt(item.endDate)} (${item.percentComplete}%)`}
+                    >
+                      {/* Progress fill overlay */}
+                      <div
+                        className="h-full bg-white/20"
+                        style={{ width: `${item.percentComplete}%` }}
+                      />
+                    </div>
+                  )}
+
+                  {/* No dates placeholder */}
+                  {!hasBar && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-[10px] text-slate-600 italic">no dates</span>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+
+            {/* Milestone rows */}
+            {milestonesWithDates.length > 0 && (
+              <>
+                <div style={{ height: 24 }} className="border-b border-slate-700/50 bg-slate-800/20" />
+                {milestonesWithDates.map(m => {
+                  const mp = pct(m.targetDate)
+                  return (
+                    <div key={m.id}
+                      className="relative border-b border-slate-700/30"
+                      style={{ height: ROW_H - 8 }}>
+                      {months.map((mo, i) => (
+                        <div key={i}
+                          className="absolute top-0 bottom-0 w-px bg-slate-700/20"
+                          style={{ left: `${mo.leftPct}%` }} />
+                      ))}
+                      {mp !== null && (
+                        <div
+                          className="absolute z-10"
+                          style={{ left: `${mp}%`, top: '50%', transform: 'translate(-50%, -50%)' }}
+                          title={`${m.name}: ${fmt(m.targetDate)}`}
+                        >
+                          {/* Diamond shape */}
+                          <div className={clsx(
+                            'w-3 h-3 rotate-45',
+                            m.status === 'complete' ? 'bg-emerald-400' : m.status === 'delayed' ? 'bg-red-400' : 'bg-amber-400'
+                          )} />
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Legend */}
+      <div className="flex items-center gap-4 px-4 py-2 border-t border-slate-700/50 bg-slate-800/30 flex-wrap">
+        <span className="text-[10px] text-slate-500 font-medium">Legend:</span>
+        {Object.entries(STATUS_CFG).map(([k, v]) => (
+          <span key={k} className="flex items-center gap-1">
+            <span className={clsx('inline-block w-6 h-2 rounded', v.bar)} />
+            <span className="text-[10px] text-slate-400">{v.label}</span>
+          </span>
+        ))}
+        <span className="flex items-center gap-1">
+          <span className="inline-block w-6 h-1 bg-slate-600/50 border border-slate-500/40 rounded-sm" />
+          <span className="text-[10px] text-slate-400">Baseline</span>
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="inline-block w-1 h-3 bg-amber-400/70" />
+          <span className="text-[10px] text-slate-400">Today</span>
+        </span>
+        <span className="flex items-center gap-1">
+          <span className={clsx('inline-block w-2 h-2 rotate-45 bg-amber-400')} />
+          <span className="text-[10px] text-slate-400">Milestone</span>
+        </span>
+        {forecastDate && (
+          <span className="text-[10px] text-blue-300">
+            Forecast completion: {forecastDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+          </span>
+        )}
+      </div>
+    </div>
+  )
 }
 
 // ─── Add / Edit form ──────────────────────────────────────────────────────────
@@ -362,8 +687,10 @@ function ScheduleRow({
 export function ScheduleTab({ project }: { project: Project }) {
   const { items, loading, seedDefaults, addItem, updateItem, deleteItem, spi, behindCount, overallPct } =
     useScheduleItems(project.id)
+  const { milestones } = useMilestones(project.id)
   const [showAdd, setShowAdd] = useState(false)
   const [filter, setFilter] = useState<'all' | 'behind' | 'in-progress' | 'upcoming' | 'complete'>('all')
+  const [viewMode, setViewMode] = useState<'list' | 'gantt'>('list')
   const [lockingBaseline, setLockingBaseline] = useState(false)
 
   const filtered = filter === 'all' ? items : items.filter(i => itemStatus(i) === filter)
@@ -451,27 +778,51 @@ export function ScheduleTab({ project }: { project: Project }) {
         </div>
       )}
 
-      {/* Filter + Actions bar */}
+      {/* Toolbar */}
       <div className="flex items-center gap-2 flex-wrap">
-        <div className="flex items-center gap-1.5 flex-wrap flex-1">
-          {(['all', 'in-progress', 'behind', 'upcoming', 'complete'] as const).map(s => (
-            <button key={s} onClick={() => setFilter(s)}
-              className={clsx(
-                'px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors',
-                filter === s
-                  ? 'bg-blue-600 text-white border-blue-500'
-                  : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-200'
-              )}>
-              {s === 'all' ? 'All' : STATUS_CFG[s].label}
-              {s !== 'all' && (
-                <span className="ml-1 opacity-60">
-                  {items.filter(i => itemStatus(i) === s).length}
-                </span>
-              )}
-            </button>
-          ))}
+        {/* View toggle */}
+        <div className="flex items-center bg-slate-800 border border-slate-700 rounded-lg p-0.5 shrink-0">
+          <button
+            onClick={() => setViewMode('list')}
+            className={clsx(
+              'flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors',
+              viewMode === 'list' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+            )}>
+            <List size={12} /> List
+          </button>
+          <button
+            onClick={() => setViewMode('gantt')}
+            className={clsx(
+              'flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors',
+              viewMode === 'gantt' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+            )}>
+            <GanttChartSquare size={12} /> Gantt
+          </button>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+
+        {/* Filters (only in list mode) */}
+        {viewMode === 'list' && (
+          <div className="flex items-center gap-1.5 flex-wrap flex-1">
+            {(['all', 'in-progress', 'behind', 'upcoming', 'complete'] as const).map(s => (
+              <button key={s} onClick={() => setFilter(s)}
+                className={clsx(
+                  'px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors',
+                  filter === s
+                    ? 'bg-blue-600 text-white border-blue-500'
+                    : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-200'
+                )}>
+                {s === 'all' ? 'All' : STATUS_CFG[s].label}
+                {s !== 'all' && (
+                  <span className="ml-1 opacity-60">
+                    {items.filter(i => itemStatus(i) === s).length}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className="flex items-center gap-2 flex-wrap ml-auto">
           {items.length === 0 && (
             <button onClick={seedDefaults}
               className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-700 hover:border-slate-600 px-3 py-1.5 rounded-lg transition-colors">
@@ -507,11 +858,21 @@ export function ScheduleTab({ project }: { project: Project }) {
         <ScheduleForm onSave={handleAdd} onCancel={() => setShowAdd(false)} />
       )}
 
-      {/* Items list */}
+      {/* Content */}
       {loading ? (
         <div className="flex justify-center py-12">
           <div className="animate-spin w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full" />
         </div>
+      ) : viewMode === 'gantt' ? (
+        items.length === 0 ? (
+          <div className="text-center py-12 text-slate-500">
+            <Clock size={32} className="mx-auto mb-2 opacity-30" />
+            <p className="text-sm">No schedule activities yet.</p>
+            <p className="text-xs mt-1 text-slate-600">Add activities or use "Seed defaults" to get started.</p>
+          </div>
+        ) : (
+          <GanttView items={items} milestones={milestones} />
+        )
       ) : filtered.length === 0 ? (
         <div className="text-center py-12 text-slate-500">
           <Clock size={32} className="mx-auto mb-2 opacity-30" />

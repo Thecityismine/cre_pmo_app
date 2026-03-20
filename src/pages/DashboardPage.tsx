@@ -3,15 +3,113 @@ import { usePortfolioTasks } from '@/hooks/usePortfolioTasks'
 import { usePortfolioMilestones } from '@/hooks/usePortfolioMilestones'
 import { usePortfolioInsights } from '@/hooks/useAIInsights'
 import { usePortfolioTaskStats } from '@/hooks/usePortfolioTaskStats'
+import { usePortfolioPendingItems } from '@/hooks/usePortfolioPendingItems'
 import { useAuthStore } from '@/store/authStore'
+import { useState } from 'react'
 import {
   AlertTriangle, CheckCircle, DollarSign, FolderOpen, Clock,
   ChevronRight, TrendingUp, TrendingDown, Calendar, Activity, Sparkles, User,
+  RefreshCw, Inbox, FileSignature,
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import { useNavigate } from 'react-router-dom'
 import { computeHealth, healthBg, healthColor } from '@/lib/healthScore'
+import { hasClaudeKey, callClaude } from '@/lib/claude'
 import type { Project } from '@/types'
+import type { AIInsight } from '@/hooks/useAIInsights'
+
+// ─── AI Daily Briefing widget ─────────────────────────────────────────────────
+
+interface BriefingProps {
+  overdueCount: number
+  upcomingCount: number
+  avgHealth: number | null
+  activeCount: number
+  portfolioInsights: AIInsight[]
+  nextMilestoneName?: string
+  nextMilestoneDays?: number
+}
+
+function DailyBriefingWidget(props: BriefingProps) {
+  const todayKey = `projex_briefing_${new Date().toISOString().slice(0, 10)}`
+  const cached = typeof window !== 'undefined' ? localStorage.getItem(todayKey) : null
+  const [bullets, setBullets] = useState<string[]>(cached ? JSON.parse(cached) : [])
+  const [loading, setLoading] = useState(false)
+
+  if (!hasClaudeKey()) return null
+
+  const generate = async () => {
+    setLoading(true)
+    const critical = props.portfolioInsights.filter(i => i.severity === 'critical').length
+    const warnings = props.portfolioInsights.filter(i => i.severity === 'warning').length
+
+    const context = `Portfolio: ${props.activeCount} active projects | Avg health: ${props.avgHealth ?? 'N/A'}/100
+Overdue tasks: ${props.overdueCount} | Upcoming tasks (14d): ${props.upcomingCount}
+Open risks: ${critical} critical, ${warnings} warning${props.nextMilestoneName ? `\nNext milestone: "${props.nextMilestoneName}" in ${props.nextMilestoneDays} days` : ''}
+Today: ${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}`
+
+    const prompt = `${context}
+
+You are a CRE PM assistant. Generate exactly 3 action-oriented focus bullets for today's portfolio review. Each bullet should be 1 sentence, specific to the data above, and start with an action verb. Return ONLY a JSON array of 3 strings, no markdown: ["bullet1","bullet2","bullet3"]`
+
+    try {
+      const raw = await callClaude([{ role: 'user', content: prompt }], 'You are a brief, action-oriented CRE portfolio assistant. Return only valid JSON arrays.', 300)
+      const cleaned = raw.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim()
+      const parsed = JSON.parse(cleaned) as string[]
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        setBullets(parsed)
+        localStorage.setItem(todayKey, JSON.stringify(parsed))
+      }
+    } catch {
+      // silently fail — briefing is optional
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="bg-slate-800 border border-blue-800/30 rounded-xl p-4">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <Sparkles size={14} className="text-blue-400" />
+          <h3 className="text-sm font-semibold text-blue-300">Today's Focus</h3>
+          <span className="text-xs text-slate-500">
+            {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+          </span>
+        </div>
+        <button
+          onClick={generate}
+          disabled={loading}
+          className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-300 transition-colors"
+          title={bullets.length > 0 ? 'Refresh briefing' : 'Generate briefing'}
+        >
+          <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
+          {bullets.length === 0 ? 'Generate' : ''}
+        </button>
+      </div>
+
+      {bullets.length > 0 ? (
+        <ul className="space-y-2">
+          {bullets.map((b, i) => (
+            <li key={i} className="flex items-start gap-2.5">
+              <span className="shrink-0 w-5 h-5 rounded-full bg-blue-900/60 border border-blue-700/50 flex items-center justify-center text-[10px] font-bold text-blue-400 mt-0.5">
+                {i + 1}
+              </span>
+              <p className="text-sm text-slate-300 leading-relaxed">{b}</p>
+            </li>
+          ))}
+        </ul>
+      ) : loading ? (
+        <div className="flex items-center gap-2 text-sm text-slate-500">
+          <div className="animate-spin w-3.5 h-3.5 border-2 border-blue-500 border-t-transparent rounded-full" />
+          Generating today's focus…
+        </div>
+      ) : (
+        <p className="text-sm text-slate-600 italic">Click "Generate" for an AI-powered daily portfolio briefing.</p>
+      )}
+    </div>
+  )
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -123,6 +221,202 @@ function BudgetSummaryBars({ projects }: { projects: Project[] }) {
   )
 }
 
+// ─── Attention Required panel ─────────────────────────────────────────────────
+
+function AttentionRequiredPanel({
+  projects,
+  taskStats,
+  overdueCount,
+  criticalInsights,
+}: {
+  projects: Project[]
+  taskStats: Record<string, { pct: number }>
+  overdueCount: number
+  criticalInsights: AIInsight[]
+}) {
+  const navigate = useNavigate()
+
+  type Alert = { label: string; sub: string; color: string; projectId?: string }
+  const alerts: Alert[] = []
+
+  projects.forEach(p => {
+    const h = computeHealth(p, { taskCompletionPct: taskStats[p.id]?.pct })
+    if (h.total < 60) {
+      alerts.push({
+        label: p.projectName,
+        sub: `Health ${h.total}/100 — ${h.label}`,
+        color: 'text-red-400 border-red-800/50 bg-red-900/10',
+        projectId: p.id,
+      })
+    } else if (p.forecastCost > p.totalBudget && p.totalBudget > 0) {
+      alerts.push({
+        label: p.projectName,
+        sub: `Over budget by ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(p.forecastCost - p.totalBudget)}`,
+        color: 'text-amber-400 border-amber-800/50 bg-amber-900/10',
+        projectId: p.id,
+      })
+    }
+  })
+
+  if (overdueCount > 0) {
+    alerts.push({
+      label: `${overdueCount} Overdue Task${overdueCount > 1 ? 's' : ''}`,
+      sub: 'Across active projects — review immediately',
+      color: 'text-amber-400 border-amber-800/50 bg-amber-900/10',
+    })
+  }
+
+  criticalInsights.slice(0, 2).forEach(ins => {
+    alerts.push({
+      label: ins.title,
+      sub: 'AI Risk Detection',
+      color: 'text-red-400 border-red-800/50 bg-red-900/10',
+      projectId: ins.projectId,
+    })
+  })
+
+  return (
+    <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-700">
+        <AlertTriangle size={14} className={alerts.length > 0 ? 'text-red-400' : 'text-emerald-400'} />
+        <h3 className="text-sm font-semibold text-slate-200">Attention Required</h3>
+        {alerts.length > 0 && (
+          <span className="ml-auto text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full font-medium">
+            {alerts.length}
+          </span>
+        )}
+      </div>
+      {alerts.length === 0 ? (
+        <div className="flex items-center gap-3 px-4 py-4">
+          <CheckCircle size={16} className="text-emerald-500 shrink-0" />
+          <p className="text-sm text-emerald-300">All projects on track — no critical alerts.</p>
+        </div>
+      ) : (
+        <div className="divide-y divide-slate-700/50">
+          {alerts.slice(0, 6).map((a, i) => (
+            <button
+              key={i}
+              onClick={a.projectId ? () => navigate(`/projects/${a.projectId}`) : undefined}
+              className={clsx(
+                'w-full text-left flex items-start gap-3 px-4 py-2.5 transition-colors',
+                a.projectId ? 'hover:bg-slate-700/40 cursor-pointer' : 'cursor-default',
+              )}
+            >
+              <AlertTriangle size={13} className={clsx('shrink-0 mt-0.5', a.color.split(' ')[0])} />
+              <div className="min-w-0">
+                <p className={clsx('text-sm font-medium truncate', a.color.split(' ')[0])}>{a.label}</p>
+                <p className="text-xs text-slate-500 mt-0.5">{a.sub}</p>
+              </div>
+              {a.projectId && <ChevronRight size={13} className="text-slate-600 shrink-0 mt-0.5 ml-auto" />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Pending Decisions panel ──────────────────────────────────────────────────
+
+function PendingDecisionsPanel({
+  pendingCOs,
+  openRfis,
+  overdueRfis,
+  pendingCOTotal,
+  projectMap,
+}: {
+  pendingCOs: import('@/hooks/usePortfolioPendingItems').PendingCO[]
+  openRfis: import('@/hooks/usePortfolioPendingItems').OpenRfi[]
+  overdueRfis: import('@/hooks/usePortfolioPendingItems').OpenRfi[]
+  pendingCOTotal: number
+  projectMap: Record<string, string>
+}) {
+  const navigate = useNavigate()
+  const fmtLocal = (n: number) =>
+    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
+
+  const total = pendingCOs.length + openRfis.length
+  if (total === 0) return null
+
+  return (
+    <div className="bg-slate-800 border border-amber-800/30 rounded-xl overflow-hidden">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-700 bg-amber-950/20">
+        <Inbox size={14} className="text-amber-400" />
+        <h3 className="text-sm font-semibold text-amber-300">Pending Decisions</h3>
+        <span className="ml-auto text-xs bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded-full font-medium border border-amber-700/40">
+          {total} items
+        </span>
+      </div>
+      <div className="divide-y divide-slate-700/50">
+        {/* Pending Change Orders */}
+        {pendingCOs.length > 0 && (
+          <div className="px-4 py-3">
+            <div className="flex items-center gap-2 mb-2">
+              <FileSignature size={12} className="text-blue-400" />
+              <span className="text-xs font-semibold text-blue-300">Change Orders Awaiting Approval</span>
+              <span className="ml-auto text-xs text-blue-400 font-medium tabular-nums">{fmtLocal(pendingCOTotal)}</span>
+            </div>
+            <div className="space-y-1.5">
+              {pendingCOs.slice(0, 4).map(co => (
+                <button
+                  key={co.id}
+                  onClick={() => navigate(`/projects/${co.projectId}?tab=cos`)}
+                  className="w-full text-left flex items-center gap-2 text-xs text-slate-400 hover:text-slate-200 transition-colors group"
+                >
+                  <span className="w-1 h-1 rounded-full bg-blue-500 shrink-0" />
+                  <span className="truncate flex-1">{co.title}</span>
+                  <span className="text-slate-500 shrink-0">{projectMap[co.projectId] ?? '—'}</span>
+                  <span className="text-blue-400 font-medium shrink-0 tabular-nums">{fmtLocal(co.amount)}</span>
+                  <ChevronRight size={11} className="text-slate-600 shrink-0 opacity-0 group-hover:opacity-100" />
+                </button>
+              ))}
+              {pendingCOs.length > 4 && (
+                <p className="text-xs text-slate-600 pl-3">+{pendingCOs.length - 4} more</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Open RFIs */}
+        {openRfis.length > 0 && (
+          <div className="px-4 py-3">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle size={12} className={overdueRfis.length > 0 ? 'text-red-400' : 'text-amber-400'} />
+              <span className={clsx('text-xs font-semibold', overdueRfis.length > 0 ? 'text-red-300' : 'text-amber-300')}>
+                Open RFIs
+              </span>
+              {overdueRfis.length > 0 && (
+                <span className="text-xs text-red-400">{overdueRfis.length} overdue</span>
+              )}
+            </div>
+            <div className="space-y-1.5">
+              {openRfis.slice(0, 4).map(rfi => {
+                const isOvd = rfi.dueDate && new Date(rfi.dueDate) < new Date()
+                return (
+                  <button
+                    key={rfi.id}
+                    onClick={() => navigate(`/projects/${rfi.projectId}?tab=rfis`)}
+                    className="w-full text-left flex items-center gap-2 text-xs text-slate-400 hover:text-slate-200 transition-colors group"
+                  >
+                    <span className={clsx('w-1 h-1 rounded-full shrink-0', isOvd ? 'bg-red-500' : 'bg-amber-500')} />
+                    <span className="truncate flex-1">{rfi.subject}</span>
+                    <span className="text-slate-500 shrink-0">{projectMap[rfi.projectId] ?? '—'}</span>
+                    {isOvd && <span className="text-red-400 shrink-0">overdue</span>}
+                    <ChevronRight size={11} className="text-slate-600 shrink-0 opacity-0 group-hover:opacity-100" />
+                  </button>
+                )
+              })}
+              {openRfis.length > 4 && (
+                <p className="text-xs text-slate-600 pl-3">+{openRfis.length - 4} more</p>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ─── Main dashboard ───────────────────────────────────────────────────────────
 
 export function DashboardPage() {
@@ -131,6 +425,8 @@ export function DashboardPage() {
   const user    = useAuthStore(s => s.user)
   const myName  = user?.displayName?.trim().toLowerCase() ?? ''
   const navigate = useNavigate()
+
+  const { pendingCOs, openRfis, overdueRfis, pendingCOTotal } = usePortfolioPendingItems()
 
   const active = projects.filter(p => p.isActive)
   const closed = projects.filter(p => p.status === 'closed')
@@ -174,6 +470,17 @@ export function DashboardPage() {
           {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
         </p>
       </div>
+
+      {/* AI Daily Briefing */}
+      <DailyBriefingWidget
+        overdueCount={overdue.length}
+        upcomingCount={upcoming.length}
+        avgHealth={avgHealth}
+        activeCount={active.length}
+        portfolioInsights={portfolioInsights}
+        nextMilestoneName={upcomingMilestones[0]?.name}
+        nextMilestoneDays={upcomingMilestones[0]?.daysUntil}
+      />
 
       {/* KPI row */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
@@ -298,6 +605,23 @@ export function DashboardPage() {
           </div>
         )
       })()}
+
+      {/* Attention Required */}
+      <AttentionRequiredPanel
+        projects={active}
+        taskStats={taskStats}
+        overdueCount={overdue.length}
+        criticalInsights={portfolioInsights.filter(i => i.severity === 'critical')}
+      />
+
+      {/* Pending Decisions */}
+      <PendingDecisionsPanel
+        pendingCOs={pendingCOs}
+        openRfis={openRfis}
+        overdueRfis={overdueRfis}
+        pendingCOTotal={pendingCOTotal}
+        projectMap={projectMap}
+      />
 
       {/* Two-column: milestones + tasks */}
       <div className="grid md:grid-cols-2 gap-4">
