@@ -107,7 +107,7 @@
 - [x] Traffic light summary: 🔴 At Risk / 🟡 Watch / 🟢 On Track per project (colored dot on table)
 - [x] "Pending Decisions" section: open RFIs + Change Orders awaiting approval
 - [x] "My Tasks Today" widget: tasks assigned to me due today/overdue
-- [ ] Remove empty/zero cards when no data — replace with contextual prompts
+- [x] Remove empty/zero cards when no data — replace with contextual prompts
 - [x] Portfolio burn rate: total $ committed across all projects
 
 ---
@@ -148,7 +148,7 @@
 - [x] One-click: pulls budget, schedule, risks, tasks → outputs executive summary
 - [x] Formats as: "Summary · Accomplishments · Risks · Next Steps"
 - [x] Copies to clipboard or exports as PDF
-- [ ] Tailored for OAC meetings, owner updates, internal reviews
+- [x] Tailored for OAC meetings, owner updates, internal reviews
 
 ### 4.3 — AI Daily Briefing
 - [x] On dashboard load: AI generates a 3-bullet "Today's Focus" summary
