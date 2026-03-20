@@ -433,7 +433,11 @@ export function DashboardPage() {
   const atRisk = active.filter(p => p.forecastCost > p.totalBudget)
   const totalBudget = active.reduce((s, p) => s + (p.totalBudget || 0), 0)
   const totalForecast = active.reduce((s, p) => s + (p.forecastCost || 0), 0)
+  const totalCommitted = active.reduce((s, p) => s + (p.committedCost || 0), 0)
+  const totalActual = active.reduce((s, p) => s + (p.actualCost || 0), 0)
   const portfolioVariance = totalBudget - totalForecast
+  const commitPct = totalBudget > 0 ? Math.min(100, Math.round((totalCommitted / totalBudget) * 100)) : 0
+  const spendPct  = totalBudget > 0 ? Math.min(100, Math.round((totalActual   / totalBudget) * 100)) : 0
 
   // Build a projectId → name map
   const projectMap = Object.fromEntries(projects.map(p => [p.id, p.projectName]))
@@ -518,6 +522,55 @@ export function DashboardPage() {
           color={overdue.length > 0 ? 'bg-amber-600' : 'bg-slate-600'}
         />
       </div>
+
+      {/* Portfolio Burn Rate */}
+      {totalBudget > 0 && (
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <DollarSign size={14} className="text-slate-400" />
+              <span className="text-sm font-semibold text-slate-200">Portfolio Burn Rate</span>
+            </div>
+            <span className="text-xs text-slate-500">Active projects only</span>
+          </div>
+          <div className="grid grid-cols-3 gap-4 mb-4">
+            <div>
+              <p className="text-xs text-slate-500 mb-1">Committed</p>
+              <p className="text-base font-bold text-slate-100 tabular-nums">{fmtM(totalCommitted)}</p>
+              <p className="text-xs text-slate-600">{commitPct}% of budget</p>
+            </div>
+            <div>
+              <p className="text-xs text-slate-500 mb-1">Actual Spent</p>
+              <p className="text-base font-bold text-blue-300 tabular-nums">{fmtM(totalActual)}</p>
+              <p className="text-xs text-slate-600">{spendPct}% of budget</p>
+            </div>
+            <div>
+              <p className="text-xs text-slate-500 mb-1">Total Forecast</p>
+              <p className={clsx('text-base font-bold tabular-nums', totalForecast > totalBudget ? 'text-red-400' : 'text-emerald-400')}>
+                {fmtM(totalForecast)}
+              </p>
+              <p className={clsx('text-xs', totalForecast > totalBudget ? 'text-red-600' : 'text-slate-600')}>
+                {totalForecast > totalBudget ? 'Over budget' : 'Under budget'}
+              </p>
+            </div>
+          </div>
+          {/* Stacked progress bar */}
+          <div className="relative h-2 bg-slate-700 rounded-full overflow-hidden">
+            <div
+              className="absolute inset-y-0 left-0 bg-amber-500/60 rounded-full"
+              style={{ width: `${Math.min(100, (totalForecast / totalBudget) * 100)}%` }}
+            />
+            <div
+              className="absolute inset-y-0 left-0 bg-blue-500 rounded-full"
+              style={{ width: `${spendPct}%` }}
+            />
+          </div>
+          <div className="flex justify-between text-[10px] text-slate-600 mt-1">
+            <span>0%</span>
+            <span>Budget: {fmt(totalBudget)}</span>
+          </div>
+        </div>
+      )}
 
       {/* Portfolio variance banner */}
       {totalBudget > 0 && (

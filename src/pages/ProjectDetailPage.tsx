@@ -923,6 +923,84 @@ export function ProjectDetailPage() {
           />
         </div>
 
+        {/* ── Recent Activity Feed ──────────────────────────────────────── */}
+        {(() => {
+          type ActivityEntry = {
+            id: string
+            kind: 'task' | 'risk' | 'milestone'
+            title: string
+            sub: string
+            updatedAt: string
+            tab: string
+          }
+          const timeAgo = (iso: string) => {
+            const ms = Date.now() - new Date(iso).getTime()
+            const mins = Math.floor(ms / 60000)
+            if (mins < 1) return 'just now'
+            if (mins < 60) return `${mins}m ago`
+            const hrs = Math.floor(mins / 60)
+            if (hrs < 24) return `${hrs}h ago`
+            const days = Math.floor(hrs / 24)
+            if (days < 30) return `${days}d ago`
+            return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+          }
+          const entries: ActivityEntry[] = [
+            ...raidItems.map(i => ({
+              id: i.id, kind: 'risk' as const,
+              title: i.title,
+              sub: `${i.type.charAt(0).toUpperCase() + i.type.slice(1)} · ${i.status}`,
+              updatedAt: i.updatedAt, tab: 'raid',
+            })),
+            ...projectTasks.map(t => ({
+              id: t.id, kind: 'task' as const,
+              title: t.title,
+              sub: `Task · ${t.status === 'completed' ? 'Completed' : t.status}`,
+              updatedAt: t.updatedAt, tab: 'tasks',
+            })),
+            ...milestones.map(m => ({
+              id: m.id, kind: 'milestone' as const,
+              title: m.name,
+              sub: `Milestone · ${m.status}`,
+              updatedAt: m.updatedAt, tab: 'schedule',
+            })),
+          ]
+            .filter(e => e.updatedAt)
+            .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+            .slice(0, 6)
+
+          if (entries.length === 0) return null
+
+          return (
+            <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-700">
+                <Clock size={14} className="text-slate-400" />
+                <p className="text-sm font-semibold text-slate-200">Recent Activity</p>
+              </div>
+              <div className="divide-y divide-slate-700/50">
+                {entries.map(e => (
+                  <button
+                    key={e.id}
+                    onClick={() => setTab(e.tab as Tab)}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-700/30 transition-colors text-left"
+                  >
+                    {e.kind === 'risk'
+                      ? <ShieldAlert size={13} className="text-red-400 shrink-0" />
+                      : e.kind === 'task'
+                      ? <CheckSquare size={13} className="text-blue-400 shrink-0" />
+                      : <Calendar size={13} className="text-emerald-400 shrink-0" />
+                    }
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-slate-200 truncate">{e.title}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">{e.sub}</p>
+                    </div>
+                    <span className="text-xs text-slate-600 shrink-0 tabular-nums">{timeAgo(e.updatedAt)}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )
+        })()}
+
         {/* Project info + Schedule */}
         <div className="grid md:grid-cols-2 gap-4">
           <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 space-y-3">

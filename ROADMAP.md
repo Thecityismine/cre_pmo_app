@@ -11,32 +11,32 @@
 **Goal:** Every module links to every other module.
 - [ ] Tasks linked to Milestones (completing a task can close a milestone)
 - [ ] Milestones linked to Health Score (missed milestone = health penalty)
-- [ ] Budget drift linked to Risk Engine (overrun triggers a RAID item)
-- [ ] Change Orders flow into Budget forecast automatically
-- [ ] RFIs and Submittals linked to Schedule (overdue items affect timeline)
+- [x] Budget drift linked to Risk Engine (overrun triggers a RAID item)
+- [x] Change Orders flow into Budget forecast automatically
+- [x] RFIs and Submittals linked to Schedule (overdue items affect timeline)
 
 ---
 
 ### 1.2 — Health Engine (Auto-Calculate, Not Manual)
 **Problem:** Health score exists but isn't reacting to real data.
 **Goal:** 0–100 score that updates automatically based on live project state.
-- [ ] Budget performance component (forecast vs approved)
-- [ ] Schedule performance component (milestone hit rate)
-- [ ] Risk exposure component (open high/critical RAID items)
-- [ ] Task completion rate component
-- [ ] Weighted formula: budget 30% + schedule 30% + risk 20% + tasks 20%
-- [ ] Health score drives dashboard Red/Yellow/Green status
+- [x] Budget performance component (forecast vs approved)
+- [x] Schedule performance component (milestone hit rate)
+- [x] Risk exposure component (open high/critical RAID items)
+- [x] Task completion rate component
+- [x] Weighted formula: budget 30% + schedule 30% + risk 20% + tasks 20%
+- [x] Health score drives dashboard Red/Yellow/Green status
 
 ---
 
 ### 1.3 — Risk Engine (Auto-Generated RAID Items)
 **Problem:** RAID log is passive and manually filled. It should be the app's nervous system.
 **Goal:** App automatically creates risks when warning conditions are detected.
-- [ ] Trigger: Task overdue → auto-create Risk in RAID
-- [ ] Trigger: Milestone missed → auto-create Risk in RAID
-- [ ] Trigger: Budget variance > 10% → auto-create Risk in RAID
-- [ ] Trigger: RFI open > 14 days → auto-create Issue in RAID
-- [ ] Auto-risks are labeled "System Generated" and can be dismissed or promoted
+- [x] Trigger: Task overdue → auto-create Risk in RAID
+- [x] Trigger: Milestone missed → auto-create Risk in RAID
+- [x] Trigger: Budget variance > 10% → auto-create Risk in RAID
+- [x] Trigger: RFI open > 14 days → auto-create Issue in RAID
+- [x] Auto-risks are labeled "System Generated" and can be dismissed or promoted
 - [ ] RAID items show linked source (which task/milestone/budget line triggered it)
 
 ---
@@ -60,14 +60,14 @@
 ### 2.2 — Budget Engine Upgrade
 **Problem:** Budget is a static ledger, not a financial engine.
 **Goal:** Real PM financial math with live forecast and variance tracking.
-- [ ] Committed = sum of all contract amounts
-- [ ] Forecast = committed + estimated remaining (editable per line)
-- [ ] Cost to Complete field per line item
+- [x] Committed = sum of all contract amounts
+- [x] Forecast = committed + estimated remaining (editable per line)
+- [x] Cost to Complete field per line item
 - [ ] Variance trend: show if forecast is trending up or down week over week
-- [ ] Change Orders automatically add to forecast (already partially done)
-- [ ] Budget health indicator: Green < 90%, Yellow 90–100%, Red > 100%
-- [ ] Contingency drawdown tracker: show how much contingency has been consumed
-- [ ] Vendor tracking: each line item tracks vendor name, contract #, contact
+- [x] Change Orders automatically add to forecast
+- [x] Budget health indicator: Green < 90%, Yellow 90–100%, Red > 100%
+- [x] Contingency drawdown tracker: show how much contingency has been consumed
+- [x] Vendor tracking: each line item tracks vendor name, contract #, contact
 
 ---
 
@@ -103,24 +103,24 @@
 ### 3.1 — Dashboard → Action Center
 **Problem:** Dashboard shows data but doesn't tell you what to do.
 **Goal:** First thing every morning you open the app and know exactly what needs attention.
-- [ ] "Attention Required" panel: auto-populated from risks, overdue items, budget alerts
+- [x] "Attention Required" panel: auto-populated from risks, overdue items, budget alerts
 - [x] Traffic light summary: 🔴 At Risk / 🟡 Watch / 🟢 On Track per project (colored dot on table)
-- [ ] "Pending Decisions" section: open RFIs + Change Orders awaiting approval
+- [x] "Pending Decisions" section: open RFIs + Change Orders awaiting approval
 - [x] "My Tasks Today" widget: tasks assigned to me due today/overdue
 - [ ] Remove empty/zero cards when no data — replace with contextual prompts
-- [ ] Portfolio burn rate: total $ committed across all projects this month
+- [x] Portfolio burn rate: total $ committed across all projects
 
 ---
 
 ### 3.2 — Project Overview → War Room
 **Problem:** Overview shows static fields. It should show live project pulse.
 **Goal:** Open a project and immediately see what needs attention.
-- [ ] "Attention Required" section at top: auto-populated alerts
-- [ ] Active risks count (from RAID) with severity breakdown
-- [ ] Pending approvals: open RFIs + COs requiring action
-- [ ] Budget alert banner if forecast > approved budget
-- [ ] Next milestone countdown: "Schematic Design due in 12 days"
-- [ ] Recent activity feed: last 5 changes across all modules
+- [x] "Attention Required" section at top: auto-populated alerts
+- [x] Active risks count (from RAID) with severity breakdown
+- [x] Pending approvals: open RFIs + COs requiring action
+- [x] Budget alert banner if forecast > approved budget
+- [x] Next milestone countdown: "Schematic Design due in 12 days"
+- [x] Recent activity feed: last 5 changes across all modules
 
 ---
 
