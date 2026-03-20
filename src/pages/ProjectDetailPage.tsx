@@ -267,7 +267,7 @@ export function ProjectDetailPage() {
   const { team } = useProjectTeam(id)
   const { items: budgetItems } = useBudgetItems(id)
   const { approvedTotal: coApproved, pendingTotal: coPending } = useChangeOrders(id)
-  const { milestones } = useMilestones(id)
+  const { milestones, updateMilestone } = useMilestones(id)
   const { documents: recentDocs } = useProjectDocuments(id)
   const { openCount: openRfis, overdueCount: overdueRfis } = useRfis(id)
   const { openCount: openPunch } = usePunchList(id)
@@ -1207,6 +1207,8 @@ export function ProjectDetailPage() {
           project={project}
           showAddForm={fabTaskForm}
           onFormClose={() => setFabTaskForm(false)}
+          milestones={milestones}
+          onMilestoneComplete={id => updateMilestone(id, { status: 'complete' })}
         />
       )}
 

@@ -15,6 +15,7 @@ export interface ProjectTask {
   priority: ProjectTaskPriority
   status: ProjectTaskStatus
   completedAt: string
+  milestoneId?: string   // optional link to a Milestone
   createdAt: string
   updatedAt: string
 }

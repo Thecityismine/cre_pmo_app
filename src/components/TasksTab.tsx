@@ -7,6 +7,7 @@ import {
 import { useProjectTasks } from '@/hooks/useProjectTasks'
 import { useAuthStore } from '@/store/authStore'
 import type { ProjectTask, ProjectTaskPriority } from '@/hooks/useProjectTasks'
+import type { Milestone } from '@/hooks/useMilestones'
 import type { Project } from '@/types'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -46,14 +47,15 @@ function isDueToday(dueDate: string) {
 // ─── Blank form ───────────────────────────────────────────────────────────────
 
 function blankForm() {
-  return { title: '', description: '', dueDate: '', assignedTo: '', priority: 'medium' as ProjectTaskPriority }
+  return { title: '', description: '', dueDate: '', assignedTo: '', priority: 'medium' as ProjectTaskPriority, milestoneId: '' }
 }
 
 // ─── Add Task Form ────────────────────────────────────────────────────────────
 
-function AddTaskForm({ onSave, onCancel }: {
+function AddTaskForm({ onSave, onCancel, milestones = [] }: {
   onSave: (form: ReturnType<typeof blankForm>) => Promise<void>
   onCancel: () => void
+  milestones?: Milestone[]
 }) {
   const [form, setForm] = useState(blankForm())
   const [saving, setSaving] = useState(false)
@@ -93,7 +95,7 @@ function AddTaskForm({ onSave, onCancel }: {
         rows={2} className={`${inp} resize-none`}
       />
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <div>
           <label className="text-[10px] text-slate-500 mb-1 block">Due Date</label>
           <input type="date" value={form.dueDate} onChange={e => set('dueDate', e.target.value)} className={inp} />
@@ -108,6 +110,17 @@ function AddTaskForm({ onSave, onCancel }: {
             {PRIORITIES.map(p => <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>)}
           </select>
         </div>
+        {milestones.length > 0 && (
+          <div>
+            <label className="text-[10px] text-slate-500 mb-1 block">Milestone</label>
+            <select value={form.milestoneId} onChange={e => set('milestoneId', e.target.value)} className={inp}>
+              <option value="">— None —</option>
+              {milestones.filter(m => m.status !== 'complete').map(m => (
+                <option key={m.id} value={m.id}>{m.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {saveError && (
@@ -129,10 +142,11 @@ function AddTaskForm({ onSave, onCancel }: {
 
 // ─── Task Row ─────────────────────────────────────────────────────────────────
 
-function TaskRow({ task, onComplete, onDelete }: {
+function TaskRow({ task, onComplete, onDelete, milestoneName }: {
   task: ProjectTask
   onComplete: () => void
   onDelete: () => void
+  milestoneName?: string
 }) {
   const [expanded, setExpanded] = useState(false)
   const [completing, setCompleting] = useState(false)
@@ -188,6 +202,11 @@ function TaskRow({ task, onComplete, onDelete }: {
                 <User size={10} /> {task.assignedTo}
               </span>
             )}
+            {milestoneName && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-900/50 text-emerald-400 border border-emerald-800/40 flex items-center gap-0.5">
+                <CheckSquare size={9} /> {milestoneName}
+              </span>
+            )}
             {task.status === 'completed' && task.completedAt && (
               <span className="text-xs text-emerald-500">Completed {fmtShort(task.completedAt)}</span>
             )}
@@ -220,10 +239,12 @@ function TaskRow({ task, onComplete, onDelete }: {
 
 type Filter = 'open' | 'overdue' | 'today' | 'mine' | 'all'
 
-export function TasksTab({ project, showAddForm: externalShowForm, onFormClose }: {
+export function TasksTab({ project, showAddForm: externalShowForm, onFormClose, milestones = [], onMilestoneComplete }: {
   project: Project
   showAddForm?: boolean
   onFormClose?: () => void
+  milestones?: Milestone[]
+  onMilestoneComplete?: (milestoneId: string) => Promise<void>
 }) {
   const { tasks, loading, addTask, completeTask, deleteTask, open, completed, overdue, dueSoon } = useProjectTasks(project.id)
   const user    = useAuthStore(s => s.user)
@@ -240,18 +261,35 @@ export function TasksTab({ project, showAddForm: externalShowForm, onFormClose }
   const isFormVisible = showForm || (externalShowForm ?? false)
   const closeForm = () => { setShowForm(false); onFormClose?.() }
 
+  // milestone id → name lookup
+  const milestoneMap = Object.fromEntries(milestones.map(m => [m.id, m.name]))
+
   const handleAdd = async (form: ReturnType<typeof blankForm>) => {
     await addTask({
-      projectId: project.id,
+      projectId:   project.id,
       title:       form.title,
       description: form.description,
       dueDate:     form.dueDate,
       assignedTo:  form.assignedTo,
       priority:    form.priority as ProjectTaskPriority,
       status:      'open',
+      milestoneId: form.milestoneId || undefined,
     })
     closeForm()
     setFilter('open')
+  }
+
+  const handleComplete = async (taskId: string) => {
+    await completeTask(taskId)
+    // Check if all tasks for this milestone are now complete → auto-advance
+    const task = tasks.find(t => t.id === taskId)
+    if (!task?.milestoneId || !onMilestoneComplete) return
+    const milestoneId = task.milestoneId
+    const linked = tasks.filter(t => t.milestoneId === milestoneId && t.id !== taskId)
+    const allDone = linked.every(t => t.status === 'completed')
+    if (allDone && linked.length > 0) {
+      await onMilestoneComplete(milestoneId)
+    }
   }
 
   const handleDelete = async (id: string, title: string) => {
@@ -340,7 +378,7 @@ export function TasksTab({ project, showAddForm: externalShowForm, onFormClose }
       </div>
 
       {/* ── Add Form ── */}
-      {isFormVisible && <AddTaskForm onSave={handleAdd} onCancel={closeForm} />}
+      {isFormVisible && <AddTaskForm onSave={handleAdd} onCancel={closeForm} milestones={milestones} />}
 
       {/* ── Priority sort hint ── */}
       {visibleOpen.length > 1 && (
@@ -364,8 +402,9 @@ export function TasksTab({ project, showAddForm: externalShowForm, onFormClose }
             <TaskRow
               key={task.id}
               task={task}
-              onComplete={() => completeTask(task.id)}
+              onComplete={() => handleComplete(task.id)}
               onDelete={() => handleDelete(task.id, task.title)}
+              milestoneName={task.milestoneId ? milestoneMap[task.milestoneId] : undefined}
             />
           ))
         )}
@@ -390,6 +429,7 @@ export function TasksTab({ project, showAddForm: externalShowForm, onFormClose }
                   task={task}
                   onComplete={() => {}}
                   onDelete={() => handleDelete(task.id, task.title)}
+                  milestoneName={task.milestoneId ? milestoneMap[task.milestoneId] : undefined}
                 />
               ))}
             </div>
