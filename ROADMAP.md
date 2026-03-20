@@ -141,7 +141,7 @@
 
 ### 4.1 — AI Risk Detection
 - [x] AI scans project data weekly and flags risks not yet in RAID
-- [ ] AI suggests risk mitigation for existing RAID items
+- [x] AI suggests risk mitigation for existing RAID items
 - [ ] AI compares project to similar past projects and flags anomalies
 
 ### 4.2 — AI Status Report Generator
