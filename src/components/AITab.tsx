@@ -379,6 +379,14 @@ If no additional risks are detected, return an empty array: []`
   const [statusReport, setStatusReport] = useState('')
   const [reportLoading, setReportLoading] = useState(false)
   const [reportCopied, setReportCopied] = useState(false)
+  const [meetingType, setMeetingType] = useState<'oac' | 'owner' | 'internal' | 'executive'>('oac')
+
+  const MEETING_TYPES = [
+    { id: 'oac',       label: 'OAC Meeting',       audience: 'Owner, Architect, and Contractor team', tone: 'technical, action-oriented, highlight open RFIs, submittals, and schedule impacts' },
+    { id: 'owner',     label: 'Owner Update',       audience: 'the project owner/client',             tone: 'concise, financial-first, avoid jargon, highlight budget variance and milestone progress' },
+    { id: 'internal',  label: 'Internal Review',    audience: 'internal PM team',                     tone: 'direct, operational detail, include task owners, risk items, and blockers' },
+    { id: 'executive', label: 'Executive Briefing', audience: 'executive leadership (VP/C-suite)',    tone: 'headline-only, three bullets max per section, no technical detail, focus on financial exposure and schedule' },
+  ] as const
 
   const buildReportContext = () => {
     const today = new Date()
@@ -425,16 +433,22 @@ OPEN ITEMS:
     setStatusReport('')
     setReportCopied(false)
 
+    const mt = MEETING_TYPES.find(m => m.id === meetingType)!
     const context = buildReportContext()
     const prompt = `${context}
 
-Generate a professional CRE project status report in the following format. Be specific, cite numbers, and keep it concise.
+Meeting type: ${mt.label}
+Audience: ${mt.audience}
+Tone/focus: ${mt.tone}
+
+Generate a professional CRE project status report tailored for ${mt.label}. Be specific, cite numbers, and keep it concise.
 
 ## Status Report — ${project.projectName}
 **Date:** [today's date]
+**Report type:** ${mt.label}
 
 ## Overall Status
-[1-2 sentence executive summary: overall project health, key metric, and one key headline]
+[1-2 sentence executive summary: overall project health, key metric, and one key headline — tuned for the audience]
 
 ## Accomplishments
 - [what has been achieved — cite specific milestones, % complete, etc.]
@@ -445,7 +459,7 @@ Generate a professional CRE project status report in the following format. Be sp
 - [top 2-3 risks with specifics — tie to actual data]
 
 ## Next Steps
-- [3-4 specific actions for the coming week]
+- [3-4 specific actions for the coming period]
 - [next milestone or decision point]`
 
     try {
@@ -980,6 +994,24 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
               }
             </button>
           </div>
+        </div>
+
+        {/* Meeting type selector */}
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          {MEETING_TYPES.map(mt => (
+            <button
+              key={mt.id}
+              onClick={() => { setMeetingType(mt.id); setStatusReport('') }}
+              className={clsx(
+                'text-xs px-2.5 py-1 rounded-md border transition-colors',
+                meetingType === mt.id
+                  ? 'bg-purple-900/70 border-purple-600 text-purple-200'
+                  : 'bg-slate-700/50 border-slate-600 text-slate-400 hover:text-slate-200 hover:border-slate-500',
+              )}
+            >
+              {mt.label}
+            </button>
+          ))}
         </div>
 
         {statusReport ? (
