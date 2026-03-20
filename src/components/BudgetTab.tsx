@@ -460,18 +460,16 @@ function CategoryCard({
     <div className={clsx('bg-slate-800 border rounded-xl overflow-hidden', expanded ? cfg.border : 'border-slate-700')}>
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex flex-col gap-2.5 px-4 py-4 hover:bg-slate-700/20 transition-colors text-left"
+        className="w-full flex flex-col gap-3 px-4 pt-4 pb-3 hover:bg-slate-700/20 transition-colors text-left"
       >
-        {/* Top row: chevron + pill + badges + stats + item count */}
-        <div className="flex items-center gap-3 w-full">
+        {/* Row 1: chevron + category pill + health badge + spacer + item count */}
+        <div className="flex items-center gap-2 w-full">
           {expanded
             ? <ChevronDown size={14} className="text-slate-500 shrink-0" />
             : <ChevronRight size={14} className="text-slate-500 shrink-0" />}
-
           <span className={clsx('text-xs px-2 py-0.5 rounded font-medium shrink-0', cfg.pill)}>
             {category}
           </span>
-
           {catBudget > 0 && catHealth !== 'green' && (
             <span className={clsx(
               'text-[9px] px-1.5 py-0.5 rounded font-medium shrink-0',
@@ -480,50 +478,48 @@ function CategoryCard({
               {catHealth === 'red' ? 'Over budget' : 'Approaching limit'}
             </span>
           )}
-
           <div className="flex-1" />
-
-          {/* Stats: Budget | Forecast | Remaining */}
-          <div className="flex items-center gap-5 text-xs text-right shrink-0">
-            <div>
-              <p className="text-slate-500 text-[10px]">Budget</p>
-              <button
-                onClick={openBudgetEdit}
-                className={clsx('font-medium tabular-nums hover:underline', approvedBudget ? 'text-slate-200' : 'text-blue-400 text-[10px]')}
-                title="Click to set approved budget"
-              >
-                {approvedBudget ? fmt(approvedBudget) : '+ Set budget'}
-              </button>
-            </div>
-            <div>
-              <p className="text-slate-500 text-[10px]">Forecast</p>
-              <p className={clsx('font-medium tabular-nums', catHealth === 'red' ? 'text-red-400' : catHealth === 'amber' ? 'text-amber-400' : 'text-emerald-400')}>
-                {totalDrawn > 0 ? fmt(totalDrawn) : '—'}
-              </p>
-            </div>
-            {catBudget > 0 && (
-              <div>
-                <p className="text-slate-500 text-[10px]">Remaining</p>
-                <p className={clsx('font-medium tabular-nums', (catRemaining ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400')}>
-                  {catRemaining !== null ? fmt(Math.abs(catRemaining)) : '—'}
-                  {(catRemaining ?? 0) < 0 && <span className="text-[9px] ml-0.5">over</span>}
-                </p>
-              </div>
-            )}
-          </div>
-
-          <span className="text-xs text-slate-500 shrink-0 ml-3">
+          <span className="text-[11px] text-slate-500 shrink-0">
             {items.length === 0 ? 'No items' : `${items.length} item${items.length !== 1 ? 's' : ''}`}
           </span>
         </div>
 
-        {/* Bottom row: progress bar */}
+        {/* Row 2: Budget | Forecast | Remaining — full width, larger numbers */}
+        <div className="flex items-start w-full pl-5 gap-0">
+          <div className="flex-1">
+            <p className="text-[10px] text-slate-500 uppercase tracking-wide mb-0.5">Budget</p>
+            <button
+              onClick={openBudgetEdit}
+              className={clsx('font-semibold tabular-nums hover:underline text-sm leading-tight', approvedBudget ? 'text-slate-100' : 'text-blue-400 text-xs')}
+              title="Click to set approved budget"
+            >
+              {approvedBudget ? fmt(approvedBudget) : '+ Set budget'}
+            </button>
+          </div>
+          <div className="flex-1">
+            <p className="text-[10px] text-slate-500 uppercase tracking-wide mb-0.5">Forecast</p>
+            <p className={clsx('font-semibold tabular-nums text-sm leading-tight', catHealth === 'red' ? 'text-red-400' : catHealth === 'amber' ? 'text-amber-400' : 'text-emerald-400')}>
+              {totalDrawn > 0 ? fmt(totalDrawn) : '—'}
+            </p>
+          </div>
+          {catBudget > 0 && (
+            <div className="flex-1 text-right">
+              <p className="text-[10px] text-slate-500 uppercase tracking-wide mb-0.5">Remaining</p>
+              <p className={clsx('font-semibold tabular-nums text-sm leading-tight', (catRemaining ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400')}>
+                {catRemaining !== null ? fmt(Math.abs(catRemaining)) : '—'}
+                {(catRemaining ?? 0) < 0 && <span className="text-[10px] ml-0.5">over</span>}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Row 3: progress bar */}
         {catBudget > 0 ? (
           <div className="w-full pl-5">
-            <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+            <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
               <div className={clsx('h-full rounded-l-full transition-all', barColor)} style={{ width: `${barWidth}%` }} />
             </div>
-            <span className={clsx('text-[10px] font-medium mt-0.5 block', catHealth === 'red' ? 'text-red-400' : catHealth === 'amber' ? 'text-amber-400' : 'text-emerald-400')}>
+            <span className={clsx('text-[10px] font-medium mt-1 block', catHealth === 'red' ? 'text-red-400' : catHealth === 'amber' ? 'text-amber-400' : 'text-emerald-400')}>
               {Math.round(drawnPct)}% utilized
             </span>
           </div>
