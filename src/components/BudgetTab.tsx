@@ -41,7 +41,6 @@ type ExtBudgetItem = BudgetItem & {
   paidAmount?: number
   paymentStatus?: string
   costToComplete?: number
-  isBudgetEnvelope?: boolean  // marks this item as the category budget ceiling
   // Variance trend tracking
   forecastTrend?: 'up' | 'down' | 'flat'
   forecastPrev?: number
@@ -84,7 +83,6 @@ function blankForm(category: string) {
     description: '', vendorName: '', contractNumber: '', contactEmail: '', category,
     budgetAmount: '', contractAmount: '', invoicedAmount: '', paidAmount: '',
     forecastAmount: '', costToComplete: '', paymentStatus: 'Pending', notes: '',
-    isBudgetEnvelope: false,
   }
 }
 
@@ -134,12 +132,6 @@ function LineItemForm({
             placeholder="Cost to Complete $" className={inp} />
           <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-slate-600 pointer-events-none">ETC</span>
         </div>
-        <label className="col-span-2 flex items-center gap-2 cursor-pointer select-none">
-          <input type="checkbox" checked={form.isBudgetEnvelope}
-            onChange={e => setForm(f => ({ ...f, isBudgetEnvelope: e.target.checked }))}
-            className="accent-amber-500 w-3.5 h-3.5" />
-          <span className="text-xs text-slate-400">Set as budget envelope (draws from this amount)</span>
-        </label>
       </div>
 
       <div>
@@ -187,12 +179,9 @@ function LineItemForm({
 
 // ─── Editable line item row ───────────────────────────────────────────────────
 
-function LineItemRow({ item, onDelete, isEnvelope, envelopeMode, totalDrawn }: {
+function LineItemRow({ item, onDelete }: {
   item: ExtBudgetItem
   onDelete: (id: string) => void
-  isEnvelope?: boolean
-  envelopeMode?: boolean
-  totalDrawn?: number
 }) {
   const [editing, setEditing] = useState(false)
   const [invoicing, setInvoicing] = useState(false)
@@ -211,7 +200,6 @@ function LineItemRow({ item, onDelete, isEnvelope, envelopeMode, totalDrawn }: {
     costToComplete:   String(item.costToComplete ?? ''),
     paymentStatus:    item.paymentStatus ?? 'Pending',
     notes:            item.notes,
-    isBudgetEnvelope: item.isBudgetEnvelope ?? false,
   })
   const [saving, setSaving] = useState(false)
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }))
@@ -245,7 +233,6 @@ function LineItemRow({ item, onDelete, isEnvelope, envelopeMode, totalDrawn }: {
       paymentStatus:    form.paymentStatus,
       variance:         budget - forecast,
       notes:            form.notes,
-      isBudgetEnvelope: form.isBudgetEnvelope,
       forecastTrend,
       forecastPrev:     prevForecast,
       updatedAt:        new Date().toISOString(),
@@ -372,13 +359,6 @@ function LineItemRow({ item, onDelete, isEnvelope, envelopeMode, totalDrawn }: {
               </p>
             )}
 
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input type="checkbox" checked={form.isBudgetEnvelope}
-                onChange={e => setForm(f => ({ ...f, isBudgetEnvelope: e.target.checked }))}
-                className="accent-amber-500 w-3.5 h-3.5" />
-              <span className="text-xs text-slate-400">Budget envelope — other line items draw from this amount</span>
-            </label>
-
             <div className="flex gap-2 pt-1">
               <button onClick={save} disabled={saving}
                 className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-2 rounded-lg">
@@ -402,33 +382,17 @@ function LineItemRow({ item, onDelete, isEnvelope, envelopeMode, totalDrawn }: {
           <HealthDot forecast={forecast} budget={item.budgetAmount} />
         </td>
         <td className="px-3 py-2.5">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <p className="text-slate-200 text-sm">{item.description || '—'}</p>
-            {isEnvelope && (
-              <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-900/60 text-amber-300 font-medium shrink-0">Envelope</span>
-            )}
-          </div>
+          <p className="text-slate-200 text-sm">{item.description || '—'}</p>
           {item.vendorName && <p className="text-xs text-slate-500 mt-0.5">{item.vendorName}</p>}
           {item.costToComplete != null && item.costToComplete > 0 && (
             <p className="text-[10px] text-blue-400 mt-0.5">ETC: {fmt(item.costToComplete)}</p>
           )}
-          {isEnvelope && envelopeMode && totalDrawn !== undefined && (
-            <p className="text-[10px] text-slate-500 mt-0.5">
-              Remaining: <span className={clsx('font-medium', (item.budgetAmount - totalDrawn) >= 0 ? 'text-emerald-400' : 'text-red-400')}>
-                {fmt(item.budgetAmount - totalDrawn)}
-              </span>
-            </p>
-          )}
         </td>
         <td className="px-3 py-2.5 text-right text-slate-300 text-sm tabular-nums">{fmt(item.budgetAmount)}</td>
         <td className="px-3 py-2.5 text-right text-sm tabular-nums font-medium">
-          {isEnvelope && envelopeMode && totalDrawn !== undefined ? (
-            <span className="text-slate-500 text-xs">—</span>
-          ) : (
-            <span className={clsx(lineHealth(forecast, item.budgetAmount) === 'green' ? 'text-emerald-400' : lineHealth(forecast, item.budgetAmount) === 'amber' ? 'text-amber-400' : 'text-red-400')}>
-              {fmt(forecast)}
-            </span>
-          )}
+          <span className={clsx(lineHealth(forecast, item.budgetAmount) === 'green' ? 'text-emerald-400' : lineHealth(forecast, item.budgetAmount) === 'amber' ? 'text-amber-400' : 'text-red-400')}>
+            {fmt(forecast)}
+          </span>
         </td>
         <td className="px-3 py-2.5 text-right text-slate-400 text-sm tabular-nums hidden sm:table-cell">{contractAmt > 0 ? fmt(contractAmt) : '—'}</td>
         <td className="px-3 py-2.5 text-right text-slate-400 text-sm tabular-nums hidden sm:table-cell">{invoicedAmt > 0 ? fmt(invoicedAmt) : '—'}</td>
@@ -518,45 +482,64 @@ function LineItemRow({ item, onDelete, isEnvelope, envelopeMode, totalDrawn }: {
 function CategoryCard({
   category,
   items,
+  approvedBudget,
   onAdd,
   onDelete,
+  onSetBudget,
 }: {
   category: string
   items: ExtBudgetItem[]
+  approvedBudget: number | null
   onAdd: (form: ReturnType<typeof blankForm>) => Promise<void>
   onDelete: (id: string) => void
+  onSetBudget: (amount: number | null) => Promise<void>
 }) {
   const [expanded, setExpanded] = useState(false)
   const [showForm, setShowForm] = useState(false)
+  const [editingBudget, setEditingBudget] = useState(false)
+  const [budgetInput, setBudgetInput] = useState('')
+  const [savingBudget, setSavingBudget] = useState(false)
 
   const cfg = CATEGORY_COLORS[category] ?? { pill: 'bg-slate-700 text-slate-300', bar: 'bg-slate-500', border: 'border-slate-600/40' }
 
-  // Envelope mode: one item sets the budget ceiling; all others draw from it
-  const envelopeItem = items.find(i => i.isBudgetEnvelope)
-  const envelopeMode = !!envelopeItem
-  const drawItems    = envelopeMode ? items.filter(i => !i.isBudgetEnvelope) : items
-
-  const catBudget   = envelopeMode ? (envelopeItem?.budgetAmount ?? 0) : items.reduce((s, i) => s + i.budgetAmount, 0)
-  const totalDrawn  = drawItems.reduce((s, i) => s + i.forecastAmount, 0)
+  // All line items draw from the approved category budget
+  const totalDrawn  = items.reduce((s, i) => s + i.forecastAmount, 0)
   const catContract = items.reduce((s, i) => s + (i.contractAmount ?? i.committedAmount), 0)
   const catPaid     = items.reduce((s, i) => s + (i.paidAmount ?? 0), 0)
   const catInvoiced = items.reduce((s, i) => s + (i.invoicedAmount ?? 0), 0)
-  const catForecast = envelopeMode ? totalDrawn : items.reduce((s, i) => s + i.forecastAmount, 0)
-  const catRemaining = envelopeMode ? catBudget - totalDrawn : null
 
-  const overItems    = drawItems.filter(i => lineHealth(i.forecastAmount, i.budgetAmount) !== 'green')
-  const trendingUp   = drawItems.filter(i => i.forecastTrend === 'up').length
-  const trendingDown = drawItems.filter(i => i.forecastTrend === 'down').length
+  // If an approved budget is set, use it; otherwise fall back to sum of line item budgets
+  const catBudget  = approvedBudget ?? items.reduce((s, i) => s + i.budgetAmount, 0)
+  const catRemaining = catBudget > 0 ? catBudget - totalDrawn : null
 
-  const usedPct  = catBudget > 0 ? Math.min(100, ((catPaid + catInvoiced) / catBudget) * 100) : 0
-  const barColor = usedPct >= 100 ? 'bg-red-500' : usedPct >= 85 ? 'bg-amber-500' : 'bg-emerald-500'
+  const trendingUp   = items.filter(i => i.forecastTrend === 'up').length
+  const trendingDown = items.filter(i => i.forecastTrend === 'down').length
 
-  const catVariance = catBudget - catForecast
-  const catHealth = lineHealth(catForecast, catBudget)
+  // Status based on drawn vs approved budget
+  const drawnPct = catBudget > 0 ? (totalDrawn / catBudget) * 100 : 0
+  const catHealth: 'green' | 'amber' | 'red' = drawnPct > 100 ? 'red' : drawnPct >= 85 ? 'amber' : 'green'
+  const barColor = drawnPct > 100 ? 'bg-red-500' : drawnPct >= 85 ? 'bg-amber-500' : 'bg-emerald-500'
+  const barWidth = Math.min(100, drawnPct)
 
   const handleAdd = async (form: ReturnType<typeof blankForm>) => {
     await onAdd({ ...form, category })
     setShowForm(false)
+    setExpanded(true)
+  }
+
+  const saveBudget = async () => {
+    const amount = Number(budgetInput)
+    if (!budgetInput || isNaN(amount)) return
+    setSavingBudget(true)
+    await onSetBudget(amount > 0 ? amount : null)
+    setSavingBudget(false)
+    setEditingBudget(false)
+  }
+
+  const openBudgetEdit = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setBudgetInput(approvedBudget ? String(approvedBudget) : '')
+    setEditingBudget(true)
     setExpanded(true)
   }
 
@@ -574,68 +557,68 @@ function CategoryCard({
           {category}
         </span>
 
-        {/* Health indicator for the category */}
-        {items.length > 0 && overItems.length > 0 && (
+        {/* Budget health badge */}
+        {catBudget > 0 && catHealth !== 'green' && (
           <span className={clsx(
             'text-[9px] px-1.5 py-0.5 rounded font-medium shrink-0',
             catHealth === 'amber' ? 'bg-amber-900/60 text-amber-300' : 'bg-red-900/60 text-red-300',
           )}>
-            {overItems.length} over budget
+            {catHealth === 'red' ? 'Over budget' : 'Approaching limit'}
           </span>
         )}
-        {/* Variance trend badge */}
         {trendingUp > 0 && (
-          <span className="text-[9px] px-1.5 py-0.5 rounded font-medium shrink-0 bg-red-900/40 text-red-400" title={`${trendingUp} line item${trendingUp > 1 ? 's' : ''} with rising forecast`}>
+          <span className="text-[9px] px-1.5 py-0.5 rounded font-medium shrink-0 bg-red-900/40 text-red-400">
             ↑ {trendingUp} rising
           </span>
         )}
         {trendingUp === 0 && trendingDown > 0 && (
-          <span className="text-[9px] px-1.5 py-0.5 rounded font-medium shrink-0 bg-emerald-900/40 text-emerald-400" title={`${trendingDown} line item${trendingDown > 1 ? 's' : ''} with falling forecast`}>
+          <span className="text-[9px] px-1.5 py-0.5 rounded font-medium shrink-0 bg-emerald-900/40 text-emerald-400">
             ↓ {trendingDown} improving
           </span>
         )}
 
         <div className="flex-1 min-w-0">
-          <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
-            <div className={clsx('h-full rounded-l-full transition-all', barColor)} style={{ width: `${usedPct}%` }} />
-          </div>
-          {usedPct > 0 && (
-            <span className={clsx('text-[10px] font-medium mt-0.5 block', usedPct >= 100 ? 'text-red-400' : usedPct >= 85 ? 'text-amber-400' : 'text-emerald-400')}>
-              {Math.round(usedPct)}% utilized
-            </span>
+          {catBudget > 0 ? (
+            <>
+              <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                <div className={clsx('h-full rounded-l-full transition-all', barColor)} style={{ width: `${barWidth}%` }} />
+              </div>
+              <span className={clsx('text-[10px] font-medium mt-0.5 block', catHealth === 'red' ? 'text-red-400' : catHealth === 'amber' ? 'text-amber-400' : 'text-emerald-400')}>
+                {Math.round(drawnPct)}% utilized
+              </span>
+            </>
+          ) : (
+            <span className="text-[10px] text-slate-600">No approved budget set</span>
           )}
         </div>
 
         <div className="hidden sm:flex items-center gap-4 text-xs text-right shrink-0">
           <div>
             <p className="text-slate-500 text-[10px]">Budget</p>
-            <p className="text-slate-200 font-medium tabular-nums">{catBudget > 0 ? fmt(catBudget) : '—'}</p>
+            <button
+              onClick={openBudgetEdit}
+              className={clsx(
+                'font-medium tabular-nums hover:underline',
+                approvedBudget ? 'text-slate-200' : 'text-blue-400 text-[10px]',
+              )}
+              title="Click to set approved budget"
+            >
+              {approvedBudget ? fmt(approvedBudget) : '+ Set budget'}
+            </button>
           </div>
-          {envelopeMode ? (
+          {catBudget > 0 && (
             <>
               <div>
                 <p className="text-slate-500 text-[10px]">Drawn</p>
-                <p className="text-amber-400 font-medium tabular-nums">{totalDrawn > 0 ? fmt(totalDrawn) : '—'}</p>
+                <p className={clsx('font-medium tabular-nums', catHealth === 'red' ? 'text-red-400' : catHealth === 'amber' ? 'text-amber-400' : 'text-emerald-400')}>
+                  {totalDrawn > 0 ? fmt(totalDrawn) : '—'}
+                </p>
               </div>
               <div>
                 <p className="text-slate-500 text-[10px]">Remaining</p>
                 <p className={clsx('font-medium tabular-nums', (catRemaining ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400')}>
-                  {catBudget > 0 ? fmt(Math.max(0, catRemaining ?? 0)) : '—'}
-                </p>
-              </div>
-            </>
-          ) : (
-            <>
-              <div>
-                <p className="text-slate-500 text-[10px]">Forecast</p>
-                <p className={clsx('font-medium tabular-nums', catHealth === 'green' ? 'text-emerald-400' : catHealth === 'amber' ? 'text-amber-400' : 'text-red-400')}>
-                  {catForecast > 0 ? fmt(catForecast) : '—'}
-                </p>
-              </div>
-              <div>
-                <p className="text-slate-500 text-[10px]">Variance</p>
-                <p className={clsx('font-medium tabular-nums', catVariance >= 0 ? 'text-emerald-400' : 'text-red-400')}>
-                  {catBudget > 0 ? (catVariance >= 0 ? fmt(catVariance) : `(${fmt(Math.abs(catVariance))})`) : '—'}
+                  {catRemaining !== null ? fmt(Math.abs(catRemaining)) : '—'}
+                  {(catRemaining ?? 0) < 0 && <span className="text-[9px] ml-0.5 text-red-500">over</span>}
                 </p>
               </div>
             </>
@@ -649,6 +632,69 @@ function CategoryCard({
 
       {expanded && (
         <div className="border-t border-slate-700/50">
+
+          {/* ── Approved budget editor ─────────────────────────────────────── */}
+          {editingBudget ? (
+            <div className="px-4 py-3 bg-slate-900/40 border-b border-slate-700/50 flex items-center gap-2 flex-wrap">
+              <span className="text-xs text-slate-400 font-medium">Approved {category} Budget:</span>
+              <input
+                type="number"
+                value={budgetInput}
+                onChange={e => setBudgetInput(e.target.value)}
+                placeholder="e.g. 2331000"
+                autoFocus
+                className="w-44 bg-slate-900 text-slate-100 text-xs rounded px-2 py-1.5 border border-blue-600 focus:outline-none placeholder-slate-600"
+                onKeyDown={e => { if (e.key === 'Enter') saveBudget(); if (e.key === 'Escape') setEditingBudget(false) }}
+              />
+              <button onClick={saveBudget} disabled={savingBudget}
+                className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-lg disabled:opacity-50">
+                <Check size={11} /> {savingBudget ? 'Saving…' : 'Save'}
+              </button>
+              <button onClick={() => setEditingBudget(false)}
+                className="flex items-center gap-1 border border-slate-600 text-slate-400 text-xs px-3 py-1.5 rounded-lg hover:bg-slate-800">
+                <X size={11} /> Cancel
+              </button>
+              {approvedBudget && (
+                <button onClick={async () => { setSavingBudget(true); await onSetBudget(null); setSavingBudget(false); setEditingBudget(false) }}
+                  className="text-xs text-red-400 hover:text-red-300 ml-2">
+                  Clear budget
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="px-4 py-2 border-b border-slate-700/30 flex items-center justify-between">
+              <div className="flex items-center gap-3 text-xs flex-wrap">
+                <span className="text-slate-500">
+                  Approved Budget: <span className="text-slate-200 font-medium tabular-nums">
+                    {approvedBudget ? fmt(approvedBudget) : <span className="text-slate-600 italic">not set</span>}
+                  </span>
+                </span>
+                {catBudget > 0 && (
+                  <>
+                    <span className="text-slate-600">·</span>
+                    <span className="text-slate-500">
+                      Drawn: <span className={clsx('font-medium tabular-nums', catHealth === 'red' ? 'text-red-400' : catHealth === 'amber' ? 'text-amber-400' : 'text-emerald-400')}>
+                        {fmt(totalDrawn)}
+                      </span>
+                    </span>
+                    <span className="text-slate-600">·</span>
+                    <span className="text-slate-500">
+                      Remaining: <span className={clsx('font-medium tabular-nums', (catRemaining ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400')}>
+                        {catRemaining !== null
+                          ? `${(catRemaining ?? 0) < 0 ? '(' : ''}${fmt(Math.abs(catRemaining ?? 0))}${(catRemaining ?? 0) < 0 ? ') over' : ''}`
+                          : '—'}
+                      </span>
+                    </span>
+                  </>
+                )}
+              </div>
+              <button onClick={openBudgetEdit}
+                className="text-[10px] text-blue-400 hover:text-blue-300 shrink-0 ml-2">
+                {approvedBudget ? 'Edit' : '+ Set Budget'}
+              </button>
+            </div>
+          )}
+
           {items.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -670,46 +716,29 @@ function CategoryCard({
                       key={item.id}
                       item={item}
                       onDelete={onDelete}
-                      isEnvelope={item.isBudgetEnvelope === true}
-                      envelopeMode={envelopeMode}
-                      totalDrawn={totalDrawn}
                     />
                   ))}
-                  {/* Category subtotal */}
+                  {/* Category subtotal row */}
                   <tr className="border-t border-slate-700/50 bg-slate-900/30 text-xs font-semibold">
                     <td className="px-3 py-2" />
                     <td className="px-3 py-2 text-slate-400">
-                      {envelopeMode ? (
-                        <span>
-                          Drawn <span className="text-slate-600 font-normal">of {fmt(catBudget)}</span>
-                        </span>
-                      ) : 'Subtotal'}
+                      Drawn <span className="text-slate-600 font-normal">of {approvedBudget ? fmt(approvedBudget) : 'budget'}</span>
                     </td>
-                    <td className="px-3 py-2 text-right text-slate-200 tabular-nums">{fmt(catBudget)}</td>
+                    <td className="px-3 py-2 text-right text-slate-200 tabular-nums">{catBudget > 0 ? fmt(catBudget) : '—'}</td>
                     <td className="px-3 py-2 text-right tabular-nums font-semibold">
-                      {envelopeMode ? (
-                        <span className="text-amber-400">{totalDrawn > 0 ? fmt(totalDrawn) : '—'}</span>
-                      ) : (
-                        <span className={clsx(catHealth === 'green' ? 'text-emerald-400' : catHealth === 'amber' ? 'text-amber-400' : 'text-red-400')}>
-                          {catForecast > 0 ? fmt(catForecast) : '—'}
-                        </span>
-                      )}
+                      <span className={clsx(catHealth === 'green' ? 'text-emerald-400' : catHealth === 'amber' ? 'text-amber-400' : 'text-red-400')}>
+                        {totalDrawn > 0 ? fmt(totalDrawn) : '—'}
+                      </span>
                     </td>
                     <td className="px-3 py-2 text-right text-slate-400 tabular-nums hidden sm:table-cell">{catContract > 0 ? fmt(catContract) : '—'}</td>
                     <td className="px-3 py-2 text-right text-slate-400 tabular-nums hidden sm:table-cell">{catInvoiced > 0 ? fmt(catInvoiced) : '—'}</td>
                     <td className="px-3 py-2 text-right text-emerald-400 tabular-nums hidden sm:table-cell">{catPaid > 0 ? fmt(catPaid) : '—'}</td>
                     <td className="px-3 py-2 text-right">
-                      {envelopeMode ? (
-                        <span className={clsx('tabular-nums', (catRemaining ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400')}>
-                          {(catRemaining ?? 0) >= 0 ? fmt(catRemaining ?? 0) : `(${fmt(Math.abs(catRemaining ?? 0))})`}
+                      {catBudget > 0 && catRemaining !== null && (
+                        <span className={clsx('tabular-nums', catRemaining >= 0 ? 'text-emerald-400' : 'text-red-400')}>
+                          {catRemaining >= 0 ? fmt(catRemaining) : `(${fmt(Math.abs(catRemaining))})`}
                           <span className="text-slate-600 font-normal ml-1 text-[9px]">remaining</span>
                         </span>
-                      ) : (
-                        catBudget > 0 && (
-                          <span className={clsx('tabular-nums', catVariance >= 0 ? 'text-emerald-400' : 'text-red-400')}>
-                            {catVariance >= 0 ? fmt(catVariance) : `(${fmt(Math.abs(catVariance))})`}
-                          </span>
-                        )
                       )}
                     </td>
                   </tr>
@@ -834,6 +863,7 @@ function ContingencyTracker({ items, coApproved }: { items: ExtBudgetItem[]; coA
 export function BudgetTab({ project }: { project: Project }) {
   const { items, loading } = useBudgetItems(project.id)
   const { approvedTotal: coApproved, pendingTotal: coPending } = useChangeOrders(project.id)
+  const categoryBudgets: Record<string, number> = project.categoryBudgets ?? {}
 
   const ext = items as ExtBudgetItem[]
   const totalBudget   = ext.reduce((s, i) => s + i.budgetAmount, 0)
@@ -870,7 +900,6 @@ export function BudgetTab({ project }: { project: Project }) {
       paymentStatus:    form.paymentStatus,
       variance:         budget - forecast,
       notes:            form.notes,
-      isBudgetEnvelope: form.isBudgetEnvelope || false,
       createdAt: now, updatedAt: now,
     })
   }
@@ -878,6 +907,16 @@ export function BudgetTab({ project }: { project: Project }) {
   const handleDelete = async (id: string) => {
     if (!confirm('Remove this budget line item?')) return
     await deleteDoc(doc(db, 'budgetItems', id))
+  }
+
+  const handleSetCategoryBudget = async (category: string, amount: number | null) => {
+    const updated = { ...categoryBudgets }
+    if (amount === null) {
+      delete updated[category]
+    } else {
+      updated[category] = amount
+    }
+    await updateDoc(doc(db, 'projects', project.id), { categoryBudgets: updated })
   }
 
   if (loading) {
@@ -1010,8 +1049,10 @@ export function BudgetTab({ project }: { project: Project }) {
               key={cat}
               category={cat}
               items={catItems}
+              approvedBudget={categoryBudgets[cat] ?? null}
               onAdd={handleAdd}
               onDelete={handleDelete}
+              onSetBudget={amount => handleSetCategoryBudget(cat, amount)}
             />
           )
         })}

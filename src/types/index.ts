@@ -50,6 +50,7 @@ export interface Project {
   forecastCost: number
   actualCost: number
   contingencyPercent: number
+  categoryBudgets?: Record<string, number>  // approved budget per category, e.g. { 'Hard Cost': 2331000 }
   // Size
   rsf?: number                // rentable square feet
   // Flags
