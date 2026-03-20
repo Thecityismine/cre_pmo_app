@@ -12,6 +12,7 @@ export interface ScheduleItem {
   baselineEnd: string
   percentComplete: number     // 0–100
   isCriticalPath: boolean
+  predecessors?: string[]     // array of predecessor ScheduleItem IDs (Finish-to-Start)
   notes: string
   sortOrder: number
   createdAt: string

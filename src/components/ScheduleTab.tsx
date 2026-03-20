@@ -3,7 +3,7 @@ import { clsx } from 'clsx'
 import {
   Plus, ChevronDown, ChevronRight, CheckCircle2, AlertTriangle,
   Clock, Calendar, Trash2, Pencil, BarChart2, Flag, Download, Lock,
-  List, GanttChartSquare,
+  List, GanttChartSquare, Link2,
 } from 'lucide-react'
 import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
@@ -86,14 +86,62 @@ const STATUS_CFG = {
   upcoming:    { label: 'Upcoming',    color: 'text-slate-400',   bg: 'bg-slate-800/50 border-slate-700/40',  dot: 'bg-slate-500',   bar: 'bg-slate-600'   },
 }
 
+// ─── Critical Path Method (CPM) ───────────────────────────────────────────────
+// Returns the set of item IDs on the auto-detected critical path (float = 0).
+// Falls back to manual isCriticalPath flags if no dependency data exists.
+
+function computeCriticalPath(items: ScheduleItem[]): Set<string> {
+  const withDates = items.filter(i => i.startDate && i.endDate)
+  const hasDeps = withDates.some(i => (i.predecessors?.length ?? 0) > 0)
+
+  if (!hasDeps) {
+    // No dependency data — fall back to manual flags
+    return new Set(items.filter(i => i.isCriticalPath).map(i => i.id))
+  }
+
+  const ms = (d: string) => new Date(d).getTime()
+  const es: Record<string, number> = {}
+  const ef: Record<string, number> = {}
+  const ls: Record<string, number> = {}
+  const lf: Record<string, number> = {}
+
+  // Forward pass — process in sort order
+  for (const item of withDates) {
+    const preds = (item.predecessors ?? []).map(pid => withDates.find(i => i.id === pid)).filter(Boolean) as ScheduleItem[]
+    es[item.id] = preds.length === 0
+      ? ms(item.startDate)
+      : Math.max(...preds.map(p => ef[p.id] ?? ms(item.startDate)))
+    ef[item.id] = es[item.id] + (ms(item.endDate) - ms(item.startDate))
+  }
+
+  const projectEnd = Math.max(...withDates.map(i => ef[i.id]))
+
+  // Backward pass — process in reverse sort order
+  for (const item of [...withDates].reverse()) {
+    const succs = withDates.filter(i => i.predecessors?.includes(item.id))
+    lf[item.id] = succs.length === 0
+      ? projectEnd
+      : Math.min(...succs.map(s => ls[s.id] ?? projectEnd))
+    ls[item.id] = lf[item.id] - (ms(item.endDate) - ms(item.startDate))
+  }
+
+  const oneDayMs = 1000 * 60 * 60 * 24
+  const critical = new Set<string>()
+  for (const item of withDates) {
+    if (Math.abs(ls[item.id] - es[item.id]) < oneDayMs) critical.add(item.id)
+  }
+  return critical
+}
+
 // ─── Gantt View ───────────────────────────────────────────────────────────────
 
 interface GanttProps {
   items: ScheduleItem[]
   milestones: Array<{ id: string; name: string; targetDate: string; status: string }>
+  criticalIds: Set<string>
 }
 
-function GanttView({ items, milestones }: GanttProps) {
+function GanttView({ items, milestones, criticalIds }: GanttProps) {
   // Compute date window
   const { windowStart, totalDays, months, todayPct, forecastDate } = useMemo(() => {
     const dates: Date[] = []
@@ -188,6 +236,8 @@ function GanttView({ items, milestones }: GanttProps) {
           {items.map(item => {
             const status = itemStatus(item)
             const cfg = STATUS_CFG[status]
+            const isCrit = criticalIds.has(item.id)
+            const hasPreds = (item.predecessors?.length ?? 0) > 0
             return (
               <div key={item.id}
                 className="flex items-center gap-1.5 px-3 border-b border-slate-700/30"
@@ -199,9 +249,8 @@ function GanttView({ items, milestones }: GanttProps) {
                 )} title={item.name}>
                   {item.name}
                 </span>
-                {item.isCriticalPath && (
-                  <Flag size={9} className="text-red-400 shrink-0" />
-                )}
+                {hasPreds && <Link2 size={8} className="text-blue-500 shrink-0" />}
+                {isCrit && <Flag size={9} className="text-red-400 shrink-0" />}
               </div>
             )
           })}
@@ -270,6 +319,7 @@ function GanttView({ items, milestones }: GanttProps) {
             {items.map(item => {
               const status = itemStatus(item)
               const cfg = STATUS_CFG[status]
+              const isCrit = criticalIds.has(item.id)
               const startP = pct(item.startDate)
               const endP   = pct(item.endDate)
               const baseStartP = pct(item.baselineStart)
@@ -308,7 +358,7 @@ function GanttView({ items, milestones }: GanttProps) {
                     <div
                       className={clsx(
                         'absolute rounded flex items-center overflow-hidden',
-                        item.isCriticalPath ? 'ring-1 ring-red-500/60' : '',
+                        isCrit ? 'ring-1 ring-red-500/60' : '',
                         cfg.bar,
                       )}
                       style={{
@@ -415,24 +465,38 @@ interface FormData {
   baselineEnd: string
   percentComplete: number
   isCriticalPath: boolean
+  predecessors: string[]
   notes: string
   sortOrder: number
 }
 
 const blank = (): FormData => ({
   name: '', startDate: '', endDate: '', baselineStart: '', baselineEnd: '',
-  percentComplete: 0, isCriticalPath: false, notes: '', sortOrder: 99,
+  percentComplete: 0, isCriticalPath: false, predecessors: [], notes: '', sortOrder: 99,
 })
 
 function ScheduleForm({
-  initial, onSave, onCancel,
+  initial, onSave, onCancel, allItems = [], editingId,
 }: {
   initial?: FormData
   onSave: (d: FormData) => void
   onCancel: () => void
+  allItems?: ScheduleItem[]
+  editingId?: string
 }) {
   const [f, setF] = useState<FormData>(initial ?? blank())
   const set = (k: keyof FormData, v: FormData[keyof FormData]) => setF(p => ({ ...p, [k]: v }))
+
+  const togglePred = (id: string) => {
+    setF(p => ({
+      ...p,
+      predecessors: p.predecessors.includes(id)
+        ? p.predecessors.filter(x => x !== id)
+        : [...p.predecessors, id],
+    }))
+  }
+
+  const availablePreds = allItems.filter(i => i.id !== editingId)
 
   return (
     <div className="bg-slate-800/70 border border-slate-700 rounded-xl p-4 space-y-3">
@@ -484,8 +548,39 @@ function ScheduleForm({
         <div className="sm:col-span-2 flex items-center gap-2">
           <input type="checkbox" id="crit" checked={f.isCriticalPath} onChange={e => set('isCriticalPath', e.target.checked)}
             className="accent-red-500" />
-          <label htmlFor="crit" className="text-sm text-slate-300">Critical Path item</label>
+          <label htmlFor="crit" className="text-sm text-slate-300">Manual critical path flag</label>
+          <span className="text-xs text-slate-600">(auto-detected when dependencies are set)</span>
         </div>
+
+        {availablePreds.length > 0 && (
+          <div className="sm:col-span-2">
+            <label className="block text-xs text-slate-400 mb-1">
+              <span className="flex items-center gap-1"><Link2 size={10} /> Predecessors (Finish-to-Start)</span>
+            </label>
+            <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
+              {availablePreds.map(item => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => togglePred(item.id)}
+                  className={clsx(
+                    'text-xs px-2 py-0.5 rounded border transition-colors',
+                    f.predecessors.includes(item.id)
+                      ? 'bg-blue-900/60 border-blue-600 text-blue-200'
+                      : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-200',
+                  )}
+                >
+                  {item.name}
+                </button>
+              ))}
+            </div>
+            {f.predecessors.length > 0 && (
+              <p className="text-[10px] text-blue-400 mt-1">
+                {f.predecessors.length} predecessor{f.predecessors.length > 1 ? 's' : ''} selected — this activity starts after they finish
+              </p>
+            )}
+          </div>
+        )}
 
         <div className="sm:col-span-2">
           <label className="block text-xs text-slate-400 mb-1">Notes</label>
@@ -513,16 +608,30 @@ function ScheduleForm({
 // ─── Schedule Row ─────────────────────────────────────────────────────────────
 
 function ScheduleRow({
-  item, onUpdate, onDelete,
+  item, onUpdate, onDelete, allItems = [], isAutoCritical = false,
 }: {
   item: ScheduleItem
   onUpdate: (id: string, data: Partial<ScheduleItem>) => void
   onDelete: (id: string) => void
+  allItems?: ScheduleItem[]
+  isAutoCritical?: boolean
 }) {
   const [expanded, setExpanded] = useState(false)
   const [editing, setEditing] = useState(false)
   const status = itemStatus(item)
   const cfg = STATUS_CFG[status]
+
+  // Predecessor info
+  const predecessors = (item.predecessors ?? [])
+    .map(pid => allItems.find(i => i.id === pid))
+    .filter(Boolean) as ScheduleItem[]
+
+  // Successors (items that depend on this one)
+  const successors = allItems.filter(i => i.predecessors?.includes(item.id))
+
+  // Delay impact: this item is behind AND has successors
+  const isBehind = status === 'behind'
+  const impactsCount = isBehind ? successors.length : 0
 
   // Variance: actual end vs baseline end
   const startVariance = item.startDate && item.baselineStart
@@ -545,10 +654,13 @@ function ScheduleRow({
             name: item.name, startDate: item.startDate, endDate: item.endDate,
             baselineStart: item.baselineStart, baselineEnd: item.baselineEnd,
             percentComplete: item.percentComplete, isCriticalPath: item.isCriticalPath,
+            predecessors: item.predecessors ?? [],
             notes: item.notes, sortOrder: item.sortOrder,
           }}
           onSave={handleSave}
           onCancel={() => setEditing(false)}
+          allItems={allItems}
+          editingId={item.id}
         />
       </div>
     )
@@ -584,9 +696,19 @@ function ScheduleRow({
             <span className={clsx('text-sm font-medium', item.percentComplete === 100 ? 'line-through text-slate-500' : 'text-slate-100')}>
               {item.name}
             </span>
-            {item.isCriticalPath && (
+            {isAutoCritical && (
               <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-red-900/60 text-red-300 border border-red-700/50">
-                <Flag size={9} /> Critical
+                <Flag size={9} /> Critical Path
+              </span>
+            )}
+            {predecessors.length > 0 && (
+              <span className="flex items-center gap-1 text-[10px] text-blue-400">
+                <Link2 size={9} /> {predecessors.length} dep
+              </span>
+            )}
+            {impactsCount > 0 && (
+              <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-orange-900/50 text-orange-300 border border-orange-700/40">
+                <AlertTriangle size={9} /> delays {impactsCount} downstream
               </span>
             )}
           </div>
@@ -670,6 +792,40 @@ function ScheduleRow({
               {item.baselineStart && item.baselineEnd ? `${daysBetween(item.baselineStart, item.baselineEnd)}d` : '—'}
             </p>
           </div>
+          {predecessors.length > 0 && (
+            <div className="col-span-2 sm:col-span-4">
+              <p className="text-slate-500 mb-0.5">Predecessors (must finish first)</p>
+              <div className="flex flex-wrap gap-1.5">
+                {predecessors.map(p => {
+                  const ps = itemStatus(p)
+                  return (
+                    <span key={p.id} className={clsx(
+                      'text-xs px-2 py-0.5 rounded border',
+                      ps === 'behind' ? 'bg-red-900/40 border-red-700/40 text-red-300'
+                      : ps === 'complete' ? 'bg-emerald-900/40 border-emerald-700/40 text-emerald-300'
+                      : 'bg-slate-800 border-slate-700 text-slate-400',
+                    )}>
+                      {p.name}
+                      {ps === 'behind' && ' ⚠ behind'}
+                      {ps === 'complete' && ' ✓'}
+                    </span>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+          {successors.length > 0 && (
+            <div className="col-span-2 sm:col-span-4">
+              <p className="text-slate-500 mb-0.5">Successors (depend on this)</p>
+              <div className="flex flex-wrap gap-1.5">
+                {successors.map(s => (
+                  <span key={s.id} className="text-xs px-2 py-0.5 rounded border bg-slate-800 border-slate-700 text-slate-400">
+                    {s.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
           {item.notes && (
             <div className="col-span-2 sm:col-span-4">
               <p className="text-slate-500 mb-0.5">Notes</p>
@@ -692,6 +848,9 @@ export function ScheduleTab({ project }: { project: Project }) {
   const [filter, setFilter] = useState<'all' | 'behind' | 'in-progress' | 'upcoming' | 'complete'>('all')
   const [viewMode, setViewMode] = useState<'list' | 'gantt'>('list')
   const [lockingBaseline, setLockingBaseline] = useState(false)
+
+  // Auto-detect critical path via CPM
+  const criticalIds = useMemo(() => computeCriticalPath(items), [items])
 
   const filtered = filter === 'all' ? items : items.filter(i => itemStatus(i) === filter)
 
@@ -750,9 +909,11 @@ export function ScheduleTab({ project }: { project: Project }) {
         <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-3 text-center">
           <p className="text-xs text-slate-500 mb-1">Critical Path Items</p>
           <p className="text-2xl font-bold text-red-400">
-            {items.filter(i => i.isCriticalPath).length}
+            {criticalIds.size}
           </p>
-          <p className="text-xs text-slate-500 mt-0.5">flagged critical</p>
+          <p className="text-xs text-slate-500 mt-0.5">
+            {items.some(i => (i.predecessors?.length ?? 0) > 0) ? 'auto-detected' : 'manually flagged'}
+          </p>
         </div>
       </div>
 
@@ -855,7 +1016,7 @@ export function ScheduleTab({ project }: { project: Project }) {
       </div>
 
       {showAdd && (
-        <ScheduleForm onSave={handleAdd} onCancel={() => setShowAdd(false)} />
+        <ScheduleForm onSave={handleAdd} onCancel={() => setShowAdd(false)} allItems={items} />
       )}
 
       {/* Content */}
@@ -871,7 +1032,7 @@ export function ScheduleTab({ project }: { project: Project }) {
             <p className="text-xs mt-1 text-slate-600">Add activities or use "Seed defaults" to get started.</p>
           </div>
         ) : (
-          <GanttView items={items} milestones={milestones} />
+          <GanttView items={items} milestones={milestones} criticalIds={criticalIds} />
         )
       ) : filtered.length === 0 ? (
         <div className="text-center py-12 text-slate-500">
@@ -885,7 +1046,8 @@ export function ScheduleTab({ project }: { project: Project }) {
         <div className="space-y-2">
           {filtered.map(item => (
             <ScheduleRow key={item.id} item={item}
-              onUpdate={updateItem} onDelete={deleteItem} />
+              onUpdate={updateItem} onDelete={deleteItem}
+              allItems={items} isAutoCritical={criticalIds.has(item.id)} />
           ))}
         </div>
       )}
