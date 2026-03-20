@@ -256,48 +256,94 @@ function LineItemRow({ item, onDelete }: { item: ExtBudgetItem; onDelete: (id: s
       Number(form.forecastAmount) || 0,
     )
 
+    const lbl = 'block text-[10px] text-slate-500 mb-1'
+
     return (
       <tr className="bg-slate-900/80 border-t border-slate-700">
-        <td className="px-3 py-2" colSpan={8}>
-          <div className="space-y-2">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              <input value={form.description} onChange={e => set('description', e.target.value)}
-                placeholder="Description *" className={`${inp} col-span-2`} autoFocus />
-              <input value={form.vendorName} onChange={e => set('vendorName', e.target.value)}
-                placeholder="Vendor" className={inp} />
-              <select value={form.paymentStatus} onChange={e => set('paymentStatus', e.target.value)} className={inp}>
-                {PAYMENT_STATUS.map(s => <option key={s}>{s}</option>)}
-              </select>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              <input value={form.contractNumber} onChange={e => set('contractNumber', e.target.value)}
-                placeholder="Contract #" className={inp} />
-              <input value={form.contactEmail} onChange={e => set('contactEmail', e.target.value)}
-                placeholder="Contact email" className={`${inp} col-span-3`} />
-            </div>
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-              <input type="number" value={form.budgetAmount}   onChange={e => set('budgetAmount', e.target.value)}   placeholder="Budget $"   className={inp} />
-              <input type="number" value={form.contractAmount} onChange={e => set('contractAmount', e.target.value)} placeholder="Contract $" className={inp} />
-              <input type="number" value={form.invoicedAmount} onChange={e => set('invoicedAmount', e.target.value)} placeholder="Invoiced $" className={inp} />
-              <input type="number" value={form.paidAmount}     onChange={e => set('paidAmount', e.target.value)}     placeholder="Paid $"     className={inp} />
-              <div className="relative">
-                <input type="number" value={form.costToComplete} onChange={e => set('costToComplete', e.target.value)} placeholder="Cost to Complete $" className={inp} />
-                <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] text-slate-600 pointer-events-none">ETC</span>
+        <td className="px-3 py-3" colSpan={8}>
+          <div className="space-y-3">
+
+            {/* Row 1: Description + Vendor */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className={lbl}>Description *</label>
+                <input value={form.description} onChange={e => set('description', e.target.value)}
+                  placeholder="e.g. Construction Fee" className={inp} autoFocus />
               </div>
-              <input value={form.notes} onChange={e => set('notes', e.target.value)} placeholder="Notes" className={inp} />
+              <div>
+                <label className={lbl}>Vendor / Contractor</label>
+                <input value={form.vendorName} onChange={e => set('vendorName', e.target.value)}
+                  placeholder="Vendor name" className={inp} />
+              </div>
             </div>
+
+            {/* Row 2: Status + Contract # + Contact email */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className={lbl}>Payment Status</label>
+                <select value={form.paymentStatus} onChange={e => set('paymentStatus', e.target.value)} className={inp}>
+                  {PAYMENT_STATUS.map(s => <option key={s}>{s}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className={lbl}>Contract #</label>
+                <input value={form.contractNumber} onChange={e => set('contractNumber', e.target.value)}
+                  placeholder="Optional" className={inp} />
+              </div>
+              <div>
+                <label className={lbl}>Contact Email</label>
+                <input value={form.contactEmail} onChange={e => set('contactEmail', e.target.value)}
+                  placeholder="Optional" className={inp} />
+              </div>
+            </div>
+
+            {/* Row 3: Financial fields */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div>
+                <label className={lbl}>Budget $</label>
+                <input type="number" value={form.budgetAmount} onChange={e => set('budgetAmount', e.target.value)}
+                  placeholder="0" className={inp} />
+              </div>
+              <div>
+                <label className={lbl}>Contract $</label>
+                <input type="number" value={form.contractAmount} onChange={e => set('contractAmount', e.target.value)}
+                  placeholder="0" className={inp} />
+              </div>
+              <div>
+                <label className={lbl}>Cost to Complete (ETC) $</label>
+                <input type="number" value={form.costToComplete} onChange={e => set('costToComplete', e.target.value)}
+                  placeholder="Auto-calculates forecast" className={inp} />
+              </div>
+              <div>
+                <label className={lbl}>Invoiced $</label>
+                <input type="number" value={form.invoicedAmount} onChange={e => set('invoicedAmount', e.target.value)}
+                  placeholder="0" className={inp} />
+              </div>
+              <div>
+                <label className={lbl}>Paid $</label>
+                <input type="number" value={form.paidAmount} onChange={e => set('paidAmount', e.target.value)}
+                  placeholder="0" className={inp} />
+              </div>
+              <div>
+                <label className={lbl}>Notes</label>
+                <input value={form.notes} onChange={e => set('notes', e.target.value)}
+                  placeholder="Optional" className={inp} />
+              </div>
+            </div>
+
             {Number(form.costToComplete) > 0 && (
               <p className="text-[10px] text-blue-400">
                 Auto-forecast: {fmt(prevForecast)} (Paid + Cost to Complete)
               </p>
             )}
-            <div className="flex gap-2">
+
+            <div className="flex gap-2 pt-1">
               <button onClick={save} disabled={saving}
-                className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-lg">
-                <Check size={12} /> {saving ? '…' : 'Save'}
+                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-2 rounded-lg">
+                <Check size={12} /> {saving ? 'Saving…' : 'Save'}
               </button>
               <button onClick={() => setEditing(false)}
-                className="flex items-center gap-1 border border-slate-600 text-slate-400 text-xs px-3 py-1.5 rounded-lg hover:bg-slate-800">
+                className="flex items-center gap-1.5 border border-slate-600 text-slate-400 text-xs px-4 py-2 rounded-lg hover:bg-slate-800">
                 <X size={12} /> Cancel
               </button>
             </div>
@@ -320,9 +366,9 @@ function LineItemRow({ item, onDelete }: { item: ExtBudgetItem; onDelete: (id: s
         )}
       </td>
       <td className="px-3 py-2.5 text-right text-slate-300 text-sm tabular-nums">{fmt(item.budgetAmount)}</td>
-      <td className="px-3 py-2.5 text-right text-slate-400 text-sm tabular-nums">{contractAmt > 0 ? fmt(contractAmt) : '—'}</td>
-      <td className="px-3 py-2.5 text-right text-slate-400 text-sm tabular-nums">{invoicedAmt > 0 ? fmt(invoicedAmt) : '—'}</td>
-      <td className="px-3 py-2.5 text-right text-slate-400 text-sm tabular-nums">{paidAmt > 0 ? fmt(paidAmt) : '—'}</td>
+      <td className="px-3 py-2.5 text-right text-slate-400 text-sm tabular-nums hidden sm:table-cell">{contractAmt > 0 ? fmt(contractAmt) : '—'}</td>
+      <td className="px-3 py-2.5 text-right text-slate-400 text-sm tabular-nums hidden sm:table-cell">{invoicedAmt > 0 ? fmt(invoicedAmt) : '—'}</td>
+      <td className="px-3 py-2.5 text-right text-slate-400 text-sm tabular-nums hidden sm:table-cell">{paidAmt > 0 ? fmt(paidAmt) : '—'}</td>
       <td className="px-3 py-2.5">
         <span className={clsx('text-xs px-2 py-0.5 rounded font-medium', PAYMENT_STATUS_COLORS[paymentStatus] ?? 'bg-slate-700 text-slate-400')}>
           {paymentStatus}
@@ -481,9 +527,9 @@ function CategoryCard({
                     <th className="px-3 py-2 w-4" />
                     <th className="text-left px-3 py-2">Description / Vendor</th>
                     <th className="text-right px-3 py-2">Budget</th>
-                    <th className="text-right px-3 py-2">Contract</th>
-                    <th className="text-right px-3 py-2">Invoiced</th>
-                    <th className="text-right px-3 py-2">Paid</th>
+                    <th className="text-right px-3 py-2 hidden sm:table-cell">Contract</th>
+                    <th className="text-right px-3 py-2 hidden sm:table-cell">Invoiced</th>
+                    <th className="text-right px-3 py-2 hidden sm:table-cell">Paid</th>
                     <th className="text-left px-3 py-2">Status</th>
                     <th className="text-right px-3 py-2">Variance</th>
                   </tr>
@@ -497,9 +543,9 @@ function CategoryCard({
                     <td className="px-3 py-2" />
                     <td className="px-3 py-2 text-slate-400">Subtotal</td>
                     <td className="px-3 py-2 text-right text-slate-200 tabular-nums">{fmt(catBudget)}</td>
-                    <td className="px-3 py-2 text-right text-slate-400 tabular-nums">{catContract > 0 ? fmt(catContract) : '—'}</td>
-                    <td className="px-3 py-2 text-right text-slate-400 tabular-nums">{catInvoiced > 0 ? fmt(catInvoiced) : '—'}</td>
-                    <td className="px-3 py-2 text-right text-emerald-400 tabular-nums">{catPaid > 0 ? fmt(catPaid) : '—'}</td>
+                    <td className="px-3 py-2 text-right text-slate-400 tabular-nums hidden sm:table-cell">{catContract > 0 ? fmt(catContract) : '—'}</td>
+                    <td className="px-3 py-2 text-right text-slate-400 tabular-nums hidden sm:table-cell">{catInvoiced > 0 ? fmt(catInvoiced) : '—'}</td>
+                    <td className="px-3 py-2 text-right text-emerald-400 tabular-nums hidden sm:table-cell">{catPaid > 0 ? fmt(catPaid) : '—'}</td>
                     <td className="px-3 py-2" />
                     <td className="px-3 py-2 text-right">
                       {catBudget > 0 && (
@@ -771,15 +817,21 @@ export function BudgetTab({ project }: { project: Project }) {
               style={{ width: `${Math.min(100, Math.max(0, (totalForecast - totalInvoiced) / (netBudget || 1) * 100))}%` }} />
           </div>
           <div className="flex flex-wrap gap-4 mt-2">
-            <span className="text-xs text-emerald-400 flex items-center gap-1">
-              <span className="w-2 h-2 rounded-sm bg-emerald-500 inline-block" /> Paid {fmt(totalPaid)}
-            </span>
-            <span className="text-xs text-blue-400 flex items-center gap-1">
-              <span className="w-2 h-2 rounded-sm bg-blue-500/60 inline-block" /> Invoiced {fmt(totalInvoiced)}
-            </span>
-            <span className="text-xs text-amber-400 flex items-center gap-1">
-              <span className="w-2 h-2 rounded-sm bg-amber-500/60 inline-block" /> Contracted {fmt(totalContract)}
-            </span>
+            {totalPaid > 0 && (
+              <span className="text-xs text-emerald-400 flex items-center gap-1">
+                <span className="w-2 h-2 rounded-sm bg-emerald-500 inline-block" /> Paid {fmt(totalPaid)}
+              </span>
+            )}
+            {totalInvoiced > 0 && (
+              <span className="text-xs text-blue-400 flex items-center gap-1">
+                <span className="w-2 h-2 rounded-sm bg-blue-500/60 inline-block" /> Invoiced {fmt(totalInvoiced)}
+              </span>
+            )}
+            {totalContract > 0 && (
+              <span className="text-xs text-amber-400 flex items-center gap-1">
+                <span className="w-2 h-2 rounded-sm bg-amber-500/60 inline-block" /> Contracted {fmt(totalContract)}
+              </span>
+            )}
           </div>
         </div>
       )}
