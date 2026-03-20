@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { clsx } from 'clsx'
-import { Plus, Trash2, ChevronDown, ChevronRight, Check, AlertTriangle, Zap, Bug, Lightbulb, Bot, Download, DollarSign, Clock3, Layers, Sparkles, Loader2 } from 'lucide-react'
+import { Plus, Trash2, ChevronDown, ChevronRight, Check, AlertTriangle, Zap, Bug, Lightbulb, Bot, Download, DollarSign, Clock3, Layers, Sparkles, Loader2, Link2, CheckSquare, FileText } from 'lucide-react'
 import { useRaidLog } from '@/hooks/useRaidLog'
-import type { RaidItem, RaidType, RaidStatus, RaidPriority } from '@/hooks/useRaidLog'
+import type { RaidItem, RaidType, RaidStatus, RaidPriority, LinkedItem } from '@/hooks/useRaidLog'
 import type { Project } from '@/types'
 import { callClaude, hasClaudeKey } from '@/lib/claude'
+import { useProjectTasks } from '@/hooks/useProjectTasks'
+import { useBudgetItems } from '@/hooks/useBudgetItems'
+import { useRfis } from '@/hooks/useRfis'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -78,6 +81,152 @@ function exportToCSV(items: RaidItem[], projectName: string) {
   URL.revokeObjectURL(url)
 }
 
+// ─── Linked items picker ──────────────────────────────────────────────────────
+
+interface PickerOption { id: string; label: string; sub?: string }
+
+function LinkedItemsPicker({
+  value,
+  onChange,
+  tasks,
+  budgetItems,
+  rfis,
+}: {
+  value: LinkedItem[]
+  onChange: (items: LinkedItem[]) => void
+  tasks: PickerOption[]
+  budgetItems: PickerOption[]
+  rfis: PickerOption[]
+}) {
+  const [tab, setTab] = useState<'task' | 'budget' | 'rfi'>('task')
+  const [open, setOpen] = useState(false)
+
+  const toggle = (type: LinkedItem['type'], opt: PickerOption) => {
+    const exists = value.some(l => l.type === type && l.id === opt.id)
+    onChange(exists
+      ? value.filter(l => !(l.type === type && l.id === opt.id))
+      : [...value, { type, id: opt.id, label: opt.label }]
+    )
+  }
+
+  const TABS: { id: LinkedItem['type']; label: string; icon: React.ElementType; opts: PickerOption[] }[] = [
+    { id: 'task',   label: 'Tasks',        icon: CheckSquare, opts: tasks },
+    { id: 'budget', label: 'Budget Lines', icon: DollarSign,  opts: budgetItems },
+    { id: 'rfi',    label: 'RFIs',         icon: FileText,    opts: rfis },
+  ]
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-600 hover:border-slate-500 rounded-lg px-2.5 py-1.5 transition-colors"
+      >
+        <Link2 size={11} />
+        Link items
+        {value.length > 0 && (
+          <span className="bg-blue-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">{value.length}</span>
+        )}
+        {open ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
+      </button>
+
+      {open && (
+        <div className="mt-2 bg-slate-900/80 border border-slate-700 rounded-xl overflow-hidden">
+          {/* Tabs */}
+          <div className="flex border-b border-slate-700">
+            {TABS.map(t => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setTab(t.id)}
+                className={clsx(
+                  'flex items-center gap-1.5 px-3 py-2 text-xs font-medium transition-colors flex-1 justify-center',
+                  tab === t.id ? 'text-blue-300 border-b-2 border-blue-500 bg-blue-950/20' : 'text-slate-500 hover:text-slate-300',
+                )}
+              >
+                <t.icon size={10} />
+                {t.label}
+                {value.filter(l => l.type === t.id).length > 0 && (
+                  <span className="text-[9px] bg-blue-600 text-white px-1 rounded-full">
+                    {value.filter(l => l.type === t.id).length}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* Options */}
+          <div className="max-h-36 overflow-y-auto divide-y divide-slate-800">
+            {TABS.find(t => t.id === tab)!.opts.length === 0 ? (
+              <p className="text-xs text-slate-600 text-center py-4 italic">
+                No {TABS.find(t => t.id === tab)!.label.toLowerCase()} on this project yet.
+              </p>
+            ) : (
+              TABS.find(t => t.id === tab)!.opts.map(opt => {
+                const selected = value.some(l => l.type === tab && l.id === opt.id)
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => toggle(tab, opt)}
+                    className={clsx(
+                      'w-full text-left flex items-center gap-2.5 px-3 py-2 text-xs transition-colors',
+                      selected ? 'bg-blue-950/40 text-blue-200' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200',
+                    )}
+                  >
+                    <span className={clsx(
+                      'w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0',
+                      selected ? 'bg-blue-600 border-blue-500' : 'border-slate-600',
+                    )}>
+                      {selected && <Check size={9} className="text-white" />}
+                    </span>
+                    <span className="flex-1 truncate">{opt.label}</span>
+                    {opt.sub && <span className="text-slate-600 shrink-0">{opt.sub}</span>}
+                  </button>
+                )
+              })
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Linked items display chips ───────────────────────────────────────────────
+
+const LINK_TYPE_CFG: Record<LinkedItem['type'], { icon: React.ElementType; color: string; tab: string }> = {
+  task:   { icon: CheckSquare, color: 'text-blue-400 bg-blue-900/30 border-blue-800/40',   tab: 'tasks'  },
+  budget: { icon: DollarSign,  color: 'text-amber-400 bg-amber-900/30 border-amber-800/40', tab: 'budget' },
+  rfi:    { icon: FileText,    color: 'text-purple-400 bg-purple-900/30 border-purple-800/40', tab: 'rfis' },
+}
+
+function LinkedItemChips({ items, onNavigate }: { items: LinkedItem[]; onNavigate?: (tab: string) => void }) {
+  if (items.length === 0) return null
+  return (
+    <div className="flex flex-wrap gap-1.5 mt-2">
+      {items.map((l, i) => {
+        const cfg = LINK_TYPE_CFG[l.type]
+        return (
+          <button
+            key={i}
+            type="button"
+            onClick={() => onNavigate?.(cfg.tab)}
+            className={clsx(
+              'flex items-center gap-1 text-[10px] px-2 py-0.5 rounded border transition-colors hover:brightness-125',
+              cfg.color,
+            )}
+            title={`Go to ${l.type}: ${l.label}`}
+          >
+            <cfg.icon size={9} />
+            <span className="truncate max-w-[120px]">{l.label}</span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 // ─── Impact chips (compact display) ──────────────────────────────────────────
 
 function ImpactChips({ item }: { item: RaidItem }) {
@@ -111,12 +260,18 @@ function RaidRow({
   onDelete,
   projectName,
   onSourceClick,
+  taskOptions,
+  budgetOptions,
+  rfiOptions,
 }: {
   item: RaidItem
   onUpdate: (id: string, data: Partial<RaidItem>) => Promise<void>
   onDelete: (id: string) => Promise<void>
   projectName: string
   onSourceClick?: (tab: string) => void
+  taskOptions: PickerOption[]
+  budgetOptions: PickerOption[]
+  rfiOptions: PickerOption[]
 }) {
   const [expanded, setExpanded] = useState(false)
   const [editing, setEditing] = useState(false)
@@ -132,6 +287,7 @@ function RaidRow({
   const [costImpact, setCostImpact] = useState(item.costImpact?.toString() ?? '')
   const [scheduleImpact, setScheduleImpact] = useState(item.scheduleImpact?.toString() ?? '')
   const [scopeImpact, setScopeImpact] = useState(item.scopeImpact ?? '')
+  const [linkedItems, setLinkedItems] = useState<LinkedItem[]>(item.linkedItems ?? [])
   const [saving, setSaving] = useState(false)
 
   const { Icon, color, bg } = TYPE_CONFIG[item.type]
@@ -169,6 +325,7 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
       costImpact: costImpact ? parseFloat(costImpact) : undefined,
       scheduleImpact: scheduleImpact ? parseInt(scheduleImpact, 10) : undefined,
       scopeImpact: scopeImpact.trim() || undefined,
+      linkedItems,
     })
     setSaving(false)
     setEditing(false)
@@ -180,6 +337,7 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
     setCostImpact(item.costImpact?.toString() ?? '')
     setScheduleImpact(item.scheduleImpact?.toString() ?? '')
     setScopeImpact(item.scopeImpact ?? '')
+    setLinkedItems(item.linkedItems ?? [])
     setEditing(false)
   }
 
@@ -293,6 +451,15 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
           ))}
         </div>
 
+        {/* Linked items */}
+        <LinkedItemsPicker
+          value={linkedItems}
+          onChange={setLinkedItems}
+          tasks={taskOptions}
+          budgetItems={budgetOptions}
+          rfis={rfiOptions}
+        />
+
         <div className="flex gap-2">
           <button
             onClick={save}
@@ -386,6 +553,12 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
               <p className="text-xs text-slate-500">{item.scopeImpact}</p>
             </div>
           )}
+          {item.linkedItems && item.linkedItems.length > 0 && (
+            <div>
+              <p className="text-[10px] text-slate-600 uppercase tracking-wider mb-1">Linked items</p>
+              <LinkedItemChips items={item.linkedItems} onNavigate={onSourceClick} />
+            </div>
+          )}
 
           {/* AI Mitigation */}
           {hasClaudeKey() && (item.status === 'open' || item.status === 'in-progress') && (
@@ -428,10 +601,16 @@ function AddRaidForm({
   projectId,
   onAdd,
   onCancel,
+  taskOptions,
+  budgetOptions,
+  rfiOptions,
 }: {
   projectId: string
   onAdd: (data: Omit<RaidItem, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>
   onCancel: () => void
+  taskOptions: PickerOption[]
+  budgetOptions: PickerOption[]
+  rfiOptions: PickerOption[]
 }) {
   const [type, setType] = useState<RaidType>('risk')
   const [title, setTitle] = useState('')
@@ -442,6 +621,7 @@ function AddRaidForm({
   const [costImpact, setCostImpact] = useState('')
   const [scheduleImpact, setScheduleImpact] = useState('')
   const [scopeImpact, setScopeImpact] = useState('')
+  const [linkedItems, setLinkedItems] = useState<LinkedItem[]>([])
   const [saving, setSaving] = useState(false)
 
   const save = async () => {
@@ -453,6 +633,7 @@ function AddRaidForm({
       costImpact: costImpact ? parseFloat(costImpact) : undefined,
       scheduleImpact: scheduleImpact ? parseInt(scheduleImpact, 10) : undefined,
       scopeImpact: scopeImpact.trim() || undefined,
+      linkedItems: linkedItems.length > 0 ? linkedItems : undefined,
     })
     setSaving(false)
     onCancel()
@@ -543,6 +724,15 @@ function AddRaidForm({
         className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 resize-none placeholder-slate-500"
       />
 
+      {/* Linked items */}
+      <LinkedItemsPicker
+        value={linkedItems}
+        onChange={setLinkedItems}
+        tasks={taskOptions}
+        budgetItems={budgetOptions}
+        rfis={rfiOptions}
+      />
+
       {/* Priority */}
       <div className="flex items-center gap-2">
         <span className="text-xs text-slate-500">Priority:</span>
@@ -579,9 +769,20 @@ function AddRaidForm({
 
 export function RaidTab({ project, setTab }: { project: Project; setTab?: (tab: string) => void }) {
   const { items, loading, addItem, updateItem, deleteItem } = useRaidLog(project.id)
+  const { tasks: projectTasks } = useProjectTasks(project.id)
+  const { items: budgetLineItems } = useBudgetItems(project.id)
+  const { rfis } = useRfis(project.id)
   const [typeFilter, setTypeFilter] = useState<RaidType | 'all'>('all')
   const [statusFilter, setStatusFilter] = useState<RaidStatus | 'all'>('open')
   const [showAdd, setShowAdd] = useState(false)
+
+  const taskOptions: PickerOption[] = projectTasks.map(t => ({ id: t.id, label: t.title }))
+  const budgetOptions: PickerOption[] = budgetLineItems.map(b => ({
+    id: b.id,
+    label: b.category,
+    sub: b.description || undefined,
+  }))
+  const rfiOptions: PickerOption[] = rfis.map(r => ({ id: r.id, label: `RFI #${r.number}`, sub: r.subject }))
 
   const filtered = items.filter(i => {
     const matchType = typeFilter === 'all' || i.type === typeFilter
@@ -688,6 +889,9 @@ export function RaidTab({ project, setTab }: { project: Project; setTab?: (tab: 
           projectId={project.id}
           onAdd={addItem}
           onCancel={() => setShowAdd(false)}
+          taskOptions={taskOptions}
+          budgetOptions={budgetOptions}
+          rfiOptions={rfiOptions}
         />
       )}
 
@@ -706,7 +910,17 @@ export function RaidTab({ project, setTab }: { project: Project; setTab?: (tab: 
       ) : (
         <div className="space-y-2">
           {filtered.map(item => (
-            <RaidRow key={item.id} item={item} onUpdate={updateItem} onDelete={deleteItem} projectName={project.projectName} onSourceClick={setTab} />
+            <RaidRow
+              key={item.id}
+              item={item}
+              onUpdate={updateItem}
+              onDelete={deleteItem}
+              projectName={project.projectName}
+              onSourceClick={setTab}
+              taskOptions={taskOptions}
+              budgetOptions={budgetOptions}
+              rfiOptions={rfiOptions}
+            />
           ))}
         </div>
       )}

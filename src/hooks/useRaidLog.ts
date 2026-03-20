@@ -6,6 +6,12 @@ export type RaidType = 'risk' | 'action' | 'issue' | 'decision'
 export type RaidStatus = 'open' | 'in-progress' | 'mitigated' | 'closed' | 'accepted'
 export type RaidPriority = 'high' | 'medium' | 'low'
 
+export interface LinkedItem {
+  type: 'task' | 'budget' | 'rfi'
+  id: string
+  label: string
+}
+
 export interface RaidItem {
   id: string
   projectId: string
@@ -23,6 +29,7 @@ export interface RaidItem {
   scopeImpact?: string      // description
   isSystemGenerated?: boolean   // true = auto-created by Risk Engine
   systemKey?: string            // unique key for dedup (e.g. "budget-overrun-{projectId}")
+  linkedItems?: LinkedItem[]    // links to Tasks, Budget lines, RFIs
   createdAt: string
   updatedAt: string
 }
