@@ -265,36 +265,27 @@ function DataAuditSection() {
 function ApiKeysSection() {
   const user = useAuthStore((s) => s.user)
   const [openai, setOpenai] = useState('')
-  const [anthropic, setAnthropic] = useState('')
   const [showOpenai, setShowOpenai] = useState(false)
-  const [showAnthropic, setShowAnthropic] = useState(false)
   const [saved, setSaved] = useState(false)
   const [loading, setLoading] = useState(true)
 
-  // Load from Firestore on mount, also sync to localStorage for runtime use
   useEffect(() => {
     if (!user?.uid) return
     getDoc(doc(db, 'users', user.uid)).then(snap => {
       const keys = snap.data()?.apiKeys ?? {}
       const oai = keys.openai ?? ''
-      const ant = keys.anthropic ?? ''
       setOpenai(oai)
-      setAnthropic(ant)
       if (oai) localStorage.setItem('openai_api_key', oai)
-      if (ant) localStorage.setItem('anthropic_api_key', ant)
       setLoading(false)
     }).catch(() => setLoading(false))
   }, [user?.uid])
 
   const save = async () => {
     if (!user?.uid) return
-    const keys = { openai: openai.trim(), anthropic: anthropic.trim() }
+    const keys = { openai: openai.trim() }
     await setDoc(doc(db, 'users', user.uid), { apiKeys: keys }, { merge: true })
-    // Keep localStorage in sync for runtime use
     if (keys.openai) localStorage.setItem('openai_api_key', keys.openai)
     else localStorage.removeItem('openai_api_key')
-    if (keys.anthropic) localStorage.setItem('anthropic_api_key', keys.anthropic)
-    else localStorage.removeItem('anthropic_api_key')
     setSaved(true)
     setTimeout(() => setSaved(false), 2500)
   }
@@ -329,26 +320,12 @@ function ApiKeysSection() {
           </div>
         </div>
 
-        <div className="border-t border-slate-700" />
-
-        {/* Anthropic */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <label className="text-slate-300 text-sm font-medium">Anthropic (Claude) API Key</label>
-            {anthropic && <span className="text-xs text-emerald-400 flex items-center gap-1"><Check size={11} /> Configured</span>}
-          </div>
-          <p className="text-xs text-slate-500">Powers the AI Assistant chat, project brief, risk insights, and meeting notes · <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">Get API key</a></p>
-          <div className="relative">
-            <input
-              type={showAnthropic ? 'text' : 'password'}
-              value={anthropic}
-              onChange={e => setAnthropic(e.target.value)}
-              placeholder={anthropic ? '••••••••••••••••' : 'Paste your API key here'}
-              className="w-full bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2.5 pr-10 border border-slate-700 focus:outline-none focus:border-blue-500 placeholder-slate-600 font-mono"
-            />
-            <button type="button" onClick={() => setShowAnthropic(!showAnthropic)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
-              {showAnthropic ? <EyeOff size={14} /> : <Eye size={14} />}
-            </button>
+        {/* Claude / Anthropic — key is managed server-side */}
+        <div className="flex items-start gap-3 bg-slate-900/40 border border-slate-700 rounded-lg p-3">
+          <Shield size={14} className="text-emerald-400 mt-0.5 shrink-0" />
+          <div>
+            <p className="text-sm text-slate-300 font-medium">Claude AI — secured server-side</p>
+            <p className="text-xs text-slate-500 mt-0.5">The Anthropic API key is stored in Firebase Secret Manager and never exposed to the browser. All AI features are available automatically when you're signed in.</p>
           </div>
         </div>
 

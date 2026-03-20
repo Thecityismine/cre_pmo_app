@@ -24,6 +24,10 @@ dist-ssr
 firebase-debug.log
 firestore-debug.log
 
+# Functions build output
+functions/lib/
+functions/node_modules/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
