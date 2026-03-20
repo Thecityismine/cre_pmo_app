@@ -25,12 +25,6 @@ const CATEGORY_COLORS: Record<string, { pill: string; bar: string; border: strin
 }
 
 const PAYMENT_STATUS = ['Pending', 'Under Contract', 'Invoiced', 'Paid']
-const PAYMENT_STATUS_COLORS: Record<string, string> = {
-  'Pending':        'bg-slate-700 text-slate-400',
-  'Under Contract': 'bg-blue-900 text-blue-300',
-  'Invoiced':       'bg-amber-900 text-amber-300',
-  'Paid':           'bg-emerald-900 text-emerald-300',
-}
 
 const fmt = (n: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
@@ -239,11 +233,10 @@ function LineItemRow({ item, onDelete }: { item: ExtBudgetItem; onDelete: (id: s
     setEditing(false)
   }
 
-  const contractAmt   = item.contractAmount ?? item.committedAmount
-  const invoicedAmt   = item.invoicedAmount ?? 0
-  const paidAmt       = item.paidAmount ?? 0
-  const paymentStatus = item.paymentStatus ?? 'Pending'
-  const forecast      = item.forecastAmount
+  const contractAmt = item.contractAmount ?? item.committedAmount
+  const invoicedAmt = item.invoicedAmount ?? 0
+  const paidAmt     = item.paidAmount ?? 0
+  const forecast    = item.forecastAmount
   const variance      = item.budgetAmount - forecast
   const trendDelta    = item.forecastPrev != null ? forecast - item.forecastPrev : 0
 
@@ -366,14 +359,14 @@ function LineItemRow({ item, onDelete }: { item: ExtBudgetItem; onDelete: (id: s
         )}
       </td>
       <td className="px-3 py-2.5 text-right text-slate-300 text-sm tabular-nums">{fmt(item.budgetAmount)}</td>
+      <td className="px-3 py-2.5 text-right text-sm tabular-nums font-medium">
+        <span className={clsx(lineHealth(forecast, item.budgetAmount) === 'green' ? 'text-emerald-400' : lineHealth(forecast, item.budgetAmount) === 'amber' ? 'text-amber-400' : 'text-red-400')}>
+          {fmt(forecast)}
+        </span>
+      </td>
       <td className="px-3 py-2.5 text-right text-slate-400 text-sm tabular-nums hidden sm:table-cell">{contractAmt > 0 ? fmt(contractAmt) : '—'}</td>
       <td className="px-3 py-2.5 text-right text-slate-400 text-sm tabular-nums hidden sm:table-cell">{invoicedAmt > 0 ? fmt(invoicedAmt) : '—'}</td>
       <td className="px-3 py-2.5 text-right text-slate-400 text-sm tabular-nums hidden sm:table-cell">{paidAmt > 0 ? fmt(paidAmt) : '—'}</td>
-      <td className="px-3 py-2.5">
-        <span className={clsx('text-xs px-2 py-0.5 rounded font-medium', PAYMENT_STATUS_COLORS[paymentStatus] ?? 'bg-slate-700 text-slate-400')}>
-          {paymentStatus}
-        </span>
-      </td>
       <td className="px-3 py-2.5 text-right">
         <div className="flex items-center justify-end gap-1">
           {variance >= 0
@@ -527,10 +520,10 @@ function CategoryCard({
                     <th className="px-3 py-2 w-4" />
                     <th className="text-left px-3 py-2">Description / Vendor</th>
                     <th className="text-right px-3 py-2">Budget</th>
+                    <th className="text-right px-3 py-2">Forecast</th>
                     <th className="text-right px-3 py-2 hidden sm:table-cell">Contract</th>
                     <th className="text-right px-3 py-2 hidden sm:table-cell">Invoiced</th>
                     <th className="text-right px-3 py-2 hidden sm:table-cell">Paid</th>
-                    <th className="text-left px-3 py-2">Status</th>
                     <th className="text-right px-3 py-2">Variance</th>
                   </tr>
                 </thead>
@@ -543,10 +536,14 @@ function CategoryCard({
                     <td className="px-3 py-2" />
                     <td className="px-3 py-2 text-slate-400">Subtotal</td>
                     <td className="px-3 py-2 text-right text-slate-200 tabular-nums">{fmt(catBudget)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums font-semibold">
+                      <span className={clsx(catHealth === 'green' ? 'text-emerald-400' : catHealth === 'amber' ? 'text-amber-400' : 'text-red-400')}>
+                        {catForecast > 0 ? fmt(catForecast) : '—'}
+                      </span>
+                    </td>
                     <td className="px-3 py-2 text-right text-slate-400 tabular-nums hidden sm:table-cell">{catContract > 0 ? fmt(catContract) : '—'}</td>
                     <td className="px-3 py-2 text-right text-slate-400 tabular-nums hidden sm:table-cell">{catInvoiced > 0 ? fmt(catInvoiced) : '—'}</td>
                     <td className="px-3 py-2 text-right text-emerald-400 tabular-nums hidden sm:table-cell">{catPaid > 0 ? fmt(catPaid) : '—'}</td>
-                    <td className="px-3 py-2" />
                     <td className="px-3 py-2 text-right">
                       {catBudget > 0 && (
                         <span className={clsx('tabular-nums', catVariance >= 0 ? 'text-emerald-400' : 'text-red-400')}>
@@ -681,8 +678,6 @@ export function BudgetTab({ project }: { project: Project }) {
   const totalBudget   = ext.reduce((s, i) => s + i.budgetAmount, 0)
   const totalForecast = ext.reduce((s, i) => s + i.forecastAmount, 0)
   const totalActual   = ext.reduce((s, i) => s + i.actualAmount, 0)
-  const totalContract = ext.reduce((s, i) => s + (i.contractAmount ?? i.committedAmount), 0)
-  const totalInvoiced = ext.reduce((s, i) => s + (i.invoicedAmount ?? 0), 0)
   const totalPaid     = ext.reduce((s, i) => s + (i.paidAmount ?? 0), 0)
   const baseBudget    = project.totalBudget || totalBudget
   const netBudget     = baseBudget + coApproved
@@ -800,41 +795,43 @@ export function BudgetTab({ project }: { project: Project }) {
       )}
 
       {/* ── Utilization bar ──────────────────────────────────────────────── */}
-      {hasItems && (
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
-          <div className="flex justify-between text-xs text-slate-400 mb-2">
-            <span>Budget Utilization</span>
-            <span className={totalVariance < 0 ? 'text-red-400' : 'text-emerald-400'}>
-              {totalVariance >= 0 ? `${fmt(totalVariance)} remaining` : `${fmt(Math.abs(totalVariance))} over budget`}
-            </span>
-          </div>
-          <div className="h-2.5 bg-slate-700 rounded-full overflow-hidden flex">
-            <div className="h-full bg-emerald-500 rounded-l-full transition-all"
-              style={{ width: `${Math.min(100, totalPaid / (netBudget || 1) * 100)}%` }} />
-            <div className="h-full bg-blue-500/60 transition-all"
-              style={{ width: `${Math.min(100, Math.max(0, (totalInvoiced - totalPaid) / (netBudget || 1) * 100))}%` }} />
-            <div className="h-full bg-amber-500/60 transition-all"
-              style={{ width: `${Math.min(100, Math.max(0, (totalForecast - totalInvoiced) / (netBudget || 1) * 100))}%` }} />
-          </div>
-          <div className="flex flex-wrap gap-4 mt-2">
-            {totalPaid > 0 && (
-              <span className="text-xs text-emerald-400 flex items-center gap-1">
-                <span className="w-2 h-2 rounded-sm bg-emerald-500 inline-block" /> Paid {fmt(totalPaid)}
+      {hasItems && (() => {
+        const forecastPct = Math.min(100, (totalForecast / (netBudget || 1)) * 100)
+        const paidPct     = Math.min(forecastPct, (totalPaid / (netBudget || 1)) * 100)
+        const barColor    = budgetHealth === 'red' ? 'bg-red-500' : budgetHealth === 'amber' ? 'bg-amber-500' : 'bg-blue-500'
+        return (
+          <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
+            <div className="flex justify-between text-xs mb-2">
+              <span className="text-slate-400">Budget Utilization</span>
+              <span className={totalVariance < 0 ? 'text-red-400 font-medium' : 'text-emerald-400 font-medium'}>
+                {totalVariance >= 0 ? `${fmt(totalVariance)} remaining` : `${fmt(Math.abs(totalVariance))} over budget`}
               </span>
-            )}
-            {totalInvoiced > 0 && (
-              <span className="text-xs text-blue-400 flex items-center gap-1">
-                <span className="w-2 h-2 rounded-sm bg-blue-500/60 inline-block" /> Invoiced {fmt(totalInvoiced)}
+            </div>
+            {/* Two-layer bar: forecast fill + paid overlay */}
+            <div className="h-3 bg-slate-700 rounded-full overflow-hidden relative">
+              {/* Forecast committed */}
+              <div className={clsx('absolute h-full rounded-full transition-all opacity-40', barColor)}
+                style={{ width: `${forecastPct}%` }} />
+              {/* Actually paid */}
+              {paidPct > 0 && (
+                <div className={clsx('absolute h-full rounded-full transition-all', barColor)}
+                  style={{ width: `${paidPct}%` }} />
+              )}
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
+              <span className="text-xs text-slate-400 flex items-center gap-1">
+                <span className={clsx('w-2 h-2 rounded-sm inline-block opacity-40', barColor)} />
+                Forecast {fmt(totalForecast)} <span className="text-slate-600">({Math.round(forecastPct)}% of budget)</span>
               </span>
-            )}
-            {totalContract > 0 && (
-              <span className="text-xs text-amber-400 flex items-center gap-1">
-                <span className="w-2 h-2 rounded-sm bg-amber-500/60 inline-block" /> Contracted {fmt(totalContract)}
-              </span>
-            )}
+              {totalPaid > 0 && (
+                <span className="text-xs text-emerald-400 flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-sm bg-emerald-500 inline-block" /> Paid {fmt(totalPaid)}
+                </span>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
 
       {/* ── Contingency drawdown ──────────────────────────────────────────── */}
       {hasItems && <ContingencyTracker items={ext} coApproved={coApproved} />}
