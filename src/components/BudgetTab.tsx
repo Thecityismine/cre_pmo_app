@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { collection, addDoc, doc, deleteDoc, updateDoc } from 'firebase/firestore'
+import { collection, addDoc, doc, deleteDoc, updateDoc, increment } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { useBudgetItems } from '@/hooks/useBudgetItems'
 import { useChangeOrders } from '@/hooks/useChangeOrders'
 import {
   Plus, Trash2, Check, X, TrendingUp, TrendingDown,
-  ChevronDown, ChevronRight, BookOpen, AlertTriangle,
+  ChevronDown, ChevronRight, BookOpen, AlertTriangle, Receipt,
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import type { Project } from '@/types'
@@ -178,6 +178,8 @@ function LineItemForm({
 
 function LineItemRow({ item, onDelete }: { item: ExtBudgetItem; onDelete: (id: string) => void }) {
   const [editing, setEditing] = useState(false)
+  const [invoicing, setInvoicing] = useState(false)
+  const [invoiceAmt, setInvoiceAmt] = useState('')
   const [form, setForm] = useState({
     description:    item.description,
     vendorName:     item.vendorName ?? '',
@@ -231,6 +233,27 @@ function LineItemRow({ item, onDelete }: { item: ExtBudgetItem; onDelete: (id: s
     })
     setSaving(false)
     setEditing(false)
+  }
+
+  const logInvoice = async () => {
+    const amount = Number(invoiceAmt)
+    if (!amount || amount <= 0) return
+    setSaving(true)
+    const newPaid = (item.paidAmount ?? 0) + amount
+    const ctc = item.costToComplete ?? 0
+    const newForecast = ctc > 0 ? newPaid + ctc : item.forecastAmount
+    await updateDoc(doc(db, 'budgetItems', item.id), {
+      paidAmount:    increment(amount),
+      invoicedAmount: increment(amount),
+      actualAmount:  increment(amount),
+      forecastAmount: newForecast,
+      variance:      item.budgetAmount - newForecast,
+      paymentStatus: 'Paid',
+      updatedAt:     new Date().toISOString(),
+    })
+    setInvoiceAmt('')
+    setInvoicing(false)
+    setSaving(false)
   }
 
   const contractAmt = item.contractAmount ?? item.committedAmount
@@ -347,56 +370,104 @@ function LineItemRow({ item, onDelete }: { item: ExtBudgetItem; onDelete: (id: s
   }
 
   return (
-    <tr className="border-t border-slate-700/50 hover:bg-slate-800/40 group cursor-pointer" onClick={() => setEditing(true)}>
-      <td className="px-3 py-2.5 w-4">
-        <HealthDot forecast={forecast} budget={item.budgetAmount} />
-      </td>
-      <td className="px-3 py-2.5">
-        <p className="text-slate-200 text-sm">{item.description || '—'}</p>
-        {item.vendorName && <p className="text-xs text-slate-500 mt-0.5">{item.vendorName}</p>}
-        {item.costToComplete != null && item.costToComplete > 0 && (
-          <p className="text-[10px] text-blue-400 mt-0.5">ETC: {fmt(item.costToComplete)}</p>
-        )}
-      </td>
-      <td className="px-3 py-2.5 text-right text-slate-300 text-sm tabular-nums">{fmt(item.budgetAmount)}</td>
-      <td className="px-3 py-2.5 text-right text-sm tabular-nums font-medium">
-        <span className={clsx(lineHealth(forecast, item.budgetAmount) === 'green' ? 'text-emerald-400' : lineHealth(forecast, item.budgetAmount) === 'amber' ? 'text-amber-400' : 'text-red-400')}>
-          {fmt(forecast)}
-        </span>
-      </td>
-      <td className="px-3 py-2.5 text-right text-slate-400 text-sm tabular-nums hidden sm:table-cell">{contractAmt > 0 ? fmt(contractAmt) : '—'}</td>
-      <td className="px-3 py-2.5 text-right text-slate-400 text-sm tabular-nums hidden sm:table-cell">{invoicedAmt > 0 ? fmt(invoicedAmt) : '—'}</td>
-      <td className="px-3 py-2.5 text-right text-slate-400 text-sm tabular-nums hidden sm:table-cell">{paidAmt > 0 ? fmt(paidAmt) : '—'}</td>
-      <td className="px-3 py-2.5 text-right">
-        <div className="flex items-center justify-end gap-1">
-          {variance >= 0
-            ? <TrendingDown size={12} className="text-emerald-400" />
-            : <TrendingUp size={12} className="text-red-400" />}
-          <span className={clsx('text-sm font-medium tabular-nums', variance >= 0 ? 'text-emerald-400' : 'text-red-400')}>
-            {fmt(Math.abs(variance))}
-          </span>
-          {item.forecastTrend && item.forecastTrend !== 'flat' && Math.abs(trendDelta) >= 1 && (
-            <span
-              className={clsx(
-                'ml-1 text-[9px] font-medium px-1 py-0.5 rounded',
-                item.forecastTrend === 'up'
-                  ? 'bg-red-900/60 text-red-400'
-                  : 'bg-emerald-900/60 text-emerald-400',
-              )}
-              title={`Forecast ${item.forecastTrend === 'up' ? 'increased' : 'decreased'} by ${fmt(Math.abs(trendDelta))} since last save`}
-            >
-              {item.forecastTrend === 'up' ? '↑' : '↓'} {fmt(Math.abs(trendDelta))}
-            </span>
+    <>
+      <tr className="border-t border-slate-700/50 hover:bg-slate-800/40 group cursor-pointer" onClick={() => setEditing(true)}>
+        <td className="px-3 py-2.5 w-4">
+          <HealthDot forecast={forecast} budget={item.budgetAmount} />
+        </td>
+        <td className="px-3 py-2.5">
+          <p className="text-slate-200 text-sm">{item.description || '—'}</p>
+          {item.vendorName && <p className="text-xs text-slate-500 mt-0.5">{item.vendorName}</p>}
+          {item.costToComplete != null && item.costToComplete > 0 && (
+            <p className="text-[10px] text-blue-400 mt-0.5">ETC: {fmt(item.costToComplete)}</p>
           )}
-          <button
-            onClick={e => { e.stopPropagation(); onDelete(item.id) }}
-            className="ml-2 p-1 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
-          >
-            <Trash2 size={11} />
-          </button>
-        </div>
-      </td>
-    </tr>
+        </td>
+        <td className="px-3 py-2.5 text-right text-slate-300 text-sm tabular-nums">{fmt(item.budgetAmount)}</td>
+        <td className="px-3 py-2.5 text-right text-sm tabular-nums font-medium">
+          <span className={clsx(lineHealth(forecast, item.budgetAmount) === 'green' ? 'text-emerald-400' : lineHealth(forecast, item.budgetAmount) === 'amber' ? 'text-amber-400' : 'text-red-400')}>
+            {fmt(forecast)}
+          </span>
+        </td>
+        <td className="px-3 py-2.5 text-right text-slate-400 text-sm tabular-nums hidden sm:table-cell">{contractAmt > 0 ? fmt(contractAmt) : '—'}</td>
+        <td className="px-3 py-2.5 text-right text-slate-400 text-sm tabular-nums hidden sm:table-cell">{invoicedAmt > 0 ? fmt(invoicedAmt) : '—'}</td>
+        <td className="px-3 py-2.5 text-right text-slate-400 text-sm tabular-nums hidden sm:table-cell">{paidAmt > 0 ? fmt(paidAmt) : '—'}</td>
+        <td className="px-3 py-2.5 text-right">
+          <div className="flex items-center justify-end gap-1">
+            {variance >= 0
+              ? <TrendingDown size={12} className="text-emerald-400" />
+              : <TrendingUp size={12} className="text-red-400" />}
+            <span className={clsx('text-sm font-medium tabular-nums', variance >= 0 ? 'text-emerald-400' : 'text-red-400')}>
+              {fmt(Math.abs(variance))}
+            </span>
+            {item.forecastTrend && item.forecastTrend !== 'flat' && Math.abs(trendDelta) >= 1 && (
+              <span
+                className={clsx(
+                  'ml-1 text-[9px] font-medium px-1 py-0.5 rounded',
+                  item.forecastTrend === 'up'
+                    ? 'bg-red-900/60 text-red-400'
+                    : 'bg-emerald-900/60 text-emerald-400',
+                )}
+                title={`Forecast ${item.forecastTrend === 'up' ? 'increased' : 'decreased'} by ${fmt(Math.abs(trendDelta))} since last save`}
+              >
+                {item.forecastTrend === 'up' ? '↑' : '↓'} {fmt(Math.abs(trendDelta))}
+              </span>
+            )}
+            <button
+              onClick={e => { e.stopPropagation(); setInvoicing(!invoicing); setInvoiceAmt('') }}
+              className={clsx(
+                'ml-1 p-1 opacity-0 group-hover:opacity-100 transition-opacity rounded',
+                invoicing ? 'text-emerald-400 opacity-100' : 'text-slate-500 hover:text-emerald-400',
+              )}
+              title="Log invoice"
+            >
+              <Receipt size={11} />
+            </button>
+            <button
+              onClick={e => { e.stopPropagation(); onDelete(item.id) }}
+              className="p-1 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <Trash2 size={11} />
+            </button>
+          </div>
+        </td>
+      </tr>
+
+      {invoicing && (
+        <tr className="border-t border-emerald-800/40 bg-emerald-950/20">
+          <td colSpan={8} className="px-4 py-3">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Receipt size={13} className="text-emerald-400 shrink-0" />
+              <span className="text-xs text-emerald-300 font-medium shrink-0">Log Invoice</span>
+              {paidAmt > 0 && (
+                <span className="text-[10px] text-slate-500 shrink-0">Total paid so far: {fmt(paidAmt)}</span>
+              )}
+              <input
+                type="number"
+                value={invoiceAmt}
+                onChange={e => setInvoiceAmt(e.target.value)}
+                placeholder="Invoice amount $"
+                autoFocus
+                className="w-44 bg-slate-900 text-slate-100 text-xs rounded px-2 py-1.5 border border-emerald-700/60 focus:outline-none focus:border-emerald-500 placeholder-slate-600"
+                onKeyDown={e => { if (e.key === 'Enter') logInvoice(); if (e.key === 'Escape') setInvoicing(false) }}
+              />
+              <button
+                onClick={logInvoice}
+                disabled={saving || !invoiceAmt || Number(invoiceAmt) <= 0}
+                className="flex items-center gap-1 bg-emerald-700 hover:bg-emerald-600 text-white text-xs px-3 py-1.5 rounded-lg disabled:opacity-50"
+              >
+                <Check size={11} /> {saving ? 'Saving…' : 'Add'}
+              </button>
+              <button
+                onClick={() => { setInvoicing(false); setInvoiceAmt('') }}
+                className="flex items-center gap-1 border border-slate-600 text-slate-400 text-xs px-3 py-1.5 rounded-lg hover:bg-slate-800"
+              >
+                <X size={11} /> Cancel
+              </button>
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
   )
 }
 
