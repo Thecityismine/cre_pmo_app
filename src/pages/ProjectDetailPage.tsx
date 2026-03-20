@@ -439,8 +439,6 @@ export function ProjectDetailPage() {
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2 mb-1">
             <h1 className="text-xl md:text-2xl font-bold text-slate-100 truncate">{project.projectName}</h1>
-            <span className="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded font-medium">{project.profile}</span>
-            <StatusPill status={project.status} />
             <div className="ml-auto flex items-center gap-2 shrink-0">
               <button
                 onClick={() => exportProjectPdf(project, tasks, budgetItems, {
@@ -1276,17 +1274,3 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   )
 }
 
-function StatusPill({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    'pre-project': 'bg-slate-700 text-slate-300', 'initiate': 'bg-purple-900 text-purple-300',
-    'planning': 'bg-blue-900 text-blue-300', 'design': 'bg-cyan-900 text-cyan-300',
-    'construction': 'bg-amber-900 text-amber-300', 'handover': 'bg-orange-900 text-orange-300',
-    'closeout': 'bg-emerald-900 text-emerald-300', 'defect-period': 'bg-yellow-900 text-yellow-300',
-    'closed': 'bg-slate-700 text-slate-500',
-  }
-  return (
-    <span className={clsx('px-2 py-0.5 rounded text-xs font-medium capitalize', colors[status] ?? 'bg-slate-700 text-slate-300')}>
-      {status.replace('-', ' ')}
-    </span>
-  )
-}
