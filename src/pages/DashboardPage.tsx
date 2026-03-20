@@ -465,6 +465,34 @@ export function DashboardPage() {
     )
   }
 
+  // Empty portfolio — show get-started screen instead of zero-filled cards
+  if (projects.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-100">Portfolio Overview</h1>
+          <p className="text-slate-400 text-sm mt-1">
+            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+          </p>
+        </div>
+        <div className="bg-slate-800 border border-slate-700 rounded-xl p-12 text-center">
+          <FolderOpen size={48} className="mx-auto mb-4 text-slate-600" />
+          <h2 className="text-xl font-semibold text-slate-200 mb-2">No projects yet</h2>
+          <p className="text-slate-500 text-sm max-w-md mx-auto mb-6">
+            Create your first project to start tracking budget, schedule, risks, and tasks in one place.
+          </p>
+          <button
+            onClick={() => navigate('/projects')}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            <FolderOpen size={16} />
+            Go to Projects
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -689,9 +717,25 @@ export function DashboardPage() {
             <span className="text-xs text-slate-500">{upcomingMilestones.length} upcoming</span>
           </div>
           {upcomingMilestones.length === 0 ? (
-            <div className="text-center py-8 text-slate-500">
+            <div className="text-center py-8 px-6 text-slate-500">
               <Calendar size={24} className="mx-auto mb-2 opacity-30" />
-              <p className="text-sm">No milestones in the next 30 days.</p>
+              <p className="text-sm text-slate-400">No milestones in the next 30 days.</p>
+              {active.length > 0 ? (
+                <p className="text-xs text-slate-600 mt-1.5">
+                  Add milestones in a project's{' '}
+                  <button
+                    onClick={() => navigate(`/projects/${active[0]?.id}?tab=schedule`)}
+                    className="text-blue-500 hover:text-blue-400 underline"
+                  >
+                    Schedule tab
+                  </button>{' '}
+                  to track upcoming deliverables.
+                </p>
+              ) : (
+                <p className="text-xs text-slate-600 mt-1.5">
+                  Create a project to start tracking milestones.
+                </p>
+              )}
             </div>
           ) : (
             <div className="divide-y divide-slate-700/50 max-h-64 overflow-y-auto">
@@ -863,9 +907,19 @@ export function DashboardPage() {
         </div>
 
         {active.length === 0 ? (
-          <div className="text-center py-16 text-slate-500">
+          <div className="text-center py-12 text-slate-500 px-6">
             <FolderOpen size={40} className="mx-auto mb-3 opacity-40" />
-            <p>No active projects yet.</p>
+            <p className="text-sm text-slate-400 font-medium">No active projects</p>
+            <p className="text-xs text-slate-600 mt-1.5">
+              All projects are closed.{' '}
+              <button
+                onClick={() => navigate('/projects')}
+                className="text-blue-500 hover:text-blue-400 underline"
+              >
+                Create a new project
+              </button>{' '}
+              to get started.
+            </p>
           </div>
         ) : (
           <>
