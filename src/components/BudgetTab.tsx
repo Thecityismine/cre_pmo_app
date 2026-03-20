@@ -415,8 +415,8 @@ function LineItemRow({ item, onDelete }: { item: ExtBudgetItem; onDelete: (id: s
             <button
               onClick={e => { e.stopPropagation(); setInvoicing(!invoicing); setInvoiceAmt('') }}
               className={clsx(
-                'ml-1 p-1 opacity-0 group-hover:opacity-100 transition-opacity rounded',
-                invoicing ? 'text-emerald-400 opacity-100' : 'text-slate-500 hover:text-emerald-400',
+                'ml-1 p-1 rounded transition-colors',
+                invoicing ? 'text-emerald-400' : 'text-slate-500 hover:text-emerald-400',
               )}
               title="Log invoice"
             >
