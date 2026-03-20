@@ -63,7 +63,7 @@
 - [x] Committed = sum of all contract amounts
 - [x] Forecast = committed + estimated remaining (editable per line)
 - [x] Cost to Complete field per line item
-- [ ] Variance trend: show if forecast is trending up or down week over week
+- [x] Variance trend: show if forecast is trending up or down week over week
 - [x] Change Orders automatically add to forecast
 - [x] Budget health indicator: Green < 90%, Yellow 90–100%, Red > 100%
 - [x] Contingency drawdown tracker: show how much contingency has been consumed
@@ -75,8 +75,8 @@
 **Problem:** Schedule is a task list pretending to be a schedule.
 **Goal:** Visual timeline with dependencies and delay impact.
 - [x] Gantt chart view (horizontal bar timeline)
-- [ ] Task dependencies: link activities (A must finish before B starts)
-- [ ] Critical path auto-detection (longest dependency chain)
+- [x] Task dependencies: link activities (A must finish before B starts)
+- [x] Critical path auto-detection (longest dependency chain)
 - [x] Baseline vs actual comparison (original dates vs current dates)
 - [ ] Delay impact: if activity slips, show downstream impact
 - [x] Forecast completion date: calculated from current progress
