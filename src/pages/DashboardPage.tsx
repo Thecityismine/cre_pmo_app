@@ -36,8 +36,6 @@ function DailyBriefingWidget(props: BriefingProps) {
   const [bullets, setBullets] = useState<string[]>(cached ? JSON.parse(cached) : [])
   const [loading, setLoading] = useState(false)
 
-  if (!hasClaudeKey()) return null
-
   const generate = async () => {
     setLoading(true)
     const critical = props.portfolioInsights.filter(i => i.severity === 'critical').length
@@ -79,9 +77,9 @@ You are a CRE PM assistant. Generate exactly 3 action-oriented focus bullets for
         </div>
         <button
           onClick={generate}
-          disabled={loading}
-          className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-300 transition-colors"
-          title={bullets.length > 0 ? 'Refresh briefing' : 'Generate briefing'}
+          disabled={loading || !hasClaudeKey()}
+          className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          title={!hasClaudeKey() ? 'Add a Claude API key in Settings to enable AI briefings' : bullets.length > 0 ? 'Refresh briefing' : 'Generate briefing'}
         >
           <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
           {bullets.length === 0 ? 'Generate' : ''}
@@ -105,7 +103,11 @@ You are a CRE PM assistant. Generate exactly 3 action-oriented focus bullets for
           Generating today's focus…
         </div>
       ) : (
-        <p className="text-sm text-slate-600 italic">Click "Generate" for an AI-powered daily portfolio briefing.</p>
+        <p className="text-sm text-slate-600 italic">
+          {hasClaudeKey()
+            ? 'Click "Generate" for an AI-powered daily portfolio briefing.'
+            : 'Add a Claude API key in Settings to enable daily AI briefings.'}
+        </p>
       )}
     </div>
   )
