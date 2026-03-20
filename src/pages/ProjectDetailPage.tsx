@@ -217,12 +217,13 @@ function ScoreBar({ label, score, max, detail }: { label: string; score: number;
   )
 }
 
-function HealthScorecard({ project, taskCompletionPct, raidItems }: {
+function HealthScorecard({ project, taskCompletionPct, raidItems, milestones }: {
   project: Project
   taskCompletionPct?: number
   raidItems?: import('@/hooks/useRaidLog').RaidItem[]
+  milestones?: import('@/hooks/useMilestones').Milestone[]
 }) {
-  const h = computeHealth(project, { taskCompletionPct, raidItems })
+  const h = computeHealth(project, { taskCompletionPct, raidItems, milestones })
   const ringColor = h.total >= 80 ? 'text-emerald-400' : h.total >= 60 ? 'text-amber-400' : 'text-red-400'
   const ringBg   = h.total >= 80 ? 'border-emerald-500' : h.total >= 60 ? 'border-amber-500' : 'border-red-500'
 
@@ -717,7 +718,7 @@ export function ProjectDetailPage() {
         })()}
 
         {/* Health scorecard */}
-        <HealthScorecard project={project} taskCompletionPct={totalPct} raidItems={raidItems} />
+        <HealthScorecard project={project} taskCompletionPct={totalPct} raidItems={raidItems} milestones={milestones} />
 
         {/* ── RAID Risk Widget ──────────────────────────────────────────── */}
         {(() => {

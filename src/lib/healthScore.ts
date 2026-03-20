@@ -21,13 +21,19 @@ export interface HealthBreakdown {
   spi: number | null
 }
 
+export interface MilestoneSnapshot {
+  targetDate: string
+  status: string   // 'pending' | 'complete' | 'delayed'
+}
+
 export interface HealthOptions {
-  taskCompletionPct?: number   // 0–100
-  raidItems?: RaidItem[]       // open RAID items for risk score
+  taskCompletionPct?: number       // 0–100
+  raidItems?: RaidItem[]           // open RAID items for risk score
+  milestones?: MilestoneSnapshot[] // for milestone hit-rate penalty
 }
 
 export function computeHealth(p: Project, opts: HealthOptions = {}): HealthBreakdown {
-  const { taskCompletionPct, raidItems = [] } = opts
+  const { taskCompletionPct, raidItems = [], milestones = [] } = opts
 
   // ── Budget component (30 pts) ────────────────────────────────────────────
   let budget = 0
@@ -112,6 +118,18 @@ export function computeHealth(p: Project, opts: HealthOptions = {}): HealthBreak
       schedule = 6;  scheduleLabel = `${Math.abs(days)}d past target`
     } else {
       schedule = 0;  scheduleLabel = `${Math.abs(days)}d past target`
+    }
+  }
+
+  // ── Milestone hit-rate penalty (applied to schedule score) ──────────────
+  if (milestones.length > 0) {
+    const today = new Date(); today.setHours(0, 0, 0, 0)
+    const dated = milestones.filter(m => m.targetDate)
+    const pastDue = dated.filter(m => m.status !== 'complete' && new Date(m.targetDate) < today)
+    if (pastDue.length > 0) {
+      const penaltyPer = pastDue.length >= 3 ? 8 : pastDue.length === 2 ? 6 : 4
+      schedule = Math.max(0, schedule - penaltyPer)
+      scheduleLabel = scheduleLabel + ` · ${pastDue.length} missed milestone${pastDue.length > 1 ? 's' : ''}`
     }
   }
 
