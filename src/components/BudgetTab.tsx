@@ -170,11 +170,10 @@ function LineItemRow({ item, onDelete }: {
 
   const save = async () => {
     setSaving(true)
-    const budget  = Number(form.budgetAmount) || 0
-    const paid    = Number(form.paidAmount) || 0
-    const ctc     = Number(form.costToComplete) || 0
-    const manual  = Number(form.forecastAmount) || 0
-    const forecast = computeForecast(paid, ctc, budget, manual)
+    const contract = Number(form.contractAmount) || 0
+    const ctc      = Number(form.costToComplete) || 0
+    // forecast = contract + CTC if CTC is set, otherwise just contract amount
+    const forecast = ctc > 0 ? contract + ctc : contract
     // Variance trend: compare new forecast to the previously stored forecast
     const prevForecast = item.forecastAmount
     const delta = forecast - prevForecast
@@ -183,19 +182,13 @@ function LineItemRow({ item, onDelete }: {
     await updateDoc(doc(db, 'budgetItems', item.id), {
       description:      form.description,
       vendorName:       form.vendorName,
-      contractNumber:   form.contractNumber,
-      contactEmail:     form.contactEmail,
       category:         form.category,
-      budgetAmount:     budget,
-      committedAmount:  Number(form.contractAmount) || 0,
-      contractAmount:   Number(form.contractAmount) || 0,
-      invoicedAmount:   Number(form.invoicedAmount) || 0,
-      paidAmount:       paid,
+      budgetAmount:     contract,
+      committedAmount:  contract,
+      contractAmount:   contract,
       forecastAmount:   forecast,
       costToComplete:   ctc > 0 ? ctc : null,
-      actualAmount:     paid,
-      paymentStatus:    form.paymentStatus,
-      variance:         budget - forecast,
+      variance:         contract - forecast,
       notes:            form.notes,
       forecastTrend,
       forecastPrev:     prevForecast,
