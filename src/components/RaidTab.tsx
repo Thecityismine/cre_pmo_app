@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { clsx } from 'clsx'
-import { Plus, Trash2, ChevronDown, ChevronRight, Check, AlertTriangle, Zap, Bug, Lightbulb, Bot, Download, DollarSign, Clock3, Layers } from 'lucide-react'
+import { Plus, Trash2, ChevronDown, ChevronRight, Check, AlertTriangle, Zap, Bug, Lightbulb, Bot, Download, DollarSign, Clock3, Layers, Sparkles, Loader2 } from 'lucide-react'
 import { useRaidLog } from '@/hooks/useRaidLog'
 import type { RaidItem, RaidType, RaidStatus, RaidPriority } from '@/hooks/useRaidLog'
 import type { Project } from '@/types'
+import { callClaude, hasClaudeKey } from '@/lib/claude'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -92,13 +93,17 @@ function RaidRow({
   item,
   onUpdate,
   onDelete,
+  projectName,
 }: {
   item: RaidItem
   onUpdate: (id: string, data: Partial<RaidItem>) => Promise<void>
   onDelete: (id: string) => Promise<void>
+  projectName: string
 }) {
   const [expanded, setExpanded] = useState(false)
   const [editing, setEditing] = useState(false)
+  const [mitigation, setMitigation] = useState('')
+  const [mitigating, setMitigating] = useState(false)
   const [title, setTitle] = useState(item.title)
   const [description, setDescription] = useState(item.description)
   const [owner, setOwner] = useState(item.owner)
@@ -112,6 +117,31 @@ function RaidRow({
   const [saving, setSaving] = useState(false)
 
   const { Icon, color, bg } = TYPE_CONFIG[item.type]
+
+  const suggestMitigation = async () => {
+    setMitigating(true)
+    setMitigation('')
+    const prompt = `You are a senior CRE project manager. Suggest 3 concise, actionable mitigation strategies for this RAID item.
+
+Project: ${projectName}
+Type: ${item.type} | Priority: ${item.priority} | Status: ${item.status}
+Title: ${item.title}
+Description: ${item.description || 'No description provided'}${item.costImpact ? `\nCost Impact: $${item.costImpact.toLocaleString()}` : ''}${item.scheduleImpact ? `\nSchedule Impact: ${item.scheduleImpact} days` : ''}
+
+Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence, specific and practical. No preamble.`
+    try {
+      const result = await callClaude(
+        [{ role: 'user', content: prompt }],
+        'You are a concise CRE PM risk advisor. Return only bullet points, no intro text.',
+        400,
+      )
+      setMitigation(result.trim())
+    } catch {
+      setMitigation('Error generating suggestions. Check your Claude API key in Settings.')
+    } finally {
+      setMitigating(false)
+    }
+  }
 
   const save = async () => {
     if (!title.trim()) return
@@ -313,16 +343,46 @@ function RaidRow({
         </div>
       </div>
 
-      {/* Expanded description */}
-      {expanded && (item.description || item.scopeImpact) && (
-        <div className="px-4 pb-3 border-t border-slate-700/40 space-y-2">
+      {/* Expanded section */}
+      {expanded && (
+        <div className="px-4 pb-4 border-t border-slate-700/40 space-y-3 pt-3">
           {item.description && (
-            <p className="text-sm text-slate-400 mt-2 leading-relaxed">{item.description}</p>
+            <p className="text-sm text-slate-400 leading-relaxed">{item.description}</p>
           )}
           {item.scopeImpact && (
-            <div className="flex items-start gap-2 mt-1">
+            <div className="flex items-start gap-2">
               <Layers size={12} className="text-slate-500 mt-0.5 shrink-0" />
               <p className="text-xs text-slate-500">{item.scopeImpact}</p>
+            </div>
+          )}
+
+          {/* AI Mitigation */}
+          {hasClaudeKey() && (item.status === 'open' || item.status === 'in-progress') && (
+            <div className="border-t border-slate-700/40 pt-3">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-1.5">
+                  <Sparkles size={12} className="text-violet-400" />
+                  <span className="text-xs font-medium text-slate-300">AI Mitigation Suggestions</span>
+                </div>
+                <button
+                  onClick={suggestMitigation}
+                  disabled={mitigating}
+                  className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg bg-violet-900/40 hover:bg-violet-800/50 border border-violet-700/40 text-violet-300 disabled:opacity-60 transition-colors"
+                >
+                  {mitigating
+                    ? <><Loader2 size={10} className="animate-spin" /> Thinking...</>
+                    : <><Sparkles size={10} /> Suggest</>
+                  }
+                </button>
+              </div>
+              {mitigation && (
+                <div className="bg-violet-950/30 border border-violet-800/30 rounded-lg p-3">
+                  <p className="text-xs text-slate-300 leading-relaxed whitespace-pre-wrap">{mitigation}</p>
+                </div>
+              )}
+              {!mitigation && !mitigating && (
+                <p className="text-xs text-slate-600 italic">Click "Suggest" to get AI-recommended mitigation strategies.</p>
+              )}
             </div>
           )}
         </div>
@@ -615,7 +675,7 @@ export function RaidTab({ project }: { project: Project }) {
       ) : (
         <div className="space-y-2">
           {filtered.map(item => (
-            <RaidRow key={item.id} item={item} onUpdate={updateItem} onDelete={deleteItem} />
+            <RaidRow key={item.id} item={item} onUpdate={updateItem} onDelete={deleteItem} projectName={project.projectName} />
           ))}
         </div>
       )}
