@@ -263,78 +263,17 @@ function DataAuditSection() {
 }
 
 function ApiKeysSection() {
-  const user = useAuthStore((s) => s.user)
-  const [openai, setOpenai] = useState('')
-  const [showOpenai, setShowOpenai] = useState(false)
-  const [saved, setSaved] = useState(false)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    if (!user?.uid) return
-    getDoc(doc(db, 'users', user.uid)).then(snap => {
-      const keys = snap.data()?.apiKeys ?? {}
-      const oai = keys.openai ?? ''
-      setOpenai(oai)
-      if (oai) localStorage.setItem('openai_api_key', oai)
-      setLoading(false)
-    }).catch(() => setLoading(false))
-  }, [user?.uid])
-
-  const save = async () => {
-    if (!user?.uid) return
-    const keys = { openai: openai.trim() }
-    await setDoc(doc(db, 'users', user.uid), { apiKeys: keys }, { merge: true })
-    if (keys.openai) localStorage.setItem('openai_api_key', keys.openai)
-    else localStorage.removeItem('openai_api_key')
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2500)
-  }
-
-  if (loading) return null
-
   return (
-    <Section title="AI API Keys" icon={Key}>
-      <div className="space-y-6">
-        <p className="text-xs text-slate-500 bg-slate-900/50 rounded-lg p-3 border border-slate-700">
-          Keys are saved to your account and available on all devices. They are never shared with other users.
-        </p>
-
-        {/* OpenAI */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <label className="text-slate-300 text-sm font-medium">OpenAI API Key</label>
-            {openai && <span className="text-xs text-emerald-400 flex items-center gap-1"><Check size={11} /> Configured</span>}
-          </div>
-          <p className="text-xs text-slate-500">Used for AI Schedule Generator, Meeting Notes summary, and Project Brief · <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">Get API key</a></p>
-          <div className="relative">
-            <input
-              type={showOpenai ? 'text' : 'password'}
-              value={openai}
-              onChange={e => setOpenai(e.target.value)}
-              placeholder={openai ? '••••••••••••••••' : 'Paste your API key here'}
-              className="w-full bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2.5 pr-10 border border-slate-700 focus:outline-none focus:border-blue-500 placeholder-slate-600 font-mono"
-            />
-            <button type="button" onClick={() => setShowOpenai(!showOpenai)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
-              {showOpenai ? <EyeOff size={14} /> : <Eye size={14} />}
-            </button>
-          </div>
+    <Section title="AI Integration" icon={Key}>
+      <div className="flex items-start gap-3 bg-emerald-950/30 border border-emerald-800/40 rounded-xl p-4">
+        <Shield size={16} className="text-emerald-400 mt-0.5 shrink-0" />
+        <div>
+          <p className="text-sm font-semibold text-emerald-300">API keys secured server-side</p>
+          <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+            All AI API keys are stored in Firebase Secret Manager and never exposed to the browser.
+            AI features are available automatically for all signed-in users.
+          </p>
         </div>
-
-        {/* Claude / Anthropic — key is managed server-side */}
-        <div className="flex items-start gap-3 bg-slate-900/40 border border-slate-700 rounded-lg p-3">
-          <Shield size={14} className="text-emerald-400 mt-0.5 shrink-0" />
-          <div>
-            <p className="text-sm text-slate-300 font-medium">Claude AI — secured server-side</p>
-            <p className="text-xs text-slate-500 mt-0.5">The Anthropic API key is stored in Firebase Secret Manager and never exposed to the browser. All AI features are available automatically when you're signed in.</p>
-          </div>
-        </div>
-
-        <button
-          onClick={save}
-          className={clsx('flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg transition-colors', saved ? 'bg-emerald-600 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white')}
-        >
-          {saved ? <><Check size={14} /> Saved</> : <><Save size={14} /> Save API Keys</>}
-        </button>
       </div>
     </Section>
   )
