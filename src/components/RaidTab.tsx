@@ -36,6 +36,22 @@ const RAID_PRIORITIES: RaidPriority[] = ['high', 'medium', 'low']
 const fmt$ = (n: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
 
+// ─── System-key → source label + tab ─────────────────────────────────────────
+
+const SYSTEM_SOURCE: Record<string, { label: string; tab: string }> = {
+  'proj-tasks-overdue': { label: 'Overdue Tasks',     tab: 'tasks'    },
+  'milestones-missed':  { label: 'Missed Milestones', tab: 'schedule' },
+  'budget-overrun':     { label: 'Budget Overrun',    tab: 'budget'   },
+  'rfis-overdue':       { label: 'Overdue RFIs',      tab: 'rfis'     },
+  'budget-not-started': { label: 'Budget Setup',      tab: 'budget'   },
+}
+
+function getSource(systemKey?: string): { label: string; tab: string } | null {
+  if (!systemKey) return null
+  const prefix = Object.keys(SYSTEM_SOURCE).find(k => systemKey.startsWith(k))
+  return prefix ? SYSTEM_SOURCE[prefix] : null
+}
+
 // ─── CSV export ───────────────────────────────────────────────────────────────
 
 function exportToCSV(items: RaidItem[], projectName: string) {
@@ -94,11 +110,13 @@ function RaidRow({
   onUpdate,
   onDelete,
   projectName,
+  onSourceClick,
 }: {
   item: RaidItem
   onUpdate: (id: string, data: Partial<RaidItem>) => Promise<void>
   onDelete: (id: string) => Promise<void>
   projectName: string
+  onSourceClick?: (tab: string) => void
 }) {
   const [expanded, setExpanded] = useState(false)
   const [editing, setEditing] = useState(false)
@@ -306,6 +324,19 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
                 <Bot size={9} /> Auto
               </span>
             )}
+            {(() => {
+              const src = getSource(item.systemKey)
+              if (!src) return null
+              return (
+                <button
+                  onClick={e => { e.stopPropagation(); onSourceClick?.(src.tab) }}
+                  className="flex items-center gap-0.5 text-[9px] px-1.5 py-0.5 rounded bg-blue-900/50 text-blue-400 border border-blue-800/40 font-medium shrink-0 hover:bg-blue-800/50 transition-colors"
+                  title={`Triggered by: ${src.label} — click to view`}
+                >
+                  ↗ {src.label}
+                </button>
+              )
+            })()}
           </div>
           <div className="flex items-center gap-2 mt-0.5 flex-wrap">
             {item.owner && <span className="text-xs text-slate-500">{item.owner}</span>}
@@ -546,7 +577,7 @@ function AddRaidForm({
 
 // ─── Main tab ─────────────────────────────────────────────────────────────────
 
-export function RaidTab({ project }: { project: Project }) {
+export function RaidTab({ project, setTab }: { project: Project; setTab?: (tab: string) => void }) {
   const { items, loading, addItem, updateItem, deleteItem } = useRaidLog(project.id)
   const [typeFilter, setTypeFilter] = useState<RaidType | 'all'>('all')
   const [statusFilter, setStatusFilter] = useState<RaidStatus | 'all'>('open')
@@ -675,7 +706,7 @@ export function RaidTab({ project }: { project: Project }) {
       ) : (
         <div className="space-y-2">
           {filtered.map(item => (
-            <RaidRow key={item.id} item={item} onUpdate={updateItem} onDelete={deleteItem} projectName={project.projectName} />
+            <RaidRow key={item.id} item={item} onUpdate={updateItem} onDelete={deleteItem} projectName={project.projectName} onSourceClick={setTab} />
           ))}
         </div>
       )}

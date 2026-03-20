@@ -1150,7 +1150,7 @@ export function ProjectDetailPage() {
 
       {tab === 'punch' && <PunchListTab project={project} />}
 
-      {tab === 'raid' && <RaidTab project={project} />}
+      {tab === 'raid' && <RaidTab project={project} setTab={t => setTab(t as Tab)} />}
 
       {tab === 'meetings' && <MeetingNotesTab project={project} />}
 
