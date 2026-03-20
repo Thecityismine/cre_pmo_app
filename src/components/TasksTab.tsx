@@ -273,7 +273,7 @@ export function TasksTab({ project, showAddForm: externalShowForm, onFormClose, 
       assignedTo:  form.assignedTo,
       priority:    form.priority as ProjectTaskPriority,
       status:      'open',
-      milestoneId: form.milestoneId || undefined,
+      ...(form.milestoneId ? { milestoneId: form.milestoneId } : {}),
     })
     closeForm()
     setFilter('open')
