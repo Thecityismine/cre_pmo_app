@@ -47,7 +47,7 @@ function isDueToday(dueDate: string) {
 // ─── Blank form ───────────────────────────────────────────────────────────────
 
 function blankForm() {
-  return { title: '', description: '', dueDate: '', assignedTo: '', priority: 'medium' as ProjectTaskPriority, milestoneId: '' }
+  return { title: '', description: '', dueDate: '', assignedTo: '', priority: 'medium' as ProjectTaskPriority, milestoneId: undefined as string | undefined }
 }
 
 // ─── Add Task Form ────────────────────────────────────────────────────────────
