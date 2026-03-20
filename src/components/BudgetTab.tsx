@@ -47,6 +47,9 @@ type ExtBudgetItem = BudgetItem & {
   paidAmount?: number
   paymentStatus?: string
   costToComplete?: number
+  // Variance trend tracking
+  forecastTrend?: 'up' | 'down' | 'flat'
+  forecastPrev?: number
 }
 
 // ─── Health helpers ────────────────────────────────────────────────────────────
@@ -206,6 +209,11 @@ function LineItemRow({ item, onDelete }: { item: ExtBudgetItem; onDelete: (id: s
     const ctc     = Number(form.costToComplete) || 0
     const manual  = Number(form.forecastAmount) || 0
     const forecast = computeForecast(paid, ctc, budget, manual)
+    // Variance trend: compare new forecast to the previously stored forecast
+    const prevForecast = item.forecastAmount
+    const delta = forecast - prevForecast
+    const forecastTrend: 'up' | 'down' | 'flat' =
+      Math.abs(delta) < 1 ? 'flat' : delta > 0 ? 'up' : 'down'
     await updateDoc(doc(db, 'budgetItems', item.id), {
       description:     form.description,
       vendorName:      form.vendorName,
@@ -223,6 +231,8 @@ function LineItemRow({ item, onDelete }: { item: ExtBudgetItem; onDelete: (id: s
       paymentStatus:   form.paymentStatus,
       variance:        budget - forecast,
       notes:           form.notes,
+      forecastTrend,
+      forecastPrev:    prevForecast,
       updatedAt:       new Date().toISOString(),
     })
     setSaving(false)
@@ -235,6 +245,7 @@ function LineItemRow({ item, onDelete }: { item: ExtBudgetItem; onDelete: (id: s
   const paymentStatus = item.paymentStatus ?? 'Pending'
   const forecast      = item.forecastAmount
   const variance      = item.budgetAmount - forecast
+  const trendDelta    = item.forecastPrev != null ? forecast - item.forecastPrev : 0
 
   if (editing) {
     // Preview forecast based on current form values
@@ -325,6 +336,19 @@ function LineItemRow({ item, onDelete }: { item: ExtBudgetItem; onDelete: (id: s
           <span className={clsx('text-sm font-medium tabular-nums', variance >= 0 ? 'text-emerald-400' : 'text-red-400')}>
             {fmt(Math.abs(variance))}
           </span>
+          {item.forecastTrend && item.forecastTrend !== 'flat' && Math.abs(trendDelta) >= 1 && (
+            <span
+              className={clsx(
+                'ml-1 text-[9px] font-medium px-1 py-0.5 rounded',
+                item.forecastTrend === 'up'
+                  ? 'bg-red-900/60 text-red-400'
+                  : 'bg-emerald-900/60 text-emerald-400',
+              )}
+              title={`Forecast ${item.forecastTrend === 'up' ? 'increased' : 'decreased'} by ${fmt(Math.abs(trendDelta))} since last save`}
+            >
+              {item.forecastTrend === 'up' ? '↑' : '↓'} {fmt(Math.abs(trendDelta))}
+            </span>
+          )}
           <button
             onClick={e => { e.stopPropagation(); onDelete(item.id) }}
             className="ml-2 p-1 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -361,7 +385,9 @@ function CategoryCard({
   const catInvoiced = items.reduce((s, i) => s + (i.invoicedAmount ?? 0), 0)
   const catForecast = items.reduce((s, i) => s + i.forecastAmount, 0)
 
-  const overItems = items.filter(i => lineHealth(i.forecastAmount, i.budgetAmount) !== 'green')
+  const overItems    = items.filter(i => lineHealth(i.forecastAmount, i.budgetAmount) !== 'green')
+  const trendingUp   = items.filter(i => i.forecastTrend === 'up').length
+  const trendingDown = items.filter(i => i.forecastTrend === 'down').length
 
   const usedPct  = catBudget > 0 ? Math.min(100, ((catPaid + catInvoiced) / catBudget) * 100) : 0
   const barColor = usedPct >= 100 ? 'bg-red-500' : usedPct >= 85 ? 'bg-amber-500' : 'bg-emerald-500'
@@ -396,6 +422,17 @@ function CategoryCard({
             catHealth === 'amber' ? 'bg-amber-900/60 text-amber-300' : 'bg-red-900/60 text-red-300',
           )}>
             {overItems.length} over budget
+          </span>
+        )}
+        {/* Variance trend badge */}
+        {trendingUp > 0 && (
+          <span className="text-[9px] px-1.5 py-0.5 rounded font-medium shrink-0 bg-red-900/40 text-red-400" title={`${trendingUp} line item${trendingUp > 1 ? 's' : ''} with rising forecast`}>
+            ↑ {trendingUp} rising
+          </span>
+        )}
+        {trendingUp === 0 && trendingDown > 0 && (
+          <span className="text-[9px] px-1.5 py-0.5 rounded font-medium shrink-0 bg-emerald-900/40 text-emerald-400" title={`${trendingDown} line item${trendingDown > 1 ? 's' : ''} with falling forecast`}>
+            ↓ {trendingDown} improving
           </span>
         )}
 
