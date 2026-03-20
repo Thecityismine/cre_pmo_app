@@ -13,15 +13,15 @@ import type { BudgetItem } from '@/hooks/useBudgetItems'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const CATEGORIES = ['Hard Cost', 'Soft Cost', 'FF&E', 'IT/AV', 'Contingency', "Owner's Reserve"]
+const CATEGORIES = ['Hard Cost', 'Soft Cost', 'FF&E', 'Expenses', 'Contingency', 'Tax']
 
 const CATEGORY_COLORS: Record<string, { pill: string; bar: string; border: string }> = {
-  'Hard Cost':       { pill: 'bg-amber-900 text-amber-300',    bar: 'bg-amber-500',   border: 'border-amber-800/40' },
-  'Soft Cost':       { pill: 'bg-blue-900 text-blue-300',      bar: 'bg-blue-500',    border: 'border-blue-800/40' },
-  'FF&E':            { pill: 'bg-purple-900 text-purple-300',  bar: 'bg-purple-500',  border: 'border-purple-800/40' },
-  'IT/AV':           { pill: 'bg-cyan-900 text-cyan-300',      bar: 'bg-cyan-500',    border: 'border-cyan-800/40' },
-  'Contingency':     { pill: 'bg-slate-700 text-slate-300',    bar: 'bg-slate-500',   border: 'border-slate-600/40' },
-  "Owner's Reserve": { pill: 'bg-emerald-900 text-emerald-300', bar: 'bg-emerald-500', border: 'border-emerald-800/40' },
+  'Hard Cost':   { pill: 'bg-amber-900 text-amber-300',    bar: 'bg-amber-500',   border: 'border-amber-800/40' },
+  'Soft Cost':   { pill: 'bg-blue-900 text-blue-300',      bar: 'bg-blue-500',    border: 'border-blue-800/40' },
+  'FF&E':        { pill: 'bg-purple-900 text-purple-300',  bar: 'bg-purple-500',  border: 'border-purple-800/40' },
+  'Expenses':    { pill: 'bg-cyan-900 text-cyan-300',      bar: 'bg-cyan-500',    border: 'border-cyan-800/40' },
+  'Contingency': { pill: 'bg-slate-700 text-slate-300',    bar: 'bg-slate-500',   border: 'border-slate-600/40' },
+  'Tax':         { pill: 'bg-emerald-900 text-emerald-300', bar: 'bg-emerald-500', border: 'border-emerald-800/40' },
 }
 
 const PAYMENT_STATUS = ['Pending', 'Under Contract', 'Invoiced', 'Paid']
