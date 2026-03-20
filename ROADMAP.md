@@ -49,7 +49,7 @@
 **Goal:** RAID becomes the project's central risk register with real PM workflow.
 - [x] Add Owner field (person responsible)
 - [x] Add Impact fields: cost impact ($), schedule impact (days), scope impact
-- [ ] Add linked items: link to Tasks, Budget lines, RFIs
+- [x] Add linked items: link to Tasks, Budget lines, RFIs
 - [x] Add status workflow: Open → In Progress → Mitigated → Closed
 - [x] Add due date + overdue detection
 - [x] RAID dashboard widget: shows open risks count by severity on Overview tab
