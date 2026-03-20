@@ -37,7 +37,7 @@
 - [x] Trigger: Budget variance > 10% → auto-create Risk in RAID
 - [x] Trigger: RFI open > 14 days → auto-create Issue in RAID
 - [x] Auto-risks are labeled "System Generated" and can be dismissed or promoted
-- [ ] RAID items show linked source (which task/milestone/budget line triggered it)
+- [x] RAID items show linked source (which task/milestone/budget line triggered it)
 
 ---
 
@@ -92,7 +92,7 @@
 - [x] "Overdue" badge on Tasks tab label (red count badge)
 - [x] Task priority sorting (Urgent → High → Medium → Low)
 - [ ] Recurring tasks (daily standup, weekly report)
-- [ ] Tasks linked to Milestones (completing tasks advances milestone %)
+- [x] Tasks linked to Milestones (completing tasks advances milestone %)
 - [ ] Push notification / in-app alert when task goes overdue
 
 ---
