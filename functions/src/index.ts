@@ -13,7 +13,7 @@ type Message = { role: 'user' | 'assistant'; content: string }
 // ─── Non-streaming call (callable — Firebase handles auth automatically) ───────
 
 export const claudeCall = onCall(
-  { secrets: [anthropicKey], timeoutSeconds: 60 },
+  { secrets: [anthropicKey], timeoutSeconds: 60, invoker: 'public' },
   async (request) => {
     if (!request.auth) {
       throw new HttpsError('unauthenticated', 'Must be signed in to use AI features.')
@@ -45,7 +45,7 @@ export const claudeCall = onCall(
 // ─── Streaming call (HTTP + SSE — manual auth check) ──────────────────────────
 
 export const claudeStream = onRequest(
-  { secrets: [anthropicKey], cors: true, timeoutSeconds: 120 },
+  { secrets: [anthropicKey], cors: true, timeoutSeconds: 120, invoker: 'public' },
   async (req, res) => {
     if (req.method !== 'POST') {
       res.status(405).end()
