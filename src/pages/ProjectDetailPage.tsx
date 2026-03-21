@@ -525,7 +525,7 @@ export function ProjectDetailPage() {
       {/* Budget bar */}
       {project.totalBudget > 0 && (
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-          <div className="flex justify-between text-xs text-slate-400 mb-2">
+          <div className="flex justify-between text-sm text-slate-400 mb-2">
             <span>Budget Spent</span>
             <span>{fmt(project.actualCost)} / {fmt(project.totalBudget)}</span>
           </div>
@@ -535,7 +535,7 @@ export function ProjectDetailPage() {
               style={{ width: `${Math.min(100, budgetUsed)}%` }}
             />
           </div>
-          <p className="text-xs text-slate-400 mt-1">{Math.round(budgetUsed)}% of budget utilized</p>
+          <p className="text-sm text-slate-400 mt-1">{Math.round(budgetUsed)}% of budget utilized</p>
         </div>
       )}
 
@@ -546,7 +546,7 @@ export function ProjectDetailPage() {
             key={t.id}
             onClick={() => setTab(t.id)}
             className={clsx(
-              'shrink-0 py-2 px-3 rounded-lg text-xs font-medium transition-colors whitespace-nowrap flex items-center gap-1.5',
+              'shrink-0 py-2 px-3 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex items-center gap-1.5',
               tab === t.id ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
             )}
           >
