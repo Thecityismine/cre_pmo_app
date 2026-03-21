@@ -5,10 +5,11 @@ import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebas
 import { auth, db, storage } from '@/lib/firebase'
 import { useAuthStore } from '@/store/authStore'
 import { useNavigate } from 'react-router-dom'
-import { User, Lock, LogOut, Save, Shield, Bell, Key, Tag, Plus, Trash2, Database, Camera, Loader2 } from 'lucide-react'
+import { User, Lock, LogOut, Save, Shield, Bell, Key, Tag, Plus, Trash2, Database, Camera, Loader2, Download } from 'lucide-react'
 import { clsx } from 'clsx'
 import { useProjectTypes } from '@/hooks/useProjectTypes'
 import { useProjects } from '@/hooks/useProjects'
+import { useBackup } from '@/hooks/useBackup'
 
 function Section({ title, icon: Icon, children }: { title: string; icon: React.ElementType; children: React.ReactNode }) {
   return (
@@ -118,6 +119,56 @@ function ProjectTypesSection() {
           </div>
           {error && <p className="text-xs text-red-400">{error}</p>}
         </div>
+      </div>
+    </Section>
+  )
+}
+
+// ─── Backup section ───────────────────────────────────────────────────────────
+
+function BackupSection() {
+  const { loading, lastBackup, runBackup } = useBackup()
+
+  const lastBackupLabel = lastBackup
+    ? new Date(lastBackup).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })
+    : 'Never'
+
+  const nextSunday = (() => {
+    const d = new Date()
+    const daysUntil = (7 - d.getDay()) % 7 || 7
+    d.setDate(d.getDate() + daysUntil)
+    return d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
+  })()
+
+  return (
+    <Section title="Data Backup" icon={Download}>
+      <div className="space-y-4">
+        <p className="text-xs text-slate-400">
+          Export a full snapshot of all your Firestore data as a JSON file. Backups run automatically every Sunday.
+        </p>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-slate-950/60 border border-slate-800 rounded-lg px-4 py-3">
+            <p className="text-xs text-slate-500 mb-1">Last Backup</p>
+            <p className="text-sm text-slate-200">{lastBackupLabel}</p>
+          </div>
+          <div className="bg-slate-950/60 border border-slate-800 rounded-lg px-4 py-3">
+            <p className="text-xs text-slate-500 mb-1">Next Auto-Backup</p>
+            <p className="text-sm text-slate-200">{nextSunday}</p>
+          </div>
+        </div>
+
+        <button
+          onClick={() => runBackup(false)}
+          disabled={loading}
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-50 transition-colors"
+        >
+          {loading ? (
+            <><span className="animate-spin w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full" /> Backing up…</>
+          ) : (
+            <><Download size={14} /> Back Up Now</>
+          )}
+        </button>
       </div>
     </Section>
   )
@@ -485,6 +536,9 @@ export function SettingsPage() {
 
       {/* Project Types */}
       <ProjectTypesSection />
+
+      {/* Backup */}
+      <BackupSection />
 
       {/* Data Audit */}
       <DataAuditSection />

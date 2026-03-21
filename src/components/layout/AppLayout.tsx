@@ -1,13 +1,19 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { Topbar } from './Topbar'
 import { BottomNav } from './BottomNav'
 import { AIChatDrawer, useAIChatShortcut } from '@/components/AIChatDrawer'
+import { useBackup } from '@/hooks/useBackup'
 
 export function AppLayout() {
   const [aiOpen, setAiOpen] = useState(false)
   useAIChatShortcut(() => setAiOpen(o => !o))
+  const { runAutoBackupIfDue } = useBackup()
+
+  useEffect(() => {
+    runAutoBackupIfDue()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="flex h-dvh overflow-hidden bg-slate-950">
