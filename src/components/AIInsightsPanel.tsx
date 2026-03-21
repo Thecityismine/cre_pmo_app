@@ -91,6 +91,7 @@ export function AIInsightsPanel({
   const { insights, loading, dismiss, addInsight, deleteInsight } = useAIInsights(input.project.id)
   const [refreshing, setRefreshing] = useState(false)
   const [showAll, setShowAll] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const autoTriggered = useRef(false)
 
   // Auto-generate on first load when no insights exist in Firestore
@@ -104,6 +105,7 @@ export function AIInsightsPanel({
 
   const refreshInsights = async () => {
     setRefreshing(true)
+    setError(null)
     try {
       // Delete old auto-generated insights
       for (const i of insights) {
@@ -111,9 +113,15 @@ export function AIInsightsPanel({
       }
       // Generate fresh ones
       const fresh = generateInsights(input)
-      for (const i of fresh) {
-        await addInsight(i)
+      if (fresh.length === 0) {
+        setError('no_issues')
+      } else {
+        for (const i of fresh) {
+          await addInsight(i)
+        }
       }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setRefreshing(false)
     }
@@ -150,8 +158,12 @@ export function AIInsightsPanel({
       </div>
 
       {insights.length === 0 ? (
-        <div className="text-center py-3 text-slate-400 text-xs">
-          <p>No active insights.</p>
+        <div className="text-center py-3 text-xs">
+          {error && error !== 'no_issues' ? (
+            <p className="text-red-400 mb-1">{error}</p>
+          ) : (
+            <p className="text-slate-400">{error === 'no_issues' ? 'No issues detected — project looks healthy.' : 'No active insights.'}</p>
+          )}
           <button
             onClick={refreshInsights}
             disabled={refreshing}
