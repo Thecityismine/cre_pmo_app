@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { collection, onSnapshot, query, where, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore'
+import { collection, onSnapshot, query, where, addDoc, updateDoc, deleteDoc, doc, getDocs } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
 export interface ScheduleItem {
@@ -12,6 +12,7 @@ export interface ScheduleItem {
   baselineEnd: string
   percentComplete: number     // 0–100
   isCriticalPath: boolean
+  isWarranty?: boolean
   predecessors?: string[]     // array of predecessor ScheduleItem IDs (Finish-to-Start)
   notes: string
   sortOrder: number
@@ -58,17 +59,26 @@ export function useScheduleItems(projectId: string | undefined) {
 
   const seedDefaults = async () => {
     const now = new Date().toISOString()
-    for (const s of DEFAULT_SCHEDULE_ITEMS) {
+    // Pull from masterScheduleActivities; fall back to DEFAULT_SCHEDULE_ITEMS if empty
+    const masterSnap = await getDocs(collection(db, 'masterScheduleActivities'))
+    const template = masterSnap.docs.length > 0
+      ? masterSnap.docs.map(d => d.data() as { name: string; sortOrder: number; isWarranty?: boolean })
+          .sort((a, b) => a.sortOrder - b.sortOrder)
+      : DEFAULT_SCHEDULE_ITEMS.map(s => ({ ...s, isWarranty: false }))
+
+    for (const s of template) {
       await addDoc(collection(db, 'scheduleItems'), {
         projectId,
         name: s.name,
         sortOrder: s.sortOrder,
+        isWarranty: s.isWarranty ?? false,
         startDate: '',
         endDate: '',
         baselineStart: '',
         baselineEnd: '',
         percentComplete: 0,
         isCriticalPath: false,
+        predecessors: [],
         notes: '',
         createdAt: now,
         updatedAt: now,

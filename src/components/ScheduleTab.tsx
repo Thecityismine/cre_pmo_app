@@ -472,7 +472,7 @@ interface FormData {
 
 const blank = (): FormData => ({
   name: '', startDate: '', endDate: '', baselineStart: '', baselineEnd: '',
-  percentComplete: 0, isCriticalPath: false, predecessors: [], notes: '', sortOrder: 99,
+  percentComplete: 0, isCriticalPath: false, predecessors: [], notes: '', sortOrder: 155,
 })
 
 function ScheduleForm({
@@ -666,8 +666,15 @@ function ScheduleRow({
     )
   }
 
+  const isWarranty = item.isWarranty || item.name?.toLowerCase() === 'warranty period'
+
   return (
-    <div className={clsx('rounded-xl border transition-colors', cfg.bg)}>
+    <div className={clsx(
+      'rounded-xl border transition-colors',
+      isWarranty
+        ? 'bg-amber-950/40 border-amber-600/50'
+        : cfg.bg
+    )}>
       {/* Main row */}
       <div className="flex items-center gap-3 px-4 py-3">
         {/* % complete ring */}
@@ -696,6 +703,11 @@ function ScheduleRow({
             <span className={clsx('text-sm font-medium', item.percentComplete === 100 ? 'line-through text-slate-400' : 'text-slate-100')}>
               {item.name}
             </span>
+            {isWarranty && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-800/60 text-amber-300 border border-amber-600/50 font-medium">
+                Warranty
+              </span>
+            )}
             {isAutoCritical && (
               <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-red-900/60 text-red-300 border border-red-700/50">
                 <Flag size={9} /> Critical Path
