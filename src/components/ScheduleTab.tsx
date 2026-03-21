@@ -730,16 +730,23 @@ function ScheduleRow({
 
         {/* Variance chip */}
         {endVariance !== null && (
-          <div className={clsx(
-            'hidden sm:flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium border shrink-0',
-            endVariance > 0
-              ? 'bg-red-900/40 text-red-300 border-red-700/50'
-              : endVariance < 0
-                ? 'bg-emerald-900/40 text-emerald-300 border-emerald-700/50'
-                : 'bg-slate-900 text-slate-400 border-slate-800'
-          )}>
-            {endVariance > 0 ? `+${endVariance}d` : endVariance < 0 ? `${endVariance}d` : 'On time'}
-          </div>
+          status === 'complete' && endVariance < 0 ? (
+            // Completed ahead of schedule — lightning badge
+            <div className="hidden sm:flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium border shrink-0 bg-emerald-900/40 text-emerald-300 border-emerald-700/50">
+              ⚡ {Math.abs(endVariance) >= 7 ? `${Math.round(Math.abs(endVariance) / 7)}W` : `${Math.abs(endVariance)}D`} Ahead
+            </div>
+          ) : (
+            <div className={clsx(
+              'hidden sm:flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium border shrink-0',
+              endVariance > 0
+                ? 'bg-red-900/40 text-red-300 border-red-700/50'
+                : endVariance < 0
+                  ? 'bg-emerald-900/40 text-emerald-300 border-emerald-700/50'
+                  : 'bg-slate-900 text-slate-400 border-slate-800'
+            )}>
+              {endVariance > 0 ? `+${endVariance}d` : endVariance < 0 ? `${endVariance}d` : 'On time'}
+            </div>
+          )
         )}
 
         {/* Status badge */}
