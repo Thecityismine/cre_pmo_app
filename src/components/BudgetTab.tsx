@@ -491,7 +491,7 @@ function CategoryCard({
             <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-1">Budget</p>
             <button
               onClick={openBudgetEdit}
-              className={clsx('font-bold tabular-nums hover:underline leading-none', approvedBudget ? 'text-slate-100 text-xl' : 'text-blue-400 text-sm')}
+              className={clsx('font-semibold tabular-nums hover:underline leading-none', approvedBudget ? 'text-slate-100 text-sm' : 'text-blue-400 text-sm')}
               title="Click to set approved budget"
             >
               {approvedBudget ? fmt(approvedBudget) : '+ Set budget'}
@@ -500,7 +500,7 @@ function CategoryCard({
           {/* Forecast — center */}
           <div className="text-center">
             <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-1">Forecast</p>
-            <p className="text-slate-100 font-bold text-xl tabular-nums leading-none">
+            <p className="text-slate-100 font-semibold text-sm tabular-nums leading-none">
               {totalDrawn > 0 ? fmt(totalDrawn) : '—'}
             </p>
           </div>
@@ -508,12 +508,12 @@ function CategoryCard({
           <div className="text-right">
             <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-1">Remaining</p>
             {catBudget > 0 ? (
-              <p className={clsx('font-bold text-xl tabular-nums leading-none', (catRemaining ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400')}>
+              <p className={clsx('font-semibold text-sm tabular-nums leading-none', (catRemaining ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400')}>
                 {catRemaining !== null ? fmt(Math.abs(catRemaining)) : '—'}
-                {(catRemaining ?? 0) < 0 && <span className="text-sm ml-0.5">over</span>}
+                {(catRemaining ?? 0) < 0 && <span className="text-xs ml-0.5">over</span>}
               </p>
             ) : (
-              <p className="text-slate-600 text-base leading-none">—</p>
+              <p className="text-slate-600 text-sm leading-none">—</p>
             )}
           </div>
         </div>
