@@ -7,25 +7,45 @@ import { clsx } from 'clsx'
 import type { Contact } from '@/hooks/useContacts'
 
 const ROLE_COLORS: Record<string, string> = {
-  'project-manager':   'bg-blue-900 text-blue-300',
-  'project-executive': 'bg-purple-900 text-purple-300',
-  'architect':         'bg-cyan-900 text-cyan-300',
-  'general-contractor':'bg-amber-900 text-amber-300',
-  'mep-engineer':      'bg-teal-900 text-teal-300',
-  'it-vendor':         'bg-indigo-900 text-indigo-300',
-  'client-rep':        'bg-emerald-900 text-emerald-300',
-  'facilities':        'bg-orange-900 text-orange-300',
-  'other':             'bg-slate-700 text-slate-300',
+  'project-manager':    'bg-blue-900 text-blue-300',
+  'project-executive':  'bg-purple-900 text-purple-300',
+  'owners-rep':         'bg-emerald-900 text-emerald-300',
+  'architect':          'bg-cyan-900 text-cyan-300',
+  'aor':                'bg-cyan-900 text-cyan-300',
+  'general-contractor': 'bg-amber-900 text-amber-300',
+  'mep-engineer':       'bg-teal-900 text-teal-300',
+  'structural':         'bg-teal-900 text-teal-300',
+  'civil':              'bg-teal-900 text-teal-300',
+  'it-vendor':          'bg-indigo-900 text-indigo-300',
+  'av-vendor':          'bg-indigo-900 text-indigo-300',
+  'security':           'bg-rose-900 text-rose-300',
+  'client-rep':         'bg-emerald-900 text-emerald-300',
+  'll-rep':             'bg-violet-900 text-violet-300',
+  'ff-and-e':           'bg-amber-900 text-amber-300',
+  'legal':              'bg-slate-700 text-slate-300',
+  'accounting':         'bg-slate-700 text-slate-300',
+  'facilities':         'bg-orange-900 text-orange-300',
+  'other':              'bg-slate-700 text-slate-300',
 }
 
 const ROLE_LABELS: Record<string, string> = {
   'project-manager':    'Project Manager',
   'project-executive':  'Project Executive',
+  'owners-rep':         "Owner's Rep",
   'architect':          'Architect',
+  'aor':                'Architect of Record',
   'general-contractor': 'General Contractor',
   'mep-engineer':       'MEP Engineer',
+  'structural':         'Structural Engineer',
+  'civil':              'Civil Engineer',
   'it-vendor':          'IT Vendor',
+  'av-vendor':          'AV Vendor',
+  'security':           'Security Vendor',
   'client-rep':         'Client Rep',
+  'll-rep':             'LL Rep',
+  'ff-and-e':           'FF&E Vendor',
+  'legal':              'Legal',
+  'accounting':         'Accounting',
   'facilities':         'Facilities',
   'other':              'Other',
 }
@@ -35,7 +55,7 @@ const ROLES = Object.keys(ROLE_LABELS)
 // ─── Contact Card ─────────────────────────────────────────────────────────────
 function ContactCard({ contact, onDelete }: { contact: Contact; onDelete: (id: string) => void }) {
   const [editing, setEditing] = useState(false)
-  const [form, setForm] = useState({ name: contact.name, company: contact.company, role: contact.role, email: contact.email, phone: contact.phone, notes: contact.notes })
+  const [form, setForm] = useState({ name: contact.name, company: contact.company, role: contact.role, responsibility: contact.responsibility ?? '', email: contact.email, phone: contact.phone, notes: contact.notes })
   const [saving, setSaving] = useState(false)
 
   const save = async () => {
@@ -60,9 +80,12 @@ function ContactCard({ contact, onDelete }: { contact: Contact; onDelete: (id: s
           <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} className={inp()}>
             {ROLES.map(r => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
           </select>
-          <input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="Email" type="email" className={inp()} />
+          <input value={form.responsibility} onChange={e => setForm(f => ({ ...f, responsibility: e.target.value }))} placeholder="Responsibility (e.g. Owns budget)" className={inp()} />
         </div>
-        <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="Phone" className={inp()} />
+        <div className="grid grid-cols-2 gap-3">
+          <input value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="Email" type="email" className={inp()} />
+          <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="Phone" className={inp()} />
+        </div>
         <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Notes" rows={2} className={clsx(inp(), 'resize-none')} />
         <div className="flex gap-2">
           <button onClick={save} disabled={saving} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 rounded-lg disabled:opacity-50">
@@ -99,10 +122,13 @@ function ContactCard({ contact, onDelete }: { contact: Contact; onDelete: (id: s
             </div>
           </div>
 
-          <div className="mt-2">
+          <div className="mt-2 flex items-center gap-2 flex-wrap">
             <span className={clsx('text-xs px-2 py-0.5 rounded font-medium', ROLE_COLORS[contact.role] ?? ROLE_COLORS.other)}>
               {ROLE_LABELS[contact.role] ?? contact.role}
             </span>
+            {contact.responsibility && (
+              <span className="text-[11px] text-slate-400 italic truncate">{contact.responsibility}</span>
+            )}
           </div>
 
           {/* Contact details */}
@@ -130,7 +156,7 @@ function ContactCard({ contact, onDelete }: { contact: Contact; onDelete: (id: s
 
 // ─── Add Contact Modal ─────────────────────────────────────────────────────────
 function AddContactModal({ onClose }: { onClose: () => void }) {
-  const [form, setForm] = useState({ name: '', company: '', role: 'other', email: '', phone: '', notes: '' })
+  const [form, setForm] = useState({ name: '', company: '', role: 'other', responsibility: '', email: '', phone: '', notes: '' })
   const [saving, setSaving] = useState(false)
 
   const save = async (e: React.FormEvent) => {
@@ -166,11 +192,17 @@ function AddContactModal({ onClose }: { onClose: () => void }) {
               <input value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))} className={inp()} />
             </div>
           </div>
-          <div>
-            <label className="text-slate-400 text-xs mb-1 block">Role</label>
-            <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} className={inp()}>
-              {ROLES.map(r => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
-            </select>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-slate-400 text-xs mb-1 block">Role</label>
+              <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} className={inp()}>
+                {ROLES.map(r => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-slate-400 text-xs mb-1 block">Responsibility</label>
+              <input value={form.responsibility} onChange={e => setForm(f => ({ ...f, responsibility: e.target.value }))} placeholder="e.g. Owns budget" className={inp()} />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>

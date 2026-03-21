@@ -7,12 +7,14 @@ export interface Contact {
   name: string
   company: string
   role: string
+  responsibility?: string
   email: string
   phone: string
   trades: string[]
   notes: string
   projectId: string | null
   createdAt: string
+  updatedAt?: string
 }
 
 export function useContacts() {
