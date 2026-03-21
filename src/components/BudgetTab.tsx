@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { collection, addDoc, doc, deleteDoc, updateDoc, increment } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { useBudgetItems } from '@/hooks/useBudgetItems'
@@ -773,6 +773,22 @@ export function BudgetTab({ project }: { project: Project }) {
 
   // Budget health
   const budgetHealth = lineHealth(totalForecast, netBudget)
+
+  // Sync live totals back to the project document so Overview cards stay accurate.
+  // Only writes when values actually change; skips the initial render.
+  const syncedRef = useRef<string>('')
+  useEffect(() => {
+    if (loading || items.length === 0) return
+    const key = `${totalForecast}|${totalPaid}|${coApproved}`
+    if (syncedRef.current === key) return
+    syncedRef.current = key
+    updateDoc(doc(db, 'projects', project.id), {
+      forecastCost:   totalForecast,
+      actualCost:     totalPaid,
+      committedCost:  coApproved,
+      updatedAt:      new Date().toISOString(),
+    })
+  }, [loading, totalForecast, totalPaid, coApproved, items.length, project.id])
 
   const handleAdd = async (form: ReturnType<typeof blankForm>) => {
     const contract = Number(form.contractAmount) || 0
