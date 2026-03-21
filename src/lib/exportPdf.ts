@@ -36,8 +36,13 @@ export function exportProjectPdf(
 
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' })
   const W = 215.9
+  const pageH = 279
   const margin = 18
   let y = 0
+
+  // Full-page dark background
+  doc.setFillColor(15, 23, 42)
+  doc.rect(0, 0, W, pageH, 'F')
 
   // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -369,7 +374,6 @@ export function exportProjectPdf(
 
   // ── Footer ────────────────────────────────────────────────────────────────────
 
-  const pageH = 279
   doc.setFillColor(15, 23, 42)
   rect(0, pageH - 8, W, 8)
   doc.setFont('helvetica', 'normal')
