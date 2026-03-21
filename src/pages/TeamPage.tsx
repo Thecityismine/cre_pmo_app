@@ -7,7 +7,7 @@ import {
   AlertTriangle, Clock, CheckSquare, Copy, Check,
   HardHat, Compass, Zap, Building2, KeyRound, Shield,
   Scale, Wrench, Monitor, Package, Briefcase, ShieldAlert,
-  DollarSign, Layers,
+  DollarSign, Layers, ChevronDown,
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import type { Contact } from '@/hooks/useContacts'
@@ -359,12 +359,18 @@ function AddContactModal({ onClose }: { onClose: () => void }) {
 }
 
 // ─── Main page ─────────────────────────────────────────────────────────────────
+type GroupBy = 'none' | 'role' | 'company'
+
 export function TeamPage() {
   const { contacts, loading } = useContacts()
-  const [search, setSearch] = useState('')
-  const [roleFilter, setRoleFilter] = useState('all')
-  const [showAdd, setShowAdd] = useState(false)
-  const [allTasks, setAllTasks] = useState<TaskRow[]>([])
+  const [search,       setSearch]       = useState('')
+  const [roleFilter,   setRoleFilter]   = useState('all')
+  const [companyFilter,setCompanyFilter]= useState('all')
+  const [overdueOnly,  setOverdueOnly]  = useState(false)
+  const [hasTasksOnly, setHasTasksOnly] = useState(false)
+  const [groupBy,      setGroupBy]      = useState<GroupBy>('none')
+  const [showAdd,      setShowAdd]      = useState(false)
+  const [allTasks,     setAllTasks]     = useState<TaskRow[]>([])
 
   // One-time fetch of all project tasks (cross-project accountability)
   useEffect(() => {
@@ -384,21 +390,49 @@ export function TeamPage() {
   const internalCount      = contacts.filter(c => INTERNAL_ROLES.has(c.role)).length
   const externalCount      = contacts.length - internalCount
 
+  // ── Filter options ──
+  const roleOptions    = ['all', ...Array.from(new Set(contacts.map(c => c.role))).sort()]
+  const companyOptions = ['all', ...Array.from(new Set(contacts.map(c => c.company).filter(Boolean))).sort()]
+
+  // ── Filtered list ──
   const filtered = contacts.filter(c => {
-    const matchSearch = !search ||
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.company.toLowerCase().includes(search.toLowerCase()) ||
-      c.email.toLowerCase().includes(search.toLowerCase())
-    const matchRole = roleFilter === 'all' || c.role === roleFilter
-    return matchSearch && matchRole
+    const q = search.toLowerCase()
+    const matchSearch = !q ||
+      c.name.toLowerCase().includes(q) ||
+      c.company.toLowerCase().includes(q) ||
+      c.email.toLowerCase().includes(q) ||
+      (c.responsibility ?? '').toLowerCase().includes(q)
+    const matchRole    = roleFilter    === 'all' || c.role    === roleFilter
+    const matchCompany = companyFilter === 'all' || c.company === companyFilter
+    const matchOverdue = !overdueOnly  || (statsMap[c.id]?.overdue ?? 0) > 0
+    const matchTasks   = !hasTasksOnly || (statsMap[c.id]?.open    ?? 0) > 0
+    return matchSearch && matchRole && matchCompany && matchOverdue && matchTasks
   })
+
+  // ── Grouping ──
+  const grouped: { label: string; items: typeof filtered }[] = (() => {
+    if (groupBy === 'none') return [{ label: '', items: filtered }]
+    const map = new Map<string, typeof filtered>()
+    filtered.forEach(c => {
+      const key = groupBy === 'role'
+        ? (ROLE_LABELS[c.role] ?? c.role)
+        : (c.company || 'No Company')
+      if (!map.has(key)) map.set(key, [])
+      map.get(key)!.push(c)
+    })
+    return Array.from(map.entries())
+      .sort((a, b) => b[1].length - a[1].length)
+      .map(([label, items]) => ({ label, items }))
+  })()
 
   const handleDelete = async (id: string) => {
     if (!confirm('Remove this contact?')) return
     await deleteDoc(doc(db, 'contacts', id))
   }
 
-  const roleOptions = ['all', ...Array.from(new Set(contacts.map(c => c.role))).sort()]
+  const activeFilterCount = [
+    roleFilter !== 'all', companyFilter !== 'all', overdueOnly, hasTasksOnly,
+  ].filter(Boolean).length
 
   return (
     <div className="space-y-4 max-w-5xl mx-auto">
@@ -420,8 +454,8 @@ export function TeamPage() {
       {contacts.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
-            { label: 'Total Members',       value: contacts.length,    color: 'text-slate-100',  icon: Users },
-            { label: 'Active Contributors', value: activeContributors, color: 'text-emerald-400', icon: CheckSquare },
+            { label: 'Total Members',       value: contacts.length,    color: 'text-slate-100',   icon: Users },
+            { label: 'Active Contributors', value: activeContributors, color: 'text-emerald-400',  icon: CheckSquare },
             { label: 'Overdue Owners',      value: overdueOwners,      color: overdueOwners > 0 ? 'text-red-400' : 'text-slate-100', icon: AlertTriangle },
             { label: `${internalCount} Internal / ${externalCount} External`, value: null, color: 'text-slate-400', icon: Users },
           ].map(({ label, value, color, icon: Icon }) => (
@@ -436,34 +470,112 @@ export function TeamPage() {
         </div>
       )}
 
-      {/* Search + filter */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search name, company, email..."
-            className="w-full bg-slate-900 text-slate-200 placeholder-slate-500 text-sm rounded-xl pl-9 pr-4 py-2.5 border border-slate-800 focus:outline-none focus:border-blue-500"
-          />
+      {/* ── Filter bar ── */}
+      <div className="space-y-2">
+        {/* Row 1: search + company */}
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search name, company, role, responsibility..."
+              className="w-full bg-slate-900 text-slate-200 placeholder-slate-500 text-sm rounded-xl pl-9 pr-4 py-2.5 border border-slate-800 focus:outline-none focus:border-blue-500"
+            />
+          </div>
+          {companyOptions.length > 2 && (
+            <div className="relative shrink-0">
+              <select
+                value={companyFilter}
+                onChange={e => setCompanyFilter(e.target.value)}
+                className={clsx(
+                  'appearance-none bg-slate-900 text-slate-300 text-sm rounded-xl pl-3 pr-8 py-2.5 border focus:outline-none focus:border-blue-500 transition-colors',
+                  companyFilter !== 'all' ? 'border-blue-500 text-blue-300' : 'border-slate-800'
+                )}
+              >
+                <option value="all">All Companies</option>
+                {companyOptions.filter(c => c !== 'all').map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+              <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            </div>
+          )}
         </div>
-        <div className="flex gap-1.5 flex-wrap">
-          {roleOptions.map(r => (
+
+        {/* Row 2: role pills + toggles + group by */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Role pills */}
+          <div className="flex gap-1 flex-wrap flex-1 min-w-0">
+            {roleOptions.map(r => (
+              <button
+                key={r}
+                onClick={() => setRoleFilter(r)}
+                className={clsx(
+                  'px-2.5 py-1 rounded-lg text-xs font-medium transition-colors whitespace-nowrap',
+                  roleFilter === r ? 'bg-blue-600 text-white' : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200'
+                )}
+              >
+                {r === 'all' ? `All (${contacts.length})` : ROLE_LABELS[r] ?? r}
+              </button>
+            ))}
+          </div>
+
+          {/* Divider */}
+          <div className="w-px h-5 bg-slate-700 shrink-0" />
+
+          {/* Quick toggles */}
+          <button
+            onClick={() => setOverdueOnly(v => !v)}
+            className={clsx(
+              'flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors whitespace-nowrap shrink-0',
+              overdueOnly ? 'bg-red-900/60 text-red-300 border border-red-700/50' : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200'
+            )}
+          >
+            <AlertTriangle size={10} /> Overdue
+          </button>
+          <button
+            onClick={() => setHasTasksOnly(v => !v)}
+            className={clsx(
+              'flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors whitespace-nowrap shrink-0',
+              hasTasksOnly ? 'bg-blue-900/60 text-blue-300 border border-blue-700/50' : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200'
+            )}
+          >
+            <CheckSquare size={10} /> Has Tasks
+          </button>
+
+          {/* Divider */}
+          <div className="w-px h-5 bg-slate-700 shrink-0" />
+
+          {/* Group by */}
+          <div className="flex items-center bg-slate-900 border border-slate-800 rounded-lg p-0.5 shrink-0">
+            {(['none', 'role', 'company'] as GroupBy[]).map(g => (
+              <button
+                key={g}
+                onClick={() => setGroupBy(g)}
+                className={clsx(
+                  'px-2.5 py-1 rounded-md text-xs font-medium transition-colors capitalize',
+                  groupBy === g ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+                )}
+              >
+                {g === 'none' ? 'Flat' : g === 'role' ? 'By Role' : 'By Co.'}
+              </button>
+            ))}
+          </div>
+
+          {/* Clear filters */}
+          {activeFilterCount > 0 && (
             <button
-              key={r}
-              onClick={() => setRoleFilter(r)}
-              className={clsx(
-                'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors capitalize',
-                roleFilter === r ? 'bg-blue-600 text-white' : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200'
-              )}
+              onClick={() => { setRoleFilter('all'); setCompanyFilter('all'); setOverdueOnly(false); setHasTasksOnly(false) }}
+              className="text-xs text-slate-500 hover:text-slate-300 transition-colors shrink-0"
             >
-              {r === 'all' ? `All (${contacts.length})` : ROLE_LABELS[r] ?? r}
+              Clear ({activeFilterCount})
             </button>
-          ))}
+          )}
         </div>
       </div>
 
-      {/* Grid */}
+      {/* ── Contact grid (flat or grouped) ── */}
       {loading ? (
         <div className="flex justify-center py-16">
           <div className="animate-spin w-7 h-7 border-2 border-blue-500 border-t-transparent rounded-full" />
@@ -471,12 +583,30 @@ export function TeamPage() {
       ) : filtered.length === 0 ? (
         <div className="text-center py-16 text-slate-400 bg-slate-900 border border-slate-800 rounded-xl">
           <Users size={36} className="mx-auto mb-3 opacity-30" />
-          <p>{search ? `No contacts matching "${search}"` : 'No contacts yet.'}</p>
+          <p>{search || activeFilterCount > 0 ? 'No contacts match the current filters.' : 'No contacts yet.'}</p>
+          {activeFilterCount > 0 && (
+            <button onClick={() => { setRoleFilter('all'); setCompanyFilter('all'); setOverdueOnly(false); setHasTasksOnly(false) }}
+              className="mt-2 text-xs text-blue-400 hover:text-blue-300">Clear filters</button>
+          )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-          {filtered.map(c => (
-            <ContactCard key={c.id} contact={c} onDelete={handleDelete} stats={statsMap[c.id] ?? { open: 0, overdue: 0, lastUpdated: null }} />
+        <div className="space-y-6">
+          {grouped.map(({ label, items }) => (
+            <div key={label || '__flat'}>
+              {label && (
+                <div className="flex items-center gap-2 mb-3">
+                  <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide">{label}</h3>
+                  <span className="text-xs text-slate-600">{items.length}</span>
+                  <div className="flex-1 h-px bg-slate-800" />
+                </div>
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                {items.map(c => (
+                  <ContactCard key={c.id} contact={c} onDelete={handleDelete}
+                    stats={statsMap[c.id] ?? { open: 0, overdue: 0, lastUpdated: null }} />
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       )}
