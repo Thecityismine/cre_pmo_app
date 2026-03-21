@@ -2,11 +2,11 @@ import { useState } from 'react'
 import { clsx } from 'clsx'
 import {
   Plus, Check, Trash2, ChevronDown, ChevronRight,
-  Clock, AlertTriangle, CheckSquare, Circle, Loader2, User,
+  Clock, AlertTriangle, CheckSquare, Circle, Loader2, User, RefreshCw,
 } from 'lucide-react'
 import { useProjectTasks } from '@/hooks/useProjectTasks'
 import { useAuthStore } from '@/store/authStore'
-import type { ProjectTask, ProjectTaskPriority } from '@/hooks/useProjectTasks'
+import type { ProjectTask, ProjectTaskPriority, RecurrenceFrequency } from '@/hooks/useProjectTasks'
 import type { Milestone } from '@/hooks/useMilestones'
 import type { Project } from '@/types'
 
@@ -48,8 +48,20 @@ function isDueToday(dueDate: string) {
 
 // ─── Blank form ───────────────────────────────────────────────────────────────
 
+const RECURRENCES: { value: '' | RecurrenceFrequency; label: string }[] = [
+  { value: '',        label: 'No repeat' },
+  { value: 'daily',  label: 'Daily' },
+  { value: 'weekly', label: 'Weekly' },
+  { value: 'monthly',label: 'Monthly' },
+]
+
 function blankForm() {
-  return { title: '', description: '', dueDate: '', assignedTo: '', priority: 'medium' as ProjectTaskPriority, milestoneId: undefined as string | undefined }
+  return {
+    title: '', description: '', dueDate: '', assignedTo: '',
+    priority: 'medium' as ProjectTaskPriority,
+    milestoneId: undefined as string | undefined,
+    recurrence: '' as '' | RecurrenceFrequency,
+  }
 }
 
 // ─── Add Task Form ────────────────────────────────────────────────────────────
@@ -123,6 +135,12 @@ function AddTaskForm({ onSave, onCancel, milestones = [] }: {
             </select>
           </div>
         )}
+        <div>
+          <label className="text-[10px] text-slate-400 mb-1 block">Repeat</label>
+          <select value={form.recurrence} onChange={e => set('recurrence', e.target.value)} className={inp}>
+            {RECURRENCES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+          </select>
+        </div>
       </div>
 
       {saveError && (
@@ -209,6 +227,11 @@ function TaskRow({ task, onComplete, onDelete, milestoneName }: {
                 <CheckSquare size={9} /> {milestoneName}
               </span>
             )}
+            {task.recurrence && (
+              <span className="text-[10px] text-slate-400 flex items-center gap-0.5">
+                <RefreshCw size={9} /> {task.recurrence.frequency}
+              </span>
+            )}
             {task.status === 'completed' && task.completedAt && (
               <span className="text-xs text-emerald-500">Completed {fmtShort(task.completedAt)}</span>
             )}
@@ -276,18 +299,17 @@ export function TasksTab({ project, showAddForm: externalShowForm, onFormClose, 
       priority:    form.priority as ProjectTaskPriority,
       status:      'open',
       ...(form.milestoneId ? { milestoneId: form.milestoneId } : {}),
+      ...(form.recurrence   ? { recurrence: { frequency: form.recurrence as RecurrenceFrequency, interval: 1 } } : {}),
     })
     closeForm()
     setFilter('open')
   }
 
-  const handleComplete = async (taskId: string) => {
-    await completeTask(taskId)
-    // Check if all tasks for this milestone are now complete → auto-advance
-    const task = tasks.find(t => t.id === taskId)
-    if (!task?.milestoneId || !onMilestoneComplete) return
+  const handleComplete = async (task: ProjectTask) => {
+    await completeTask(task)
+    if (!task.milestoneId || !onMilestoneComplete) return
     const milestoneId = task.milestoneId
-    const linked = tasks.filter(t => t.milestoneId === milestoneId && t.id !== taskId)
+    const linked = tasks.filter(t => t.milestoneId === milestoneId && t.id !== task.id)
     const allDone = linked.every(t => t.status === 'completed')
     if (allDone && linked.length > 0) {
       await onMilestoneComplete(milestoneId)
@@ -404,7 +426,7 @@ export function TasksTab({ project, showAddForm: externalShowForm, onFormClose, 
             <TaskRow
               key={task.id}
               task={task}
-              onComplete={() => handleComplete(task.id)}
+              onComplete={() => handleComplete(task)}
               onDelete={() => handleDelete(task.id, task.title)}
               milestoneName={task.milestoneId ? milestoneMap[task.milestoneId] : undefined}
             />

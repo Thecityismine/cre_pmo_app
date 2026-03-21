@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react'
 import { collection, onSnapshot, query, where, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
-export type ProjectTaskPriority = 'low' | 'medium' | 'high' | 'urgent'
-export type ProjectTaskStatus   = 'open' | 'completed'
+export type ProjectTaskPriority  = 'low' | 'medium' | 'high' | 'urgent'
+export type ProjectTaskStatus    = 'open' | 'completed'
+export type RecurrenceFrequency  = 'daily' | 'weekly' | 'monthly'
 
 export interface ProjectTask {
   id: string
@@ -15,9 +16,19 @@ export interface ProjectTask {
   priority: ProjectTaskPriority
   status: ProjectTaskStatus
   completedAt: string
-  milestoneId?: string   // optional link to a Milestone
+  milestoneId?: string
+  recurrence?: { frequency: RecurrenceFrequency; interval: number }
   createdAt: string
   updatedAt: string
+}
+
+function calcNextDue(fromDate: string, freq: RecurrenceFrequency, interval: number): string {
+  const [y, m, d] = fromDate.split('-').map(Number)
+  const date = new Date(y, m - 1, d)
+  if (freq === 'daily')        date.setDate(date.getDate() + interval)
+  else if (freq === 'weekly')  date.setDate(date.getDate() + interval * 7)
+  else                         date.setMonth(date.getMonth() + interval)
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
 export function useProjectTasks(projectId: string | undefined) {
@@ -54,9 +65,20 @@ export function useProjectTasks(projectId: string | undefined) {
     await updateDoc(doc(db, 'projectTasks', id), payload)
   }
 
-  const completeTask = async (id: string) => {
+  const completeTask = async (task: ProjectTask) => {
     const now = new Date().toISOString()
-    await updateDoc(doc(db, 'projectTasks', id), { status: 'completed', completedAt: now, updatedAt: now })
+    await updateDoc(doc(db, 'projectTasks', task.id), { status: 'completed', completedAt: now, updatedAt: now })
+    if (task.recurrence && task.dueDate) {
+      const { id: _id, createdAt: _c, updatedAt: _u, completedAt: _ca, status: _s, ...rest } = task
+      await addDoc(collection(db, 'projectTasks'), {
+        ...rest,
+        status: 'open',
+        completedAt: '',
+        dueDate: calcNextDue(task.dueDate, task.recurrence.frequency, task.recurrence.interval),
+        createdAt: now,
+        updatedAt: now,
+      })
+    }
   }
 
   const deleteTask = (id: string) => deleteDoc(doc(db, 'projectTasks', id))
