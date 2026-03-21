@@ -491,7 +491,7 @@ function CategoryCard({
             <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-1">Budget</p>
             <button
               onClick={openBudgetEdit}
-              className={clsx('font-semibold tabular-nums hover:underline leading-none', approvedBudget ? 'text-slate-100 text-base' : 'text-blue-400 text-sm')}
+              className={clsx('font-bold tabular-nums hover:underline leading-none', approvedBudget ? 'text-slate-100 text-xl' : 'text-blue-400 text-sm')}
               title="Click to set approved budget"
             >
               {approvedBudget ? fmt(approvedBudget) : '+ Set budget'}
@@ -500,7 +500,7 @@ function CategoryCard({
           {/* Forecast — center */}
           <div className="text-center">
             <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-1">Forecast</p>
-            <p className="text-slate-100 font-semibold text-base tabular-nums leading-none">
+            <p className="text-slate-100 font-bold text-xl tabular-nums leading-none">
               {totalDrawn > 0 ? fmt(totalDrawn) : '—'}
             </p>
           </div>
@@ -508,12 +508,12 @@ function CategoryCard({
           <div className="text-right">
             <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-1">Remaining</p>
             {catBudget > 0 ? (
-              <p className={clsx('font-semibold text-base tabular-nums leading-none', (catRemaining ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400')}>
+              <p className={clsx('font-bold text-xl tabular-nums leading-none', (catRemaining ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400')}>
                 {catRemaining !== null ? fmt(Math.abs(catRemaining)) : '—'}
-                {(catRemaining ?? 0) < 0 && <span className="text-xs ml-0.5">over</span>}
+                {(catRemaining ?? 0) < 0 && <span className="text-sm ml-0.5">over</span>}
               </p>
             ) : (
-              <p className="text-slate-600 text-sm leading-none">—</p>
+              <p className="text-slate-600 text-base leading-none">—</p>
             )}
           </div>
         </div>
@@ -566,23 +566,23 @@ function CategoryCard({
             </div>
           ) : (
             <div className="px-4 py-2 border-b border-slate-700/30 flex items-center justify-between">
-              <div className="flex items-center gap-3 text-xs flex-wrap">
-                <span className="text-slate-500">
-                  Approved Budget: <span className="text-slate-200 font-medium tabular-nums">
+              <div className="flex items-center gap-3 text-sm flex-wrap">
+                <span className="text-slate-400">
+                  Approved Budget: <span className="text-slate-100 font-semibold tabular-nums">
                     {approvedBudget ? fmt(approvedBudget) : <span className="text-slate-600 italic">not set</span>}
                   </span>
                 </span>
                 {catBudget > 0 && (
                   <>
                     <span className="text-slate-600">·</span>
-                    <span className="text-slate-500">
-                      Drawn: <span className={clsx('font-medium tabular-nums', catHealth === 'red' ? 'text-red-400' : catHealth === 'amber' ? 'text-amber-400' : 'text-emerald-400')}>
+                    <span className="text-slate-400">
+                      Drawn: <span className={clsx('font-semibold tabular-nums', catHealth === 'red' ? 'text-red-400' : catHealth === 'amber' ? 'text-amber-400' : 'text-emerald-400')}>
                         {fmt(totalDrawn)}
                       </span>
                     </span>
                     <span className="text-slate-600">·</span>
-                    <span className="text-slate-500">
-                      Remaining: <span className={clsx('font-medium tabular-nums', (catRemaining ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400')}>
+                    <span className="text-slate-400">
+                      Remaining: <span className={clsx('font-semibold tabular-nums', (catRemaining ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400')}>
                         {catRemaining !== null
                           ? `${(catRemaining ?? 0) < 0 ? '(' : ''}${fmt(Math.abs(catRemaining ?? 0))}${(catRemaining ?? 0) < 0 ? ') over' : ''}`
                           : '—'}
@@ -592,7 +592,7 @@ function CategoryCard({
                 )}
               </div>
               <button onClick={openBudgetEdit}
-                className="text-[10px] text-blue-400 hover:text-blue-300 shrink-0 ml-2">
+                className="text-xs text-blue-400 hover:text-blue-300 shrink-0 ml-2">
                 {approvedBudget ? 'Edit' : '+ Set Budget'}
               </button>
             </div>
