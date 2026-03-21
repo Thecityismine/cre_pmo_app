@@ -485,13 +485,13 @@ function CategoryCard({
         </div>
 
         {/* Row 2: Budget | Forecast | Remaining — fixed thirds so numbers always align */}
-        <div className="grid grid-cols-3 w-full pl-5">
+        <div className="grid grid-cols-3 items-end w-full pl-5">
           {/* Budget — left */}
           <div>
             <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-1">Budget</p>
             <button
               onClick={openBudgetEdit}
-              className={clsx('font-semibold tabular-nums hover:underline leading-none', approvedBudget ? 'text-slate-100 text-sm' : 'text-blue-400 text-sm')}
+              className={clsx('font-semibold tabular-nums hover:underline leading-none block p-0 m-0', approvedBudget ? 'text-slate-100 text-sm' : 'text-blue-400 text-sm')}
               title="Click to set approved budget"
             >
               {approvedBudget ? fmt(approvedBudget) : '+ Set budget'}
