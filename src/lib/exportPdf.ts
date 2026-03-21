@@ -303,15 +303,26 @@ export function exportProjectPdf(
     const stageIdx = STAGE_ORDER.indexOf(project.status)
     const stageLabels = ['Pre-Project','Initiate','Planning','Design','Construction','Handover','Closeout','Closed']
     const sw = (W - margin * 2) / stageLabels.length
+    const dotW = sw * 0.3
+    const dotH = 3
+    const dotY = y
+    // Connector lines between dots
+    for (let i = 0; i < stageLabels.length - 1; i++) {
+      const sx = margin + i * sw
+      const done = i < stageIdx
+      doc.setDrawColor(done ? 16 : 30, done ? 185 : 41, done ? 129 : 59)
+      doc.setLineWidth(0.4)
+      line(sx + sw * 0.35 + dotW, dotY + dotH / 2, sx + sw + sw * 0.35, dotY + dotH / 2)
+    }
     stageLabels.forEach((s, i) => {
       const sx = margin + i * sw
       const done = i < stageIdx
       const active = i === stageIdx
       doc.setFillColor(done ? 16 : active ? 59 : 30, done ? 185 : active ? 130 : 41, done ? 129 : active ? 246 : 59)
-      rect(sx + sw * 0.35, y, sw * 0.3, 3)
+      rect(sx + sw * 0.35, dotY, dotW, dotH)
       doc.setFontSize(5.5)
       doc.setTextColor(active ? 147 : done ? 100 : 71, active ? 197 : done ? 200 : 85, active ? 253 : done ? 184 : 105)
-      text(s, sx + sw / 2, y + 7, { align: 'center' })
+      text(s, sx + sw / 2, dotY + 7, { align: 'center' })
     })
     y += 13
   }
@@ -351,7 +362,7 @@ export function exportProjectPdf(
       return acc
     }, {})
 
-    const cats = Object.entries(grouped).slice(0, 8)
+    const cats = Object.entries(grouped)
     const catColW = (W - margin * 2) / Math.min(cats.length, 4)
     cats.forEach(([cat, v], i) => {
       const col = i % 4
