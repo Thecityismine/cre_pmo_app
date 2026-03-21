@@ -479,15 +479,15 @@ function CategoryCard({
             </span>
           )}
           <div className="flex-1" />
-          <span className="text-[11px] text-slate-500 shrink-0">
+          <span className="text-sm text-slate-400 shrink-0 font-medium">
             {items.length === 0 ? 'No items' : `${items.length} item${items.length !== 1 ? 's' : ''}`}
           </span>
         </div>
 
-        {/* Row 2: Budget | Forecast | Remaining — full width, numbers aligned */}
-        <div className="flex items-end w-full pl-5">
+        {/* Row 2: Budget | Forecast | Remaining — fixed thirds so numbers always align */}
+        <div className="grid grid-cols-3 w-full pl-5">
           {/* Budget — left */}
-          <div className="flex-1">
+          <div>
             <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-1">Budget</p>
             <button
               onClick={openBudgetEdit}
@@ -497,23 +497,25 @@ function CategoryCard({
               {approvedBudget ? fmt(approvedBudget) : '+ Set budget'}
             </button>
           </div>
-          {/* Forecast — centered */}
-          <div className="flex-1 text-center">
+          {/* Forecast — center */}
+          <div className="text-center">
             <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-1">Forecast</p>
             <p className="text-slate-100 font-semibold text-base tabular-nums leading-none">
               {totalDrawn > 0 ? fmt(totalDrawn) : '—'}
             </p>
           </div>
           {/* Remaining — right */}
-          {catBudget > 0 && (
-            <div className="flex-1 text-right">
-              <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-1">Remaining</p>
+          <div className="text-right">
+            <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-1">Remaining</p>
+            {catBudget > 0 ? (
               <p className={clsx('font-semibold text-base tabular-nums leading-none', (catRemaining ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400')}>
                 {catRemaining !== null ? fmt(Math.abs(catRemaining)) : '—'}
                 {(catRemaining ?? 0) < 0 && <span className="text-xs ml-0.5">over</span>}
               </p>
-            </div>
-          )}
+            ) : (
+              <p className="text-slate-600 text-sm leading-none">—</p>
+            )}
+          </div>
         </div>
 
         {/* Row 3: progress bar */}
@@ -896,9 +898,9 @@ export function BudgetTab({ project }: { project: Project }) {
         const barColor    = budgetHealth === 'red' ? 'bg-red-500' : budgetHealth === 'amber' ? 'bg-amber-500' : 'bg-blue-500'
         return (
           <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
-            <div className="flex justify-between text-xs mb-2">
-              <span className="text-slate-400">Budget Utilization</span>
-              <span className={totalVariance < 0 ? 'text-red-400 font-medium' : 'text-emerald-400 font-medium'}>
+            <div className="flex justify-between text-sm mb-2">
+              <span className="text-slate-300 font-medium">Budget Utilization</span>
+              <span className={clsx('font-semibold', totalVariance < 0 ? 'text-red-400' : 'text-emerald-400')}>
                 {totalVariance >= 0 ? `${fmt(totalVariance)} remaining` : `${fmt(Math.abs(totalVariance))} over budget`}
               </span>
             </div>
@@ -914,12 +916,12 @@ export function BudgetTab({ project }: { project: Project }) {
               )}
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
-              <span className="text-xs text-slate-400 flex items-center gap-1">
+              <span className="text-sm text-slate-400 flex items-center gap-1">
                 <span className={clsx('w-2 h-2 rounded-sm inline-block opacity-40', barColor)} />
-                Forecast {fmt(totalForecast)} <span className="text-slate-600">({Math.round(forecastPct)}% of budget)</span>
+                Forecast {fmt(totalForecast)} <span className="text-slate-100 font-medium">({Math.round(forecastPct)}% of budget)</span>
               </span>
               {totalPaid > 0 && (
-                <span className="text-xs text-emerald-400 flex items-center gap-1">
+                <span className="text-sm text-emerald-400 flex items-center gap-1">
                   <span className="w-2 h-2 rounded-sm bg-emerald-500 inline-block" /> Paid {fmt(totalPaid)}
                 </span>
               )}
