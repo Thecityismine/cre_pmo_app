@@ -3,7 +3,7 @@ import { clsx } from 'clsx'
 import {
   Plus, ChevronDown, ChevronRight, CheckCircle2, AlertTriangle,
   Clock, Calendar, Trash2, Pencil, BarChart2, Flag, Download, Lock,
-  List, GanttChartSquare, Link2,
+  List, GanttChartSquare, Link2, Diamond,
 } from 'lucide-react'
 import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
@@ -708,6 +708,11 @@ function ScheduleRow({
                 Warranty
               </span>
             )}
+            {item.isMilestone && (
+              <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-purple-900/60 text-purple-300 border border-purple-700/50 font-medium">
+                <Diamond size={8} fill="currentColor" /> Milestone
+              </span>
+            )}
             {isAutoCritical && (
               <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-red-900/60 text-red-300 border border-red-700/50">
                 <Flag size={9} /> Critical Path
@@ -773,6 +778,13 @@ function ScheduleRow({
 
         {/* Actions */}
         <div className="flex items-center gap-1 shrink-0">
+          <button
+            onClick={() => onUpdate(item.id, { isMilestone: !item.isMilestone })}
+            title={item.isMilestone ? 'Remove milestone flag' : 'Mark as milestone'}
+            className={clsx('p-1 transition-colors', item.isMilestone ? 'text-purple-400 hover:text-purple-300' : 'text-slate-600 hover:text-purple-400')}
+          >
+            <Diamond size={13} fill={item.isMilestone ? 'currentColor' : 'none'} />
+          </button>
           <button onClick={() => setEditing(true)}
             className="p-1 text-slate-400 hover:text-blue-400 transition-colors">
             <Pencil size={13} />

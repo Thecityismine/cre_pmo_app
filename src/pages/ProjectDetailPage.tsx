@@ -38,6 +38,7 @@ import { AIInsightsPanel } from '@/components/AIInsightsPanel'
 import { computeHealth } from '@/lib/healthScore'
 import { MilestoneTimeline } from '@/components/MilestoneTimeline'
 import { useMilestones } from '@/hooks/useMilestones'
+import { useScheduleItems } from '@/hooks/useScheduleItems'
 import { exportProjectPdf } from '@/lib/exportPdf'
 import type { Task, Project } from '@/types'
 
@@ -217,12 +218,16 @@ function ScoreBar({ label, score, max, detail }: { label: string; score: number;
   )
 }
 
-function HealthScorecard({ project, taskCompletionPct, raidItems, milestones }: {
+function HealthScorecard({ project, taskCompletionPct, raidItems, milestoneItems }: {
   project: Project
   taskCompletionPct?: number
   raidItems?: import('@/hooks/useRaidLog').RaidItem[]
-  milestones?: import('@/hooks/useMilestones').Milestone[]
+  milestoneItems?: import('@/hooks/useScheduleItems').ScheduleItem[]
 }) {
+  const milestones = (milestoneItems ?? []).map(i => ({
+    targetDate: i.endDate || i.baselineEnd || '',
+    status: i.percentComplete === 100 ? 'complete' : (i.endDate && new Date(i.endDate) < new Date() ? 'delayed' : 'pending'),
+  }))
   const h = computeHealth(project, { taskCompletionPct, raidItems, milestones })
   const ringColor = h.total >= 80 ? 'text-emerald-400' : h.total >= 60 ? 'text-amber-400' : 'text-red-400'
   const ringBg   = h.total >= 80 ? 'border-emerald-500' : h.total >= 60 ? 'border-amber-500' : 'border-red-500'
@@ -269,6 +274,8 @@ export function ProjectDetailPage() {
   const { items: budgetItems } = useBudgetItems(id)
   const { approvedTotal: coApproved, pendingTotal: coPending } = useChangeOrders(id)
   const { milestones, updateMilestone } = useMilestones(id)
+  const { items: scheduleItems } = useScheduleItems(id)
+  const milestoneScheduleItems = scheduleItems.filter(i => i.isMilestone)
   const { documents: recentDocs } = useProjectDocuments(id)
   const { openCount: openRfis, overdueCount: overdueRfis } = useRfis(id)
   const { openCount: openPunch } = usePunchList(id)
@@ -724,7 +731,7 @@ export function ProjectDetailPage() {
         })()}
 
         {/* Health scorecard */}
-        <HealthScorecard project={project} taskCompletionPct={totalPct} raidItems={raidItems} milestones={milestones} />
+        <HealthScorecard project={project} taskCompletionPct={totalPct} raidItems={raidItems} milestoneItems={milestoneScheduleItems} />
 
         {/* ── RAID Risk Widget ──────────────────────────────────────────── */}
         {(() => {
@@ -856,18 +863,19 @@ export function ProjectDetailPage() {
 
         {/* ── Milestone Mini-Timeline ───────────────────────────────────── */}
         {(() => {
-          const dated = milestones.filter(m => m.targetDate)
+          const dated = milestoneScheduleItems.filter(m => m.endDate || m.baselineEnd)
           const today = new Date()
+          const parseLocal = (d: string) => { const [y,mo,day] = d.split('-').map(Number); return new Date(y, mo-1, day) }
           if (dated.length === 0) {
             return (
               <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center gap-3">
                 <Calendar size={16} className="text-slate-400 shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-slate-400">No milestone dates set.</p>
+                  <p className="text-sm text-slate-400">No milestones flagged yet.</p>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    Scroll down to the{' '}
-                    <span className="text-blue-400">Milestones</span>
-                    {' '}section below and click <strong className="text-slate-300">Edit</strong> on each milestone to set target dates.
+                    Click the{' '}
+                    <span className="text-purple-400">◆</span>
+                    {' '}icon on any Schedule activity to mark it as a milestone.
                   </p>
                 </div>
               </div>
@@ -881,8 +889,9 @@ export function ProjectDetailPage() {
               <div className="overflow-x-auto">
                 <div className="flex gap-0 px-4 py-4 min-w-max">
                   {dated.slice(0, 8).map((m, idx) => {
-                    const isComplete = m.status === 'complete'
-                    const tDate = new Date(m.targetDate)
+                    const isComplete = m.percentComplete === 100
+                    const targetDate = m.endDate || m.baselineEnd
+                    const tDate = parseLocal(targetDate)
                     const isNear = !isComplete && Math.abs(tDate.getTime() - today.getTime()) <= 14 * 24 * 60 * 60 * 1000
                     const dotColor = isComplete ? 'bg-emerald-500 border-emerald-400' : isNear ? 'bg-blue-500 border-blue-400' : 'bg-slate-600 border-slate-500'
                     const textColor = isComplete ? 'text-emerald-400' : isNear ? 'text-blue-300' : 'text-slate-400'
@@ -897,7 +906,7 @@ export function ProjectDetailPage() {
                         <div className="ml-2 pb-4">
                           <p className={clsx('text-xs font-medium leading-tight', textColor)}>{m.name}</p>
                           <p className="text-[10px] text-slate-400 mt-0.5">
-                            {(() => { const [y,mo,d] = m.targetDate.split('-').map(Number); return new Date(y, mo-1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) })()}
+                            {tDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                           </p>
                         </div>
                         {idx < dated.slice(0, 8).length - 1 && <div className="flex-1 h-px bg-slate-700 mt-1.5 min-w-[16px]" />}

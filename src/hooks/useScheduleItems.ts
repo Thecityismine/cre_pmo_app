@@ -13,6 +13,7 @@ export interface ScheduleItem {
   percentComplete: number     // 0–100
   isCriticalPath: boolean
   isWarranty?: boolean
+  isMilestone?: boolean
   predecessors?: string[]     // array of predecessor ScheduleItem IDs (Finish-to-Start)
   notes: string
   sortOrder: number
