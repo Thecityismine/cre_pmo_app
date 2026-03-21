@@ -3,12 +3,13 @@ import { clsx } from 'clsx'
 import {
   Plus, ChevronDown, ChevronRight, CheckCircle2, AlertTriangle,
   Clock, Calendar, Trash2, Pencil, BarChart2, Flag, Download, Lock,
-  List, GanttChartSquare, Link2, Diamond,
+  List, GanttChartSquare, Link2, Diamond, TrendingUp,
 } from 'lucide-react'
 import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { useScheduleItems } from '@/hooks/useScheduleItems'
 import type { ScheduleItem } from '@/hooks/useScheduleItems'
+import { SCurveChart } from './SCurveChart'
 import { useMilestones } from '@/hooks/useMilestones'
 import type { Project } from '@/types'
 
@@ -877,7 +878,7 @@ export function ScheduleTab({ project }: { project: Project }) {
   const { milestones } = useMilestones(project.id)
   const [showAdd, setShowAdd] = useState(false)
   const [filter, setFilter] = useState<'all' | 'behind' | 'in-progress' | 'upcoming' | 'complete'>('all')
-  const [viewMode, setViewMode] = useState<'list' | 'gantt'>('list')
+  const [viewMode, setViewMode] = useState<'list' | 'gantt' | 'scurve'>('list')
   const [lockingBaseline, setLockingBaseline] = useState(false)
 
   // Auto-detect critical path via CPM
@@ -990,6 +991,14 @@ export function ScheduleTab({ project }: { project: Project }) {
             )}>
             <GanttChartSquare size={12} /> Gantt
           </button>
+          <button
+            onClick={() => setViewMode('scurve')}
+            className={clsx(
+              'flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors',
+              viewMode === 'scurve' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+            )}>
+            <TrendingUp size={12} /> S-Curve
+          </button>
         </div>
 
         <div className="flex items-center gap-2 ml-auto">
@@ -1068,6 +1077,8 @@ export function ScheduleTab({ project }: { project: Project }) {
         <div className="flex justify-center py-12">
           <div className="animate-spin w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full" />
         </div>
+      ) : viewMode === 'scurve' ? (
+        <SCurveChart items={items} />
       ) : viewMode === 'gantt' ? (
         items.length === 0 ? (
           <div className="text-center py-12 text-slate-400">
