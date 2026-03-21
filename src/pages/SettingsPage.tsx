@@ -65,7 +65,7 @@ function ProjectTypesSection() {
   return (
     <Section title="Project Types" icon={Tag}>
       <div className="space-y-4">
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-slate-400">
           Define the project classification types used across the app (e.g. Light, Standard, Enhanced). Changes apply immediately to all project forms and filters.
         </p>
 
@@ -80,7 +80,7 @@ function ProjectTypesSection() {
               {types.length > 1 && (
                 <button
                   onClick={() => removeType(t.code)}
-                  className="p-1 text-slate-600 hover:text-red-400 transition-colors"
+                  className="p-1 text-slate-400 hover:text-red-400 transition-colors"
                   title={`Remove ${t.label}`}
                 >
                   <Trash2 size={14} />
@@ -183,7 +183,7 @@ function DataAuditSection() {
   return (
     <Section title="Data Audit" icon={Database}>
       <div className="space-y-4">
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-slate-400">
           Inspect and clean up data for a specific project. Use this to find and remove any items that were imported or seeded accidentally.
         </p>
 
@@ -213,7 +213,7 @@ function DataAuditSection() {
         {/* Results */}
         {auditDone && (
           <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs text-slate-500 pb-1">
+            <div className="flex items-center justify-between text-xs text-slate-400 pb-1">
               <span>Collection</span>
               <span>{totalItems} total items</span>
             </div>
@@ -233,7 +233,7 @@ function DataAuditSection() {
                     )}>
                       {count}
                     </span>
-                    <span className={clsx('text-sm', count > 0 ? 'text-slate-200' : 'text-slate-500')}>{label}</span>
+                    <span className={clsx('text-sm', count > 0 ? 'text-slate-200' : 'text-slate-400')}>{label}</span>
                   </div>
                   {count > 0 && (
                     <button
@@ -417,9 +417,9 @@ export function SettingsPage() {
             <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
             <div>
               <p className="text-slate-200 font-medium">{user?.displayName}</p>
-              <p className="text-slate-500 text-sm">{user?.email}</p>
+              <p className="text-slate-400 text-sm">{user?.email}</p>
               <span className="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded mt-1 inline-block capitalize">{user?.role}</span>
-              <p className="text-xs text-slate-600 mt-1">Click photo to change</p>
+              <p className="text-xs text-slate-400 mt-1">Click photo to change</p>
             </div>
           </div>
 
@@ -477,7 +477,7 @@ export function SettingsPage() {
             </svg>
             <div>
               <p className="text-slate-200 text-sm font-medium">Signed in with Google</p>
-              <p className="text-slate-500 text-xs">Password management is handled by Google</p>
+              <p className="text-slate-400 text-xs">Password management is handled by Google</p>
             </div>
           </div>
         </Section>
@@ -494,22 +494,22 @@ export function SettingsPage() {
 
       {/* Notifications placeholder */}
       <Section title="Notifications" icon={Bell}>
-        <p className="text-slate-500 text-sm">Email and push notification preferences — coming soon.</p>
+        <p className="text-slate-400 text-sm">Email and push notification preferences — coming soon.</p>
       </Section>
 
       {/* App info */}
       <Section title="About" icon={Shield}>
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
-            <span className="text-slate-500">App</span>
+            <span className="text-slate-400">App</span>
             <span className="text-slate-300">ProjeX</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-500">Firebase Project</span>
+            <span className="text-slate-400">Firebase Project</span>
             <span className="text-slate-300">portfolio-f86b9</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-slate-500">User ID</span>
+            <span className="text-slate-400">User ID</span>
             <span className="text-slate-400 text-xs font-mono truncate max-w-48">{user?.uid}</span>
           </div>
         </div>

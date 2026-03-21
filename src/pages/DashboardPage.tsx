@@ -71,14 +71,14 @@ You are a CRE PM assistant. Generate exactly 3 action-oriented focus bullets for
         <div className="flex items-center gap-2">
           <Sparkles size={14} className="text-blue-400" />
           <h3 className="text-sm font-semibold text-blue-300">Today's Focus</h3>
-          <span className="text-xs text-slate-500">
+          <span className="text-xs text-slate-400">
             {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
           </span>
         </div>
         <button
           onClick={generate}
           disabled={loading || !hasClaudeKey()}
-          className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           title={!hasClaudeKey() ? 'Add a Claude API key in Settings to enable AI briefings' : bullets.length > 0 ? 'Refresh briefing' : 'Generate briefing'}
         >
           <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
@@ -98,12 +98,12 @@ You are a CRE PM assistant. Generate exactly 3 action-oriented focus bullets for
           ))}
         </ul>
       ) : loading ? (
-        <div className="flex items-center gap-2 text-sm text-slate-500">
+        <div className="flex items-center gap-2 text-sm text-slate-400">
           <div className="animate-spin w-3.5 h-3.5 border-2 border-blue-500 border-t-transparent rounded-full" />
           Generating today's focus…
         </div>
       ) : (
-        <p className="text-sm text-slate-600 italic">
+        <p className="text-sm text-slate-400 italic">
           {hasClaudeKey()
             ? 'Click "Generate" for an AI-powered daily portfolio briefing.'
             : 'Add a Claude API key in Settings to enable daily AI briefings.'}
@@ -191,7 +191,7 @@ function BudgetSummaryBars({ projects }: { projects: Project[] }) {
     <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
       <div className="px-5 py-4 border-b border-slate-700">
         <h2 className="text-slate-100 font-semibold text-sm">Budget Utilization</h2>
-        <p className="text-xs text-slate-500 mt-0.5">Forecast vs. approved budget per project</p>
+        <p className="text-xs text-slate-400 mt-0.5">Forecast vs. approved budget per project</p>
       </div>
       <div className="divide-y divide-slate-700/50">
         {withBudget.map(p => {
@@ -307,9 +307,9 @@ function AttentionRequiredPanel({
               <AlertTriangle size={13} className={clsx('shrink-0 mt-0.5', a.color.split(' ')[0])} />
               <div className="min-w-0">
                 <p className={clsx('text-sm font-medium truncate', a.color.split(' ')[0])}>{a.label}</p>
-                <p className="text-xs text-slate-500 mt-0.5">{a.sub}</p>
+                <p className="text-xs text-slate-400 mt-0.5">{a.sub}</p>
               </div>
-              {a.projectId && <ChevronRight size={13} className="text-slate-600 shrink-0 mt-0.5 ml-auto" />}
+              {a.projectId && <ChevronRight size={13} className="text-slate-400 shrink-0 mt-0.5 ml-auto" />}
             </button>
           ))}
         </div>
@@ -367,13 +367,13 @@ function PendingDecisionsPanel({
                 >
                   <span className="w-1 h-1 rounded-full bg-blue-500 shrink-0" />
                   <span className="truncate flex-1">{co.title}</span>
-                  <span className="text-slate-500 shrink-0">{projectMap[co.projectId] ?? '—'}</span>
+                  <span className="text-slate-400 shrink-0">{projectMap[co.projectId] ?? '—'}</span>
                   <span className="text-blue-400 font-medium shrink-0 tabular-nums">{fmtLocal(co.amount)}</span>
-                  <ChevronRight size={11} className="text-slate-600 shrink-0 opacity-0 group-hover:opacity-100" />
+                  <ChevronRight size={11} className="text-slate-400 shrink-0 opacity-0 group-hover:opacity-100" />
                 </button>
               ))}
               {pendingCOs.length > 4 && (
-                <p className="text-xs text-slate-600 pl-3">+{pendingCOs.length - 4} more</p>
+                <p className="text-xs text-slate-400 pl-3">+{pendingCOs.length - 4} more</p>
               )}
             </div>
           </div>
@@ -402,14 +402,14 @@ function PendingDecisionsPanel({
                   >
                     <span className={clsx('w-1 h-1 rounded-full shrink-0', isOvd ? 'bg-red-500' : 'bg-amber-500')} />
                     <span className="truncate flex-1">{rfi.subject}</span>
-                    <span className="text-slate-500 shrink-0">{projectMap[rfi.projectId] ?? '—'}</span>
+                    <span className="text-slate-400 shrink-0">{projectMap[rfi.projectId] ?? '—'}</span>
                     {isOvd && <span className="text-red-400 shrink-0">overdue</span>}
-                    <ChevronRight size={11} className="text-slate-600 shrink-0 opacity-0 group-hover:opacity-100" />
+                    <ChevronRight size={11} className="text-slate-400 shrink-0 opacity-0 group-hover:opacity-100" />
                   </button>
                 )
               })}
               {openRfis.length > 4 && (
-                <p className="text-xs text-slate-600 pl-3">+{openRfis.length - 4} more</p>
+                <p className="text-xs text-slate-400 pl-3">+{openRfis.length - 4} more</p>
               )}
             </div>
           </div>
@@ -478,9 +478,9 @@ export function DashboardPage() {
           </p>
         </div>
         <div className="bg-slate-800 border border-slate-700 rounded-xl p-12 text-center">
-          <FolderOpen size={48} className="mx-auto mb-4 text-slate-600" />
+          <FolderOpen size={48} className="mx-auto mb-4 text-slate-400" />
           <h2 className="text-xl font-semibold text-slate-200 mb-2">No projects yet</h2>
-          <p className="text-slate-500 text-sm max-w-md mx-auto mb-6">
+          <p className="text-slate-400 text-sm max-w-md mx-auto mb-6">
             Create your first project to start tracking budget, schedule, risks, and tasks in one place.
           </p>
           <button
@@ -561,25 +561,25 @@ export function DashboardPage() {
               <DollarSign size={14} className="text-slate-400" />
               <span className="text-sm font-semibold text-slate-200">Portfolio Burn Rate</span>
             </div>
-            <span className="text-xs text-slate-500">Active projects only</span>
+            <span className="text-xs text-slate-400">Active projects only</span>
           </div>
           <div className="grid grid-cols-3 gap-4 mb-4">
             <div>
-              <p className="text-xs text-slate-500 mb-1">Committed</p>
+              <p className="text-xs text-slate-400 mb-1">Committed</p>
               <p className="text-base font-bold text-slate-100 tabular-nums">{fmtM(totalCommitted)}</p>
-              <p className="text-xs text-slate-600">{commitPct}% of budget</p>
+              <p className="text-xs text-slate-400">{commitPct}% of budget</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500 mb-1">Actual Spent</p>
+              <p className="text-xs text-slate-400 mb-1">Actual Spent</p>
               <p className="text-base font-bold text-blue-300 tabular-nums">{fmtM(totalActual)}</p>
-              <p className="text-xs text-slate-600">{spendPct}% of budget</p>
+              <p className="text-xs text-slate-400">{spendPct}% of budget</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500 mb-1">Total Forecast</p>
+              <p className="text-xs text-slate-400 mb-1">Total Forecast</p>
               <p className={clsx('text-base font-bold tabular-nums', totalForecast > totalBudget ? 'text-red-400' : 'text-emerald-400')}>
                 {fmtM(totalForecast)}
               </p>
-              <p className={clsx('text-xs', totalForecast > totalBudget ? 'text-red-600' : 'text-slate-600')}>
+              <p className={clsx('text-xs', totalForecast > totalBudget ? 'text-red-600' : 'text-slate-400')}>
                 {totalForecast > totalBudget ? 'Over budget' : 'Under budget'}
               </p>
             </div>
@@ -595,7 +595,7 @@ export function DashboardPage() {
               style={{ width: `${spendPct}%` }}
             />
           </div>
-          <div className="flex justify-between text-[10px] text-slate-600 mt-1">
+          <div className="flex justify-between text-[10px] text-slate-400 mt-1">
             <span>0%</span>
             <span>Budget: {fmt(totalBudget)}</span>
           </div>
@@ -648,7 +648,7 @@ export function DashboardPage() {
             <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-700 bg-blue-950/20">
               <User size={14} className="text-blue-400" />
               <h3 className="text-sm font-semibold text-blue-300">My Tasks</h3>
-              <span className="text-xs text-slate-500">{user?.displayName}</span>
+              <span className="text-xs text-slate-400">{user?.displayName}</span>
               {myOverdue.length > 0 && (
                 <span className="ml-auto text-xs bg-red-500 text-white px-1.5 py-0.5 rounded-full font-medium">
                   {myOverdue.length} overdue
@@ -669,7 +669,7 @@ export function DashboardPage() {
                     className="w-full text-left px-4 py-2.5 hover:bg-slate-700/50 transition-colors"
                   >
                     <p className="text-sm text-slate-200 truncate">{t.title}</p>
-                    <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500">
+                    <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-400">
                       <span className={clsx(isOvd ? 'text-red-400' : isToday ? 'text-amber-400' : 'text-blue-400')}>
                         {isOvd ? `${Math.abs(daysLeft)}d overdue` : isToday ? 'Due Today' : `${daysLeft} days`}
                       </span>
@@ -680,7 +680,7 @@ export function DashboardPage() {
                 )
               })}
             </div>
-            <div className="flex gap-4 px-4 py-2 border-t border-slate-700/50 text-[10px] text-slate-500">
+            <div className="flex gap-4 px-4 py-2 border-t border-slate-700/50 text-[10px] text-slate-400">
               {myOverdue.length > 0  && <span className="text-red-400">{myOverdue.length} overdue</span>}
               {myToday.length > 0   && <span className="text-amber-400">{myToday.length} due today</span>}
               {myUpcoming.length > 0 && <span>{myUpcoming.length} upcoming</span>}
@@ -716,14 +716,14 @@ export function DashboardPage() {
               <Calendar size={14} className="text-blue-400" />
               <h3 className="text-sm font-semibold text-slate-200">Next 30-Day Milestones</h3>
             </div>
-            <span className="text-xs text-slate-500">{upcomingMilestones.length} upcoming</span>
+            <span className="text-xs text-slate-400">{upcomingMilestones.length} upcoming</span>
           </div>
           {upcomingMilestones.length === 0 ? (
-            <div className="text-center py-8 px-6 text-slate-500">
+            <div className="text-center py-8 px-6 text-slate-400">
               <Calendar size={24} className="mx-auto mb-2 opacity-30" />
               <p className="text-sm text-slate-400">No milestones in the next 30 days.</p>
               {active.length > 0 ? (
-                <p className="text-xs text-slate-600 mt-1.5">
+                <p className="text-xs text-slate-400 mt-1.5">
                   Add milestones in a project's{' '}
                   <button
                     onClick={() => navigate(`/projects/${active[0]?.id}?tab=schedule`)}
@@ -734,7 +734,7 @@ export function DashboardPage() {
                   to track upcoming deliverables.
                 </p>
               ) : (
-                <p className="text-xs text-slate-600 mt-1.5">
+                <p className="text-xs text-slate-400 mt-1.5">
                   Create a project to start tracking milestones.
                 </p>
               )}
@@ -748,7 +748,7 @@ export function DashboardPage() {
                   className="w-full text-left px-4 py-2.5 hover:bg-slate-700/50 transition-colors"
                 >
                   <p className="text-sm text-slate-200 truncate">{m.name}</p>
-                  <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500">
+                  <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-400">
                     <span className={clsx(
                       m.daysUntil <= 7 ? 'text-red-400' : m.daysUntil <= 14 ? 'text-amber-400' : 'text-blue-400'
                     )}>
@@ -786,7 +786,7 @@ export function DashboardPage() {
                       className="w-full text-left px-4 py-2.5 hover:bg-slate-700/50 transition-colors"
                     >
                       <p className="text-sm text-slate-200 truncate">{t.title}</p>
-                      <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500">
+                      <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-400">
                         <span className="text-red-400">
                           {new Date(t.dueDate!).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         </span>
@@ -796,7 +796,7 @@ export function DashboardPage() {
                     </button>
                   ))}
                   {overdue.length > 8 && (
-                    <p className="text-xs text-slate-500 text-center py-2">+{overdue.length - 8} more</p>
+                    <p className="text-xs text-slate-400 text-center py-2">+{overdue.length - 8} more</p>
                   )}
                 </div>
               </div>
@@ -818,7 +818,7 @@ export function DashboardPage() {
                         className="w-full text-left px-4 py-2.5 hover:bg-slate-700/50 transition-colors"
                       >
                         <p className="text-sm text-slate-200 truncate">{t.title}</p>
-                        <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500">
+                        <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-400">
                           <span className={clsx(daysLeft <= 3 ? 'text-orange-400' : 'text-amber-400')}>
                             {daysLeft === 0 ? 'Today' : daysLeft === 1 ? 'Tomorrow' : `${daysLeft} days`}
                           </span>
@@ -829,14 +829,14 @@ export function DashboardPage() {
                     )
                   })}
                   {upcoming.length > 8 && (
-                    <p className="text-xs text-slate-500 text-center py-2">+{upcoming.length - 8} more</p>
+                    <p className="text-xs text-slate-400 text-center py-2">+{upcoming.length - 8} more</p>
                   )}
                 </div>
               </div>
             )}
           </div>
         ) : (
-          <div className="bg-slate-800 border border-slate-700 rounded-xl flex items-center justify-center py-8 text-slate-500">
+          <div className="bg-slate-800 border border-slate-700 rounded-xl flex items-center justify-center py-8 text-slate-400">
             <div className="text-center">
               <CheckCircle size={24} className="mx-auto mb-2 text-emerald-500 opacity-70" />
               <p className="text-sm">No overdue or upcoming tasks</p>
@@ -875,7 +875,7 @@ export function DashboardPage() {
                     <p className={clsx('font-medium', isCritical ? 'text-red-300' : isWarning ? 'text-amber-300' : 'text-blue-300')}>
                       {insight.title}
                     </p>
-                    <p className="text-slate-500 mt-0.5 truncate">
+                    <p className="text-slate-400 mt-0.5 truncate">
                       <button
                         onClick={() => navigate(`/projects/${insight.projectId}`)}
                         className="text-slate-400 hover:text-slate-200 transition-colors"
@@ -888,7 +888,7 @@ export function DashboardPage() {
               )
             })}
             {portfolioInsights.length > 5 && (
-              <p className="text-xs text-slate-500 text-center py-1">
+              <p className="text-xs text-slate-400 text-center py-1">
                 +{portfolioInsights.length - 5} more across portfolio
               </p>
             )}
@@ -909,10 +909,10 @@ export function DashboardPage() {
         </div>
 
         {active.length === 0 ? (
-          <div className="text-center py-12 text-slate-500 px-6">
+          <div className="text-center py-12 text-slate-400 px-6">
             <FolderOpen size={40} className="mx-auto mb-3 opacity-40" />
             <p className="text-sm text-slate-400 font-medium">No active projects</p>
-            <p className="text-xs text-slate-600 mt-1.5">
+            <p className="text-xs text-slate-400 mt-1.5">
               All projects are closed.{' '}
               <button
                 onClick={() => navigate('/projects')}
@@ -929,7 +929,7 @@ export function DashboardPage() {
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-slate-500 text-xs uppercase tracking-wide border-b border-slate-700">
+                  <tr className="text-slate-400 text-xs uppercase tracking-wide border-b border-slate-700">
                     <th className="text-left px-5 py-3">Project</th>
                     <th className="text-left px-5 py-3">Stage</th>
                     <th className="text-right px-5 py-3">Budget</th>
@@ -957,7 +957,7 @@ export function DashboardPage() {
                             <span className={clsx('w-2 h-2 rounded-full shrink-0', trafficLight)} title={trafficTitle} />
                             <div>
                               <p className="text-slate-100 font-medium">{p.projectName}</p>
-                              <p className="text-slate-500 text-xs">{p.projectNumber} · {[p.city, p.state].filter(Boolean).join(', ')}</p>
+                              <p className="text-slate-400 text-xs">{p.projectNumber} · {[p.city, p.state].filter(Boolean).join(', ')}</p>
                             </div>
                           </div>
                         </td>
@@ -997,7 +997,7 @@ export function DashboardPage() {
                       <StatusBadge status={p.status} />
                     </div>
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-slate-500">{fmt(p.totalBudget)}</span>
+                      <span className="text-slate-400">{fmt(p.totalBudget)}</span>
                       <span className={overBudget ? 'text-red-400 font-medium' : 'text-emerald-400'}>
                         {fmt(p.forecastCost)} {overBudget ? '↑' : ''}
                       </span>

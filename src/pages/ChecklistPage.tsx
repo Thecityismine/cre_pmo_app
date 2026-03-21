@@ -152,7 +152,7 @@ function TaskRow({
           >
             <Check size={12} /> {saving ? 'Saving...' : 'Save Changes'}
           </button>
-          <button onClick={cancel} className="text-xs text-slate-500 hover:text-slate-300 px-2 py-1.5">
+          <button onClick={cancel} className="text-xs text-slate-400 hover:text-slate-300 px-2 py-1.5">
             Cancel
           </button>
         </div>
@@ -167,24 +167,24 @@ function TaskRow({
 
         <div className="flex items-center gap-2 shrink-0">
           {task.assignedTeam && (
-            <span className="hidden sm:block text-xs text-slate-500 bg-slate-700/60 px-2 py-0.5 rounded-full">
+            <span className="hidden sm:block text-xs text-slate-400 bg-slate-700/60 px-2 py-0.5 rounded-full">
               {task.assignedTeam}
             </span>
           )}
           {task.notes && (
-            <span className="text-xs text-slate-600 italic hidden md:block max-w-[160px] truncate">
+            <span className="text-xs text-slate-400 italic hidden md:block max-w-[160px] truncate">
               {task.notes}
             </span>
           )}
           <button
             onClick={() => setEditing(true)}
-            className="p-1 text-slate-600 hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="p-1 text-slate-400 hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity"
           >
             <Pencil size={12} />
           </button>
           <button
             onClick={() => onDelete(task.id)}
-            className="p-1 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="p-1 text-slate-400 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
           >
             <Trash2 size={13} />
           </button>
@@ -217,9 +217,9 @@ function CategoryGroup({
         className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-800/80 transition-colors"
       >
         <div className="flex items-center gap-2">
-          {collapsed ? <ChevronRight size={15} className="text-slate-500" /> : <ChevronDown size={15} className="text-slate-500" />}
+          {collapsed ? <ChevronRight size={15} className="text-slate-400" /> : <ChevronDown size={15} className="text-slate-400" />}
           <span className="text-slate-100 font-medium text-sm">{category}</span>
-          <span className="text-xs text-slate-500 bg-slate-700 px-2 py-0.5 rounded-full">{tasks.length}</span>
+          <span className="text-xs text-slate-400 bg-slate-700 px-2 py-0.5 rounded-full">{tasks.length}</span>
         </div>
       </button>
 
@@ -406,7 +406,7 @@ function AddTaskPanel({
         >
           <Plus size={14} /> {saving ? 'Syncing to projects...' : 'Add Task'}
         </button>
-        <button onClick={onDone} className="text-sm text-slate-500 hover:text-slate-300 px-3 py-2">
+        <button onClick={onDone} className="text-sm text-slate-400 hover:text-slate-300 px-3 py-2">
           Cancel
         </button>
       </div>
@@ -478,7 +478,7 @@ export function ChecklistPage() {
       {/* Search + filters */}
       <div className="space-y-2">
         <div className="relative">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
@@ -515,7 +515,7 @@ export function ChecklistPage() {
         ].map(s => (
           <div key={s.label} className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-center">
             <p className="text-xl font-bold text-slate-100">{s.value}</p>
-            <p className="text-xs text-slate-500 mt-0.5">{s.label}</p>
+            <p className="text-xs text-slate-400 mt-0.5">{s.label}</p>
           </div>
         ))}
       </div>
@@ -526,7 +526,7 @@ export function ChecklistPage() {
           <div className="animate-spin w-7 h-7 border-2 border-blue-500 border-t-transparent rounded-full" />
         </div>
       ) : Object.keys(grouped).length === 0 ? (
-        <div className="text-center py-16 text-slate-500">
+        <div className="text-center py-16 text-slate-400">
           <p>No tasks found{search ? ` for "${search}"` : ''}.</p>
         </div>
       ) : (

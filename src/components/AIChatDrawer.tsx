@@ -54,7 +54,7 @@ function MessageBubble({ msg }: { msg: Message }) {
         {!isUser && (
           <button
             onClick={copy}
-            className="mt-1.5 flex items-center gap-1 text-[10px] text-slate-500 hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="mt-1.5 flex items-center gap-1 text-[10px] text-slate-400 hover:text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity"
           >
             {copied ? <Check size={10} /> : <Copy size={10} />}
             {copied ? 'Copied' : 'Copy'}
@@ -237,14 +237,14 @@ Answer questions about this portfolio. Be specific, cite project names and numbe
             </div>
             <div>
               <p className="text-slate-100 font-semibold text-sm">AI Assistant</p>
-              <p className="text-slate-500 text-[10px]">Powered by Claude · Portfolio context loaded</p>
+              <p className="text-slate-400 text-[10px]">Powered by Claude · Portfolio context loaded</p>
             </div>
           </div>
           <div className="flex items-center gap-1">
             {messages.length > 0 && (
               <button
                 onClick={() => setMessages([])}
-                className="p-1.5 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-lg transition-colors"
+                className="p-1.5 text-slate-400 hover:text-slate-300 hover:bg-slate-800 rounded-lg transition-colors"
                 title="Clear conversation"
               >
                 <Trash2 size={14} />
@@ -252,7 +252,7 @@ Answer questions about this portfolio. Be specific, cite project names and numbe
             )}
             <button
               onClick={onClose}
-              className="p-1.5 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-lg transition-colors"
+              className="p-1.5 text-slate-400 hover:text-slate-300 hover:bg-slate-800 rounded-lg transition-colors"
             >
               <X size={16} />
             </button>
@@ -273,7 +273,7 @@ Answer questions about this portfolio. Be specific, cite project names and numbe
               <div className="text-center py-6">
                 <Sparkles size={28} className="mx-auto mb-3 text-blue-500 opacity-60" />
                 <p className="text-slate-300 font-medium text-sm">Ask me anything about your portfolio</p>
-                <p className="text-slate-500 text-xs mt-1">I have full context on all active projects, tasks, and budgets.</p>
+                <p className="text-slate-400 text-xs mt-1">I have full context on all active projects, tasks, and budgets.</p>
               </div>
               <div className="space-y-2">
                 {SUGGESTIONS.map(s => (
@@ -335,7 +335,7 @@ Answer questions about this portfolio. Be specific, cite project names and numbe
               }
             </button>
           </div>
-          <p className="text-[10px] text-slate-600 mt-1.5 text-center">Press Enter to send · Shift+Enter for new line</p>
+          <p className="text-[10px] text-slate-400 mt-1.5 text-center">Press Enter to send · Shift+Enter for new line</p>
         </form>
       </div>
     </>

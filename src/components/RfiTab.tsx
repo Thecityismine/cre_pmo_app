@@ -94,7 +94,7 @@ function StatusTimeline({ history, createdAt }: { history: RfiStatusEvent[]; cre
 
   return (
     <div className="mt-3">
-      <p className="text-xs text-slate-500 uppercase tracking-wide mb-2">Status Timeline</p>
+      <p className="text-xs text-slate-400 uppercase tracking-wide mb-2">Status Timeline</p>
       <div className="relative pl-4">
         {/* Vertical line */}
         <div className="absolute left-[7px] top-2 bottom-2 w-px bg-slate-700" />
@@ -103,7 +103,7 @@ function StatusTimeline({ history, createdAt }: { history: RfiStatusEvent[]; cre
             <div key={i} className="flex items-center gap-2.5 relative">
               <div className={clsx('w-3 h-3 rounded-full shrink-0 ring-2 ring-slate-900 z-10', ev.dot)} />
               <span className="text-xs font-medium text-slate-300">{ev.label}</span>
-              <span className="text-xs text-slate-600">{fmtDate(ev.date)}</span>
+              <span className="text-xs text-slate-400">{fmtDate(ev.date)}</span>
             </div>
           ))}
         </div>
@@ -196,7 +196,7 @@ function RfiRow({
             className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-lg disabled:opacity-50">
             <Check size={12} /> {saving ? 'Saving...' : 'Save'}
           </button>
-          <button onClick={cancel} className="text-xs text-slate-500 hover:text-slate-300 px-2">Cancel</button>
+          <button onClick={cancel} className="text-xs text-slate-400 hover:text-slate-300 px-2">Cancel</button>
         </div>
       </div>
     )
@@ -210,19 +210,19 @@ function RfiRow({
       : 'border-slate-700 bg-slate-800'
     )}>
       <div className="flex items-center gap-3 px-4 py-3 group">
-        <span className="text-xs font-mono text-slate-500 shrink-0 w-14">RFI-{String(rfi.number).padStart(3, '0')}</span>
+        <span className="text-xs font-mono text-slate-400 shrink-0 w-14">RFI-{String(rfi.number).padStart(3, '0')}</span>
 
         <button className="flex-1 min-w-0 text-left" onClick={() => setExpanded(!expanded)}>
           <p className="text-sm font-medium text-slate-100 truncate">{rfi.subject}</p>
-          <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500 flex-wrap">
+          <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-400 flex-wrap">
             {rfi.submittedBy && <span>{rfi.submittedBy}</span>}
             {rfi.assignedTo && <span>→ {rfi.assignedTo}</span>}
-            {rfi.specSection && <span className="text-slate-600">· {rfi.specSection}</span>}
+            {rfi.specSection && <span className="text-slate-400">· {rfi.specSection}</span>}
             {rfi.dueDate && (
               <span className={clsx('flex items-center gap-0.5',
                 isOverdue ? 'text-red-400 font-medium'
                 : isDueSoon ? 'text-amber-400 font-medium'
-                : 'text-slate-500'
+                : 'text-slate-400'
               )}>
                 {isOverdue ? <AlertCircle size={10} /> : <Clock size={10} />}
                 Due {fmtDateShort(rfi.dueDate)}
@@ -231,7 +231,7 @@ function RfiRow({
               </span>
             )}
             {daysOpen !== null && daysOpen > 0 && (
-              <span className="flex items-center gap-0.5 text-slate-600">
+              <span className="flex items-center gap-0.5 text-slate-400">
                 <Timer size={10} /> {daysOpen}d open
               </span>
             )}
@@ -246,14 +246,14 @@ function RfiRow({
           {STATUS_CONFIG[rfi.status].label}
         </span>
 
-        <button onClick={() => setExpanded(!expanded)} className="text-slate-600 shrink-0">
+        <button onClick={() => setExpanded(!expanded)} className="text-slate-400 shrink-0">
           {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
         </button>
 
         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-          <button onClick={() => setEditing(true)} className="text-xs text-slate-500 hover:text-blue-400 px-1">Edit</button>
+          <button onClick={() => setEditing(true)} className="text-xs text-slate-400 hover:text-blue-400 px-1">Edit</button>
           <button onClick={() => { if (confirm(`Delete RFI-${String(rfi.number).padStart(3, '0')}?`)) onDelete(rfi.id) }}
-            className="p-1 text-slate-600 hover:text-red-400">
+            className="p-1 text-slate-400 hover:text-red-400">
             <Trash2 size={12} />
           </button>
         </div>
@@ -263,7 +263,7 @@ function RfiRow({
         <div className="px-4 pb-4 border-t border-slate-700/50 pt-3 space-y-3">
           {rfi.question && (
             <div>
-              <p className="text-xs text-slate-500 uppercase tracking-wide mb-1">Question</p>
+              <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Question</p>
               <p className="text-sm text-slate-300 leading-relaxed">{rfi.question}</p>
             </div>
           )}
@@ -272,7 +272,7 @@ function RfiRow({
               <p className="text-xs text-blue-400 uppercase tracking-wide mb-1">Response</p>
               <p className="text-sm text-slate-300 leading-relaxed">{rfi.response}</p>
               {rfi.answeredDate && (
-                <p className="text-xs text-slate-600 mt-1">Answered {fmtDate(rfi.answeredDate)}</p>
+                <p className="text-xs text-slate-400 mt-1">Answered {fmtDate(rfi.answeredDate)}</p>
               )}
             </div>
           )}
@@ -348,7 +348,7 @@ function AddRfiForm({
           className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-40">
           <Plus size={14} /> {saving ? 'Adding...' : 'Add RFI'}
         </button>
-        <button onClick={onCancel} className="text-sm text-slate-500 hover:text-slate-300 px-3 py-2">Cancel</button>
+        <button onClick={onCancel} className="text-sm text-slate-400 hover:text-slate-300 px-3 py-2">Cancel</button>
       </div>
     </div>
   )
@@ -422,21 +422,21 @@ export function RfiTab({ project }: { project: Project }) {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-center">
           <p className="text-xl font-bold text-slate-100">{rfis.length}</p>
-          <p className="text-xs text-slate-500 mt-0.5">Total RFIs</p>
+          <p className="text-xs text-slate-400 mt-0.5">Total RFIs</p>
         </div>
         <div className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-center">
           <p className={clsx('text-xl font-bold', openCount > 0 ? 'text-amber-400' : 'text-slate-100')}>{openCount}</p>
-          <p className="text-xs text-slate-500 mt-0.5">Open</p>
+          <p className="text-xs text-slate-400 mt-0.5">Open</p>
         </div>
         <div className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-center">
           <p className={clsx('text-xl font-bold', overdueCount > 0 ? 'text-red-400' : 'text-slate-100')}>{overdueCount}</p>
-          <p className="text-xs text-slate-500 mt-0.5">Overdue</p>
+          <p className="text-xs text-slate-400 mt-0.5">Overdue</p>
         </div>
         <div className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-center">
-          <p className={clsx('text-xl font-bold', avgResp !== null ? 'text-blue-400' : 'text-slate-600')}>
+          <p className={clsx('text-xl font-bold', avgResp !== null ? 'text-blue-400' : 'text-slate-400')}>
             {avgResp !== null ? `${avgResp}d` : '—'}
           </p>
-          <p className="text-xs text-slate-500 mt-0.5">Avg Response</p>
+          <p className="text-xs text-slate-400 mt-0.5">Avg Response</p>
         </div>
       </div>
 
@@ -474,7 +474,7 @@ export function RfiTab({ project }: { project: Project }) {
                 'px-3 py-1 rounded text-xs font-medium transition-colors',
                 statusFilter === s
                   ? s === 'all' ? 'bg-blue-600 text-white' : STATUS_CONFIG[s].color
-                  : 'text-slate-500 hover:text-slate-300'
+                  : 'text-slate-400 hover:text-slate-300'
               )}
             >
               {s === 'all' ? 'All' : STATUS_CONFIG[s].label}
@@ -484,7 +484,7 @@ export function RfiTab({ project }: { project: Project }) {
 
         {/* Search */}
         <div className="relative flex-1 min-w-[160px] max-w-xs">
-          <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500" />
+          <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
@@ -519,9 +519,9 @@ export function RfiTab({ project }: { project: Project }) {
           <div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-16 text-slate-500">
+        <div className="text-center py-16 text-slate-400">
           <p>{rfis.length === 0 ? 'No RFIs yet.' : 'No RFIs match the current filter.'}</p>
-          {rfis.length === 0 && <p className="text-xs text-slate-600 mt-1">Track requests for information from the design team.</p>}
+          {rfis.length === 0 && <p className="text-xs text-slate-400 mt-1">Track requests for information from the design team.</p>}
         </div>
       ) : (
         <div className="space-y-2">

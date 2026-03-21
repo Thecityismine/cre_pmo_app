@@ -78,12 +78,12 @@ function MilestoneRow({
           <input value={form.name} onChange={f('name')} placeholder="Milestone name *" autoFocus
             className="col-span-2 bg-slate-800 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
           <div>
-            <label className="text-xs text-slate-500 mb-1 block">Target Date</label>
+            <label className="text-xs text-slate-400 mb-1 block">Target Date</label>
             <input type="date" value={form.targetDate} onChange={f('targetDate')}
               className="w-full bg-slate-800 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500" />
           </div>
           <div>
-            <label className="text-xs text-slate-500 mb-1 block">Actual Date</label>
+            <label className="text-xs text-slate-400 mb-1 block">Actual Date</label>
             <input type="date" value={form.actualDate} onChange={f('actualDate')}
               className="w-full bg-slate-800 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500" />
           </div>
@@ -98,7 +98,7 @@ function MilestoneRow({
                   ? s === 'complete' ? 'bg-emerald-900/60 text-emerald-300 border-emerald-700'
                     : s === 'delayed' ? 'bg-red-900/60 text-red-300 border-red-700'
                     : 'bg-slate-700 text-slate-300 border-slate-500'
-                  : 'bg-slate-800 text-slate-500 border-slate-700'
+                  : 'bg-slate-800 text-slate-400 border-slate-700'
               )}>
               {STATUS_CONFIG[s].label}
             </button>
@@ -113,7 +113,7 @@ function MilestoneRow({
             className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-lg disabled:opacity-50">
             <Check size={12} /> {saving ? 'Saving...' : 'Save'}
           </button>
-          <button onClick={cancel} className="text-xs text-slate-500 hover:text-slate-300 px-2">Cancel</button>
+          <button onClick={cancel} className="text-xs text-slate-400 hover:text-slate-300 px-2">Cancel</button>
         </div>
       </div>
     )
@@ -140,7 +140,7 @@ function MilestoneRow({
       {/* Content */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <p className={clsx('text-sm font-medium', milestone.status === 'complete' ? 'line-through text-slate-500' : 'text-slate-100')}>
+          <p className={clsx('text-sm font-medium', milestone.status === 'complete' ? 'line-through text-slate-400' : 'text-slate-100')}>
             {milestone.name}
           </p>
           {overdue && <span className="text-xs text-red-400 font-medium">OVERDUE</span>}
@@ -148,7 +148,7 @@ function MilestoneRow({
 
         <div className="flex items-center gap-3 mt-0.5 flex-wrap">
           {milestone.targetDate && (
-            <span className={clsx('text-xs', overdue ? 'text-red-400' : 'text-slate-500')}>
+            <span className={clsx('text-xs', overdue ? 'text-red-400' : 'text-slate-400')}>
               Target: {fmtDate(milestone.targetDate)}
             </span>
           )}
@@ -158,13 +158,13 @@ function MilestoneRow({
             </span>
           )}
           {!milestone.targetDate && !milestone.actualDate && (
-            <span className="text-xs text-slate-600 italic">No date set</span>
+            <span className="text-xs text-slate-400 italic">No date set</span>
           )}
         </div>
 
         {/* Notes (expandable) */}
         {milestone.notes && (
-          <button onClick={() => setExpanded(!expanded)} className="flex items-center gap-1 text-xs text-slate-600 hover:text-slate-400 mt-1">
+          <button onClick={() => setExpanded(!expanded)} className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-400 mt-1">
             {expanded ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
             {expanded ? 'Hide note' : 'View note'}
           </button>
@@ -182,9 +182,9 @@ function MilestoneRow({
 
       {/* Actions */}
       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-        <button onClick={() => setEditing(true)} className="text-xs text-slate-500 hover:text-blue-400 px-1">Edit</button>
+        <button onClick={() => setEditing(true)} className="text-xs text-slate-400 hover:text-blue-400 px-1">Edit</button>
         <button onClick={() => { if (confirm('Delete this milestone?')) onDelete(milestone.id) }}
-          className="p-1 text-slate-600 hover:text-red-400">
+          className="p-1 text-slate-400 hover:text-red-400">
           <Trash2 size={12} />
         </button>
       </div>
@@ -228,12 +228,12 @@ function AddMilestoneForm({
         className="w-full bg-slate-700 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <label className="text-xs text-slate-500 mb-1 block">Target Date</label>
+          <label className="text-xs text-slate-400 mb-1 block">Target Date</label>
           <input type="date" value={form.targetDate} onChange={f('targetDate')}
             className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500" />
         </div>
         <div>
-          <label className="text-xs text-slate-500 mb-1 block">Actual Date (if done)</label>
+          <label className="text-xs text-slate-400 mb-1 block">Actual Date (if done)</label>
           <input type="date" value={form.actualDate} onChange={f('actualDate')}
             className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500" />
         </div>
@@ -246,7 +246,7 @@ function AddMilestoneForm({
           className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-40">
           <Plus size={14} /> {saving ? 'Adding...' : 'Add'}
         </button>
-        <button onClick={onCancel} className="text-sm text-slate-500 hover:text-slate-300 px-3 py-2">Cancel</button>
+        <button onClick={onCancel} className="text-sm text-slate-400 hover:text-slate-300 px-3 py-2">Cancel</button>
       </div>
     </div>
   )
@@ -279,7 +279,7 @@ export function MilestoneTimeline({ project }: { project: Project }) {
           <p className="text-slate-100 font-semibold text-sm">Milestones</p>
           {milestones.length > 0 && (
             <>
-              <span className="text-xs text-slate-500">{completedCount}/{milestones.length}</span>
+              <span className="text-xs text-slate-400">{completedCount}/{milestones.length}</span>
               {delayedCount > 0 && (
                 <span className="text-xs text-red-400 flex items-center gap-0.5">
                   <AlertTriangle size={10} /> {delayedCount} delayed
@@ -309,7 +309,7 @@ export function MilestoneTimeline({ project }: { project: Project }) {
             <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
               <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
             </div>
-            <span className="text-xs text-slate-500 w-12 text-right">{pct}% done</span>
+            <span className="text-xs text-slate-400 w-12 text-right">{pct}% done</span>
           </div>
         </div>
       )}
@@ -321,9 +321,9 @@ export function MilestoneTimeline({ project }: { project: Project }) {
             <div className="animate-spin w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full" />
           </div>
         ) : milestones.length === 0 && !showAdd ? (
-          <div className="text-center py-6 text-slate-500">
+          <div className="text-center py-6 text-slate-400">
             <p className="text-sm">No milestones yet.</p>
-            <p className="text-xs mt-1 text-slate-600">Click "Seed defaults" to add standard CRE milestones, or add your own.</p>
+            <p className="text-xs mt-1 text-slate-400">Click "Seed defaults" to add standard CRE milestones, or add your own.</p>
           </div>
         ) : (
           <>

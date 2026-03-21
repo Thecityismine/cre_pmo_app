@@ -97,22 +97,22 @@ function AddTaskForm({ onSave, onCancel, milestones = [] }: {
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <div>
-          <label className="text-[10px] text-slate-500 mb-1 block">Due Date</label>
+          <label className="text-[10px] text-slate-400 mb-1 block">Due Date</label>
           <input type="date" value={form.dueDate} onChange={e => set('dueDate', e.target.value)} className={inp} />
         </div>
         <div>
-          <label className="text-[10px] text-slate-500 mb-1 block">Assigned To</label>
+          <label className="text-[10px] text-slate-400 mb-1 block">Assigned To</label>
           <input value={form.assignedTo} onChange={e => set('assignedTo', e.target.value)} placeholder="Name or role" className={inp} />
         </div>
         <div>
-          <label className="text-[10px] text-slate-500 mb-1 block">Priority</label>
+          <label className="text-[10px] text-slate-400 mb-1 block">Priority</label>
           <select value={form.priority} onChange={e => set('priority', e.target.value)} className={inp}>
             {PRIORITIES.map(p => <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>)}
           </select>
         </div>
         {milestones.length > 0 && (
           <div>
-            <label className="text-[10px] text-slate-500 mb-1 block">Milestone</label>
+            <label className="text-[10px] text-slate-400 mb-1 block">Milestone</label>
             <select value={form.milestoneId} onChange={e => set('milestoneId', e.target.value)} className={inp}>
               <option value="">— None —</option>
               {milestones.filter(m => m.status !== 'complete').map(m => (
@@ -183,7 +183,7 @@ function TaskRow({ task, onComplete, onDelete, milestoneName }: {
         {/* Title + meta */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className={clsx('text-sm font-medium', task.status === 'completed' ? 'line-through text-slate-500' : 'text-slate-200')}>
+            <span className={clsx('text-sm font-medium', task.status === 'completed' ? 'line-through text-slate-400' : 'text-slate-200')}>
               {task.title}
             </span>
             <span className={clsx('text-[10px] px-1.5 py-0.5 rounded font-medium', PRIORITY_COLORS[task.priority])}>
@@ -192,13 +192,13 @@ function TaskRow({ task, onComplete, onDelete, milestoneName }: {
           </div>
           <div className="flex items-center gap-3 mt-0.5 flex-wrap">
             {task.dueDate && (
-              <span className={clsx('text-xs flex items-center gap-1', overdue ? 'text-red-400' : today ? 'text-amber-400' : 'text-slate-500')}>
+              <span className={clsx('text-xs flex items-center gap-1', overdue ? 'text-red-400' : today ? 'text-amber-400' : 'text-slate-400')}>
                 <Clock size={10} />
                 {overdue ? 'Overdue · ' : today ? 'Due Today · ' : ''}{fmtShort(task.dueDate)}
               </span>
             )}
             {task.assignedTo && (
-              <span className="text-xs text-slate-500 flex items-center gap-1">
+              <span className="text-xs text-slate-400 flex items-center gap-1">
                 <User size={10} /> {task.assignedTo}
               </span>
             )}
@@ -216,11 +216,11 @@ function TaskRow({ task, onComplete, onDelete, milestoneName }: {
         {/* Actions */}
         <div className="flex items-center gap-1 shrink-0">
           {task.description && (
-            <button onClick={() => setExpanded(!expanded)} className="p-1 text-slate-500 hover:text-slate-300 transition-colors">
+            <button onClick={() => setExpanded(!expanded)} className="p-1 text-slate-400 hover:text-slate-300 transition-colors">
               {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
             </button>
           )}
-          <button onClick={onDelete} className="p-1 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all">
+          <button onClick={onDelete} className="p-1 text-slate-400 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all">
             <Trash2 size={13} />
           </button>
         </div>
@@ -319,7 +319,7 @@ export function TasksTab({ project, showAddForm: externalShowForm, onFormClose, 
   ]
 
   if (loading) {
-    return <div className="flex justify-center py-16"><Loader2 size={20} className="animate-spin text-slate-500" /></div>
+    return <div className="flex justify-center py-16"><Loader2 size={20} className="animate-spin text-slate-400" /></div>
   }
 
   return (
@@ -337,7 +337,7 @@ export function TasksTab({ project, showAddForm: externalShowForm, onFormClose, 
             <Icon size={18} className={clsx('shrink-0', color)} />
             <div>
               <p className={clsx('text-xl font-bold tabular-nums', color)}>{value}</p>
-              <p className="text-xs text-slate-500">{label}</p>
+              <p className="text-xs text-slate-400">{label}</p>
             </div>
           </div>
         ))}
@@ -382,15 +382,15 @@ export function TasksTab({ project, showAddForm: externalShowForm, onFormClose, 
 
       {/* ── Priority sort hint ── */}
       {visibleOpen.length > 1 && (
-        <p className="text-[10px] text-slate-600 text-right">Sorted by priority: Urgent → High → Medium → Low</p>
+        <p className="text-[10px] text-slate-400 text-right">Sorted by priority: Urgent → High → Medium → Low</p>
       )}
 
       {/* ── Open Tasks ── */}
       <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
         {visibleOpen.length === 0 ? (
           <div className="py-12 text-center">
-            <CheckSquare size={32} className="mx-auto text-slate-600 mb-3" />
-            <p className="text-slate-500 text-sm">
+            <CheckSquare size={32} className="mx-auto text-slate-400 mb-3" />
+            <p className="text-slate-400 text-sm">
               {filter === 'overdue'  ? 'No overdue tasks.' :
                filter === 'today'   ? 'Nothing due today.' :
                filter === 'mine'    ? `No open tasks assigned to ${user?.displayName ?? 'you'}.` :
@@ -415,7 +415,7 @@ export function TasksTab({ project, showAddForm: externalShowForm, onFormClose, 
         <div>
           <button
             onClick={() => setShowArchive(!showArchive)}
-            className="flex items-center gap-2 text-xs text-slate-500 hover:text-slate-300 transition-colors mb-2"
+            className="flex items-center gap-2 text-xs text-slate-400 hover:text-slate-300 transition-colors mb-2"
           >
             {showArchive ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
             Archive ({completed.length} completed)
@@ -439,7 +439,7 @@ export function TasksTab({ project, showAddForm: externalShowForm, onFormClose, 
 
       {/* ── Footer info ── */}
       {tasks.length > 0 && (
-        <p className="text-xs text-slate-600 text-center">
+        <p className="text-xs text-slate-400 text-center">
           {open.length} open · {completed.length} completed · Last updated {fmt(tasks[0]?.updatedAt || '')}
         </p>
       )}

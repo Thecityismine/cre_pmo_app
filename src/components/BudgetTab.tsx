@@ -121,7 +121,7 @@ function LineItemForm({
         <div className="relative">
           <input type="number" value={form.costToComplete} onChange={e => set('costToComplete', e.target.value)}
             placeholder="Cost to Complete $" className={inp} />
-          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-slate-600 pointer-events-none">ETC</span>
+          <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-slate-400 pointer-events-none">ETC</span>
         </div>
         <input value={form.notes} onChange={e => set('notes', e.target.value)}
           placeholder="Notes" className={inp} />
@@ -233,7 +233,7 @@ function LineItemRow({ item, onDelete }: {
       Number(form.forecastAmount) || 0,
     )
 
-    const lbl = 'block text-[10px] text-slate-500 mb-1'
+    const lbl = 'block text-[10px] text-slate-400 mb-1'
 
     return (
       <tr className="bg-slate-900/80 border-t border-slate-700">
@@ -303,7 +303,7 @@ function LineItemRow({ item, onDelete }: {
         </td>
         <td className="px-3 py-2.5">
           <p className="text-slate-200 text-sm">{item.description || '—'}</p>
-          {item.vendorName && <p className="text-xs text-slate-500 mt-0.5">{item.vendorName}</p>}
+          {item.vendorName && <p className="text-xs text-slate-400 mt-0.5">{item.vendorName}</p>}
           {item.costToComplete != null && item.costToComplete > 0 && (
             <p className="text-[10px] text-blue-400 mt-0.5">ETC: {fmt(item.costToComplete)}</p>
           )}
@@ -339,7 +339,7 @@ function LineItemRow({ item, onDelete }: {
               onClick={e => { e.stopPropagation(); setInvoicing(!invoicing); setInvoiceAmt('') }}
               className={clsx(
                 'ml-1 p-1 rounded transition-colors',
-                invoicing ? 'text-emerald-400' : 'text-slate-500 hover:text-emerald-400',
+                invoicing ? 'text-emerald-400' : 'text-slate-400 hover:text-emerald-400',
               )}
               title="Log invoice"
             >
@@ -347,7 +347,7 @@ function LineItemRow({ item, onDelete }: {
             </button>
             <button
               onClick={e => { e.stopPropagation(); onDelete(item.id) }}
-              className="p-1 text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+              className="p-1 text-slate-400 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
             >
               <Trash2 size={11} />
             </button>
@@ -362,7 +362,7 @@ function LineItemRow({ item, onDelete }: {
               <Receipt size={13} className="text-emerald-400 shrink-0" />
               <span className="text-xs text-emerald-300 font-medium shrink-0">Log Invoice</span>
               {paidAmt > 0 && (
-                <span className="text-[10px] text-slate-500 shrink-0">Total paid so far: {fmt(paidAmt)}</span>
+                <span className="text-[10px] text-slate-400 shrink-0">Total paid so far: {fmt(paidAmt)}</span>
               )}
               <input
                 type="number"
@@ -465,8 +465,8 @@ function CategoryCard({
         {/* Row 1: chevron + category pill + health badge + spacer + item count */}
         <div className="flex items-center gap-2 w-full">
           {expanded
-            ? <ChevronDown size={14} className="text-slate-500 shrink-0" />
-            : <ChevronRight size={14} className="text-slate-500 shrink-0" />}
+            ? <ChevronDown size={14} className="text-slate-400 shrink-0" />
+            : <ChevronRight size={14} className="text-slate-400 shrink-0" />}
           <span className={clsx('text-xs px-2 py-0.5 rounded font-medium shrink-0', cfg.pill)}>
             {category}
           </span>
@@ -513,7 +513,7 @@ function CategoryCard({
                 {(catRemaining ?? 0) < 0 && <span className="text-xs ml-0.5">over</span>}
               </p>
             ) : (
-              <p className="text-slate-600 text-sm leading-none">—</p>
+              <p className="text-slate-400 text-sm leading-none">—</p>
             )}
           </div>
         </div>
@@ -529,7 +529,7 @@ function CategoryCard({
             </span>
           </div>
         ) : (
-          <p className="pl-5 text-xs text-slate-500">No approved budget set — click "+ Set budget" to add one</p>
+          <p className="pl-5 text-xs text-slate-400">No approved budget set — click "+ Set budget" to add one</p>
         )}
       </button>
 
@@ -569,18 +569,18 @@ function CategoryCard({
               <div className="flex items-center gap-3 text-sm flex-wrap">
                 <span className="text-slate-400">
                   Approved Budget: <span className="text-slate-100 font-semibold tabular-nums">
-                    {approvedBudget ? fmt(approvedBudget) : <span className="text-slate-600 italic">not set</span>}
+                    {approvedBudget ? fmt(approvedBudget) : <span className="text-slate-400 italic">not set</span>}
                   </span>
                 </span>
                 {catBudget > 0 && (
                   <>
-                    <span className="text-slate-600">·</span>
+                    <span className="text-slate-400">·</span>
                     <span className="text-slate-400">
                       Drawn: <span className={clsx('font-semibold tabular-nums', catHealth === 'red' ? 'text-red-400' : catHealth === 'amber' ? 'text-amber-400' : 'text-emerald-400')}>
                         {fmt(totalDrawn)}
                       </span>
                     </span>
-                    <span className="text-slate-600">·</span>
+                    <span className="text-slate-400">·</span>
                     <span className="text-slate-400">
                       Remaining: <span className={clsx('font-semibold tabular-nums', (catRemaining ?? 0) >= 0 ? 'text-emerald-400' : 'text-red-400')}>
                         {catRemaining !== null
@@ -602,7 +602,7 @@ function CategoryCard({
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-slate-500 text-[10px] uppercase tracking-wide border-b border-slate-700/50">
+                  <tr className="text-slate-400 text-[10px] uppercase tracking-wide border-b border-slate-700/50">
                     <th className="px-3 py-2 w-4" />
                     <th className="text-left px-3 py-2">Description / Vendor</th>
                     <th className="text-right px-3 py-2">Forecast</th>
@@ -622,7 +622,7 @@ function CategoryCard({
                   <tr className="border-t border-slate-700/50 bg-slate-900/30 text-xs font-semibold">
                     <td className="px-3 py-2" />
                     <td className="px-3 py-2 text-slate-400">
-                      Total <span className="text-slate-600 font-normal">of {approvedBudget ? fmt(approvedBudget) : 'budget'}</span>
+                      Total <span className="text-slate-400 font-normal">of {approvedBudget ? fmt(approvedBudget) : 'budget'}</span>
                     </td>
                     <td className="px-3 py-2 text-right tabular-nums">
                       <span className={clsx(catHealth === 'green' ? 'text-emerald-400' : catHealth === 'amber' ? 'text-amber-400' : 'text-red-400')}>
@@ -634,7 +634,7 @@ function CategoryCard({
                       {catBudget > 0 && catRemaining !== null && (
                         <span className={clsx('tabular-nums', catRemaining >= 0 ? 'text-emerald-400' : 'text-red-400')}>
                           {catRemaining >= 0 ? fmt(catRemaining) : `(${fmt(Math.abs(catRemaining))})`}
-                          <span className="text-slate-600 font-normal ml-1 text-[9px]">remaining</span>
+                          <span className="text-slate-400 font-normal ml-1 text-[9px]">remaining</span>
                         </span>
                       )}
                     </td>
@@ -643,9 +643,9 @@ function CategoryCard({
               </table>
             </div>
           ) : (
-            <div className="px-4 py-6 text-center text-slate-500">
+            <div className="px-4 py-6 text-center text-slate-400">
               <p className="text-sm">No line items yet for {category}.</p>
-              <p className="text-xs text-slate-600 mt-1">Click "+ Add Line Item" below to get started.</p>
+              <p className="text-xs text-slate-400 mt-1">Click "+ Add Line Item" below to get started.</p>
             </div>
           )}
 
@@ -681,7 +681,7 @@ function EmptyOnboardingCard() {
       </div>
       <div>
         <h3 className="text-slate-100 font-semibold text-sm mb-1">Set up your budget</h3>
-        <p className="text-slate-500 text-xs">Track costs by category — from hard costs to furniture and technology.</p>
+        <p className="text-slate-400 text-xs">Track costs by category — from hard costs to furniture and technology.</p>
       </div>
       <div className="text-left space-y-3 max-w-sm mx-auto">
         {[
@@ -722,24 +722,24 @@ function ContingencyTracker({ items, coApproved }: { items: ExtBudgetItem[]; coA
       <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-3">Contingency Drawdown</p>
       <div className="flex items-center gap-4 flex-wrap text-xs mb-3">
         <div>
-          <p className="text-slate-500">Total Contingency</p>
+          <p className="text-slate-400">Total Contingency</p>
           <p className="text-slate-200 font-semibold tabular-nums">{fmt(effectiveContingency)}</p>
         </div>
         <div>
-          <p className="text-slate-500">Consumed by Overruns</p>
+          <p className="text-slate-400">Consumed by Overruns</p>
           <p className={clsx('font-semibold tabular-nums', overrun > 0 ? 'text-amber-400' : 'text-slate-400')}>
             {overrun > 0 ? fmt(overrun) : '—'}
           </p>
         </div>
         <div>
-          <p className="text-slate-500">Remaining</p>
+          <p className="text-slate-400">Remaining</p>
           <p className={clsx('font-semibold tabular-nums', remaining < 0 ? 'text-red-400' : remaining < effectiveContingency * 0.25 ? 'text-amber-400' : 'text-emerald-400')}>
             {fmt(Math.max(0, remaining))}
           </p>
         </div>
         {remaining < 0 && (
           <div>
-            <p className="text-slate-500">Contingency Exhausted</p>
+            <p className="text-slate-400">Contingency Exhausted</p>
             <p className="text-red-400 font-semibold tabular-nums">{fmt(Math.abs(remaining))} over</p>
           </div>
         )}
@@ -750,7 +750,7 @@ function ContingencyTracker({ items, coApproved }: { items: ExtBudgetItem[]; coA
           style={{ width: `${drawdownPct}%` }}
         />
       </div>
-      <p className="text-[10px] text-slate-600 mt-1">{Math.round(drawdownPct)}% of contingency consumed by line-item overruns</p>
+      <p className="text-[10px] text-slate-400 mt-1">{Math.round(drawdownPct)}% of contingency consumed by line-item overruns</p>
     </div>
   )
 }
@@ -870,7 +870,7 @@ export function BudgetTab({ project }: { project: Project }) {
           { label: 'Actual Spent',     value: fmt(totalActual || totalPaid), color: 'text-slate-200' },
         ].map(s => (
           <div key={s.label} className="bg-slate-800 border border-slate-700 rounded-xl p-3">
-            <p className="text-xs text-slate-500 mb-1">{s.label}</p>
+            <p className="text-xs text-slate-400 mb-1">{s.label}</p>
             <p className={clsx('text-lg font-bold tabular-nums', s.color)}>{s.value}</p>
           </div>
         ))}
@@ -881,7 +881,7 @@ export function BudgetTab({ project }: { project: Project }) {
         <div className="bg-slate-800/60 border border-slate-700 rounded-xl p-3 flex flex-wrap gap-4 text-xs">
           {coApproved !== 0 && (
             <div>
-              <span className="text-slate-500">Approved COs: </span>
+              <span className="text-slate-400">Approved COs: </span>
               <span className={clsx('font-semibold', coApproved > 0 ? 'text-red-400' : 'text-emerald-400')}>
                 {coApproved >= 0 ? '+' : ''}{fmt(coApproved)}
               </span>
@@ -890,16 +890,16 @@ export function BudgetTab({ project }: { project: Project }) {
           {coPending !== 0 && (
             <div className="flex items-center gap-1">
               <AlertTriangle size={11} className="text-amber-400" />
-              <span className="text-slate-500">Pending Exposure: </span>
+              <span className="text-slate-400">Pending Exposure: </span>
               <span className="text-amber-400 font-semibold">{fmt(coPending)}</span>
             </div>
           )}
           <div>
-            <span className="text-slate-500">Net Budget: </span>
+            <span className="text-slate-400">Net Budget: </span>
             <span className="text-slate-200 font-semibold">{fmt(netBudget)}</span>
           </div>
           <div>
-            <span className="text-slate-500">Remaining: </span>
+            <span className="text-slate-400">Remaining: </span>
             <span className={clsx('font-semibold', totalVariance >= 0 ? 'text-emerald-400' : 'text-red-400')}>
               {totalVariance >= 0 ? fmt(totalVariance) : `(${fmt(Math.abs(totalVariance))})`}
             </span>
@@ -976,15 +976,15 @@ export function BudgetTab({ project }: { project: Project }) {
               <div className="flex items-center gap-3 px-4 py-3">
                 <AlertTriangle size={13} className="text-red-400 shrink-0" />
                 <span className="text-sm font-medium text-red-300">Unrecognized Category ({orphans.length} item{orphans.length > 1 ? 's' : ''})</span>
-                <span className="text-xs text-slate-500 ml-1">— imported from external source, unknown category</span>
+                <span className="text-xs text-slate-400 ml-1">— imported from external source, unknown category</span>
               </div>
               <div className="border-t border-slate-700 divide-y divide-slate-700/50">
                 {orphans.map(item => (
                   <div key={item.id} className="flex items-center gap-3 px-4 py-2.5 text-xs text-slate-400">
                     <span className="flex-1 truncate">{item.description || '(no description)'}</span>
-                    <span className="text-slate-500">{item.category}</span>
+                    <span className="text-slate-400">{item.category}</span>
                     <span className="tabular-nums text-slate-300">{fmt(item.forecastAmount || item.budgetAmount || 0)}</span>
-                    <button onClick={() => handleDelete(item.id)} className="p-1 text-slate-600 hover:text-red-400 transition-colors">
+                    <button onClick={() => handleDelete(item.id)} className="p-1 text-slate-400 hover:text-red-400 transition-colors">
                       <Trash2 size={12} />
                     </button>
                   </div>
@@ -998,16 +998,16 @@ export function BudgetTab({ project }: { project: Project }) {
       {/* ── Financial summary footer ──────────────────────────────────────── */}
       {hasItems && (
         <div className="bg-slate-900/70 border border-slate-700 rounded-xl px-4 py-3 flex flex-wrap gap-4 text-xs">
-          <div><span className="text-slate-500">Baseline: </span><span className="text-slate-200 font-medium">{fmt(baseBudget)}</span></div>
+          <div><span className="text-slate-400">Baseline: </span><span className="text-slate-200 font-medium">{fmt(baseBudget)}</span></div>
           <div>
-            <span className="text-slate-500">+ Approved COs: </span>
+            <span className="text-slate-400">+ Approved COs: </span>
             <span className={clsx('font-medium', coApproved > 0 ? 'text-red-400' : coApproved < 0 ? 'text-emerald-400' : 'text-slate-400')}>
               {coApproved !== 0 ? `${coApproved > 0 ? '+' : ''}${fmt(coApproved)}` : '—'}
             </span>
           </div>
-          <div><span className="text-slate-500">= Net Budget: </span><span className="text-blue-300 font-medium">{fmt(netBudget)}</span></div>
+          <div><span className="text-slate-400">= Net Budget: </span><span className="text-blue-300 font-medium">{fmt(netBudget)}</span></div>
           <div className="ml-auto">
-            <span className="text-slate-500">Forecast Variance: </span>
+            <span className="text-slate-400">Forecast Variance: </span>
             <span className={clsx('font-semibold', totalVariance >= 0 ? 'text-emerald-400' : 'text-red-400')}>
               {totalVariance >= 0 ? fmt(totalVariance) : `(${fmt(Math.abs(totalVariance))})`}
             </span>

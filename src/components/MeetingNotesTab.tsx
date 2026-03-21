@@ -53,7 +53,7 @@ function ListEditor({
             <button
               type="button"
               onClick={() => onChange(items.filter((_, idx) => idx !== i))}
-              className="opacity-0 group-hover:opacity-100 p-0.5 text-slate-600 hover:text-red-400 transition-opacity"
+              className="opacity-0 group-hover:opacity-100 p-0.5 text-slate-400 hover:text-red-400 transition-opacity"
             >
               <X size={10} />
             </button>
@@ -181,7 +181,7 @@ function AddNoteForm({
         >
           <Plus size={14} /> {saving ? 'Saving…' : 'Save Note'}
         </button>
-        <button onClick={onCancel} className="text-sm text-slate-500 hover:text-slate-300 px-3 py-2">
+        <button onClick={onCancel} className="text-sm text-slate-400 hover:text-slate-300 px-3 py-2">
           Cancel
         </button>
       </div>
@@ -209,12 +209,12 @@ function NoteCard({
         className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-700/30 transition-colors text-left"
       >
         {expanded
-          ? <ChevronDown size={14} className="text-slate-500 shrink-0" />
-          : <ChevronRight size={14} className="text-slate-500 shrink-0" />}
+          ? <ChevronDown size={14} className="text-slate-400 shrink-0" />
+          : <ChevronRight size={14} className="text-slate-400 shrink-0" />}
 
         <div className="flex-1 min-w-0">
           <p className="text-slate-200 text-sm font-medium truncate">{note.title}</p>
-          <div className="flex items-center gap-3 mt-0.5 text-xs text-slate-500">
+          <div className="flex items-center gap-3 mt-0.5 text-xs text-slate-400">
             <span>{fmtDate(note.createdAt)}</span>
             {note.createdBy && <span>· {note.createdBy}</span>}
             {hasStructured ? (
@@ -235,7 +235,7 @@ function NoteCard({
 
         <button
           onClick={e => { e.stopPropagation(); if (confirm('Delete this meeting note?')) onDelete(note.id) }}
-          className="p-1.5 text-slate-600 hover:text-red-400 transition-colors shrink-0"
+          className="p-1.5 text-slate-400 hover:text-red-400 transition-colors shrink-0"
         >
           <Trash2 size={13} />
         </button>
@@ -247,7 +247,7 @@ function NoteCard({
           {/* Raw notes */}
           {note.rawText && (
             <div>
-              <p className="text-xs text-slate-500 uppercase tracking-wide mb-1.5">Notes</p>
+              <p className="text-xs text-slate-400 uppercase tracking-wide mb-1.5">Notes</p>
               <p className="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">{note.rawText}</p>
             </div>
           )}
@@ -326,15 +326,15 @@ export function MeetingNotesTab({ project }: { project: Project }) {
       <div className="grid grid-cols-3 gap-3">
         <div className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-center">
           <p className="text-xl font-bold text-slate-100">{notes.length}</p>
-          <p className="text-xs text-slate-500 mt-0.5">Meetings</p>
+          <p className="text-xs text-slate-400 mt-0.5">Meetings</p>
         </div>
         <div className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-center">
           <p className="text-xl font-bold text-blue-400">{totalActions}</p>
-          <p className="text-xs text-slate-500 mt-0.5">Action Items</p>
+          <p className="text-xs text-slate-400 mt-0.5">Action Items</p>
         </div>
         <div className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-center">
           <p className={clsx('text-xl font-bold', totalRisks > 0 ? 'text-amber-400' : 'text-slate-100')}>{totalRisks}</p>
-          <p className="text-xs text-slate-500 mt-0.5">Risks Raised</p>
+          <p className="text-xs text-slate-400 mt-0.5">Risks Raised</p>
         </div>
       </div>
 
@@ -361,10 +361,10 @@ export function MeetingNotesTab({ project }: { project: Project }) {
       ) : notes.length === 0 ? (
         <div className="bg-slate-800 border border-slate-700 rounded-xl p-8 text-center space-y-3">
           <div className="w-12 h-12 rounded-full bg-slate-700 flex items-center justify-center mx-auto">
-            <FileText size={22} className="text-slate-500" />
+            <FileText size={22} className="text-slate-400" />
           </div>
           <p className="text-slate-300 font-medium text-sm">No meeting notes yet</p>
-          <p className="text-slate-500 text-xs max-w-xs mx-auto">
+          <p className="text-slate-400 text-xs max-w-xs mx-auto">
             Log meeting summaries, track action items, decisions, and risks raised during project meetings.
           </p>
         </div>

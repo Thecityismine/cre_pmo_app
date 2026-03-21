@@ -131,17 +131,17 @@ function NoteCard({ note, onDelete }: { note: MeetingNote; onDelete: () => void 
       >
         <div className="flex items-center gap-3 min-w-0">
           {expanded
-            ? <ChevronDown size={14} className="text-slate-500 shrink-0" />
-            : <ChevronRight size={14} className="text-slate-500 shrink-0" />
+            ? <ChevronDown size={14} className="text-slate-400 shrink-0" />
+            : <ChevronRight size={14} className="text-slate-400 shrink-0" />
           }
           <FileText size={14} className="text-blue-400 shrink-0" />
           <span className="text-slate-200 text-sm font-medium truncate">{note.title}</span>
         </div>
         <div className="flex items-center gap-3 shrink-0 ml-2">
-          <span className="text-slate-500 text-xs hidden sm:block">{date}</span>
+          <span className="text-slate-400 text-xs hidden sm:block">{date}</span>
           <button
             onClick={(e) => { e.stopPropagation(); onDelete() }}
-            className="text-slate-600 hover:text-red-400 transition-colors"
+            className="text-slate-400 hover:text-red-400 transition-colors"
           >
             <Trash2 size={14} />
           </button>
@@ -210,11 +210,11 @@ function NoteCard({ note, onDelete }: { note: MeetingNote; onDelete: () => void 
           )}
 
           <details className="group">
-            <summary className="text-xs text-slate-500 cursor-pointer hover:text-slate-400 select-none list-none flex items-center gap-1">
+            <summary className="text-xs text-slate-400 cursor-pointer hover:text-slate-400 select-none list-none flex items-center gap-1">
               <ChevronRight size={12} className="group-open:rotate-90 transition-transform" />
               View original notes
             </summary>
-            <p className="mt-2 text-xs text-slate-500 bg-slate-900 rounded-lg p-3 whitespace-pre-wrap leading-relaxed">
+            <p className="mt-2 text-xs text-slate-400 bg-slate-900 rounded-lg p-3 whitespace-pre-wrap leading-relaxed">
               {note.rawText}
             </p>
           </details>
@@ -727,7 +727,7 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
         >
           Go to Settings →
         </a>
-        <p className="text-slate-500 text-xs mt-3">
+        <p className="text-slate-400 text-xs mt-3">
           Get a key at console.anthropic.com
         </p>
       </div>
@@ -761,7 +761,7 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
             <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">{brief}</p>
           </div>
         ) : (
-          <p className="text-slate-500 text-sm">
+          <p className="text-slate-400 text-sm">
             Click "Generate Brief" to get an AI-written executive summary of this project's current status.
           </p>
         )}
@@ -838,7 +838,7 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
                       {m.startDate} → {m.endDate}
                     </p>
                     {m.notes && (
-                      <p className="text-xs text-slate-500 mt-0.5">{m.notes}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">{m.notes}</p>
                     )}
                   </div>
                 </div>
@@ -847,7 +847,7 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
 
             {/* AI notes */}
             {scheduleNotes && (
-              <p className="text-xs text-slate-500 italic mb-3">{scheduleNotes}</p>
+              <p className="text-xs text-slate-400 italic mb-3">{scheduleNotes}</p>
             )}
 
             {/* Apply button */}
@@ -870,7 +870,7 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
         )}
 
         {!scheduleLoading && scheduleStages.length === 0 && !scheduleError && (
-          <p className="text-slate-500 text-sm">
+          <p className="text-slate-400 text-sm">
             Click "Generate Schedule" to get AI-suggested milestone dates based on this project's profile, size, and budget.
           </p>
         )}
@@ -895,7 +895,7 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
           </button>
         </div>
 
-        <p className="text-xs text-slate-500 mb-3">
+        <p className="text-xs text-slate-400 mb-3">
           AI analyzes your project data (budget, schedule, tasks, RFIs, existing RAID) and surfaces potential risks not yet logged.
         </p>
 
@@ -922,11 +922,11 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
                         risk.severity === 'high' ? 'text-red-400' :
                         risk.severity === 'medium' ? 'text-amber-400' : 'text-slate-400'
                       )}>{risk.severity}</span>
-                      <span className="text-xs text-slate-500 bg-slate-700/60 px-1.5 py-0.5 rounded">{risk.category}</span>
+                      <span className="text-xs text-slate-400 bg-slate-700/60 px-1.5 py-0.5 rounded">{risk.category}</span>
                     </div>
                     <p className="text-sm font-medium text-slate-200">{risk.title}</p>
                     <p className="text-xs text-slate-400 mt-1 leading-relaxed">{risk.description}</p>
-                    <p className="text-xs text-slate-600 mt-1 italic">Why: {risk.reasoning}</p>
+                    <p className="text-xs text-slate-400 mt-1 italic">Why: {risk.reasoning}</p>
                   </div>
                   <button
                     onClick={() => promoteToRaid(risk, idx)}
@@ -947,7 +947,7 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
         )}
 
         {!scanLoading && scanResults.length === 0 && !scanError && (
-          <p className="text-slate-600 text-xs italic">
+          <p className="text-slate-400 text-xs italic">
             No scan results yet. Click "Scan for Risks" to analyze this project.
           </p>
         )}
@@ -1038,7 +1038,7 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
             )}
           </div>
         ) : (
-          <p className="text-slate-500 text-sm">
+          <p className="text-slate-400 text-sm">
             Click "Generate Report" to create a professional executive status report pulling live budget, schedule, risk, and task data.
           </p>
         )}
@@ -1066,7 +1066,7 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
           <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 mb-4 space-y-3">
             <div className="flex items-center justify-between">
               <p className="text-slate-200 font-medium text-sm">New Meeting Notes</p>
-              <button onClick={() => { setShowForm(false); setError('') }} className="text-slate-500 hover:text-slate-300">
+              <button onClick={() => { setShowForm(false); setError('') }} className="text-slate-400 hover:text-slate-300">
                 <X size={16} />
               </button>
             </div>
@@ -1121,9 +1121,9 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
                     <div className="flex items-center gap-2">
                       <Mic size={14} className="text-blue-400" />
                       <span className="text-sm text-slate-200 truncate max-w-xs">{audioFile.name}</span>
-                      <span className="text-xs text-slate-500">({(audioFile.size / 1024 / 1024).toFixed(1)} MB)</span>
+                      <span className="text-xs text-slate-400">({(audioFile.size / 1024 / 1024).toFixed(1)} MB)</span>
                     </div>
-                    <button onClick={() => setAudioFile(null)} className="text-slate-500 hover:text-red-400 transition-colors">
+                    <button onClick={() => setAudioFile(null)} className="text-slate-400 hover:text-red-400 transition-colors">
                       <X size={14} />
                     </button>
                   </div>
@@ -1134,7 +1134,7 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
                   >
                     <Upload size={20} />
                     <span className="text-sm">Click to upload audio recording</span>
-                    <span className="text-xs text-slate-500">MP3, M4A, WAV, WebM — max 25MB</span>
+                    <span className="text-xs text-slate-400">MP3, M4A, WAV, WebM — max 25MB</span>
                   </button>
                 )}
               </div>
@@ -1163,7 +1163,7 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
         )}
 
         {notes.length === 0 && !showForm ? (
-          <div className="text-center py-12 text-slate-500 bg-slate-800 border border-slate-700 rounded-xl">
+          <div className="text-center py-12 text-slate-400 bg-slate-800 border border-slate-700 rounded-xl">
             <Mic size={32} className="mx-auto mb-3 opacity-40" />
             <p className="text-sm">No meeting notes yet.</p>
             <p className="text-xs mt-1">Add notes to extract action items and decisions with AI.</p>

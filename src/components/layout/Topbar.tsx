@@ -17,7 +17,7 @@ export function Topbar({ onAIOpen }: { onAIOpen?: () => void }) {
       {searchOpen ? (
         <div className="flex-1 flex items-center gap-2 md:hidden">
           <div className="relative flex-1">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               autoFocus
               type="text"
@@ -36,7 +36,7 @@ export function Topbar({ onAIOpen }: { onAIOpen?: () => void }) {
 
           {/* Desktop search */}
           <div className="relative hidden md:block">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               placeholder="Search projects..."
@@ -77,7 +77,7 @@ export function Topbar({ onAIOpen }: { onAIOpen?: () => void }) {
               </div>
               <div className="hidden lg:block">
                 <p className="text-sm text-slate-200 leading-none truncate max-w-32">{user?.displayName ?? 'User'}</p>
-                <p className="text-xs text-slate-500 mt-0.5">{user?.role ?? ''}</p>
+                <p className="text-xs text-slate-400 mt-0.5">{user?.role ?? ''}</p>
               </div>
             </Link>
           </div>

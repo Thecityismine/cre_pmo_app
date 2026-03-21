@@ -63,11 +63,11 @@ function StatCard({ label, value, sub, icon: Icon, accent = false }: {
   return (
     <div className={clsx('rounded-xl p-4 border', accent ? 'bg-blue-900/30 border-blue-700' : 'bg-slate-800 border-slate-700')}>
       <div className="flex items-center gap-2 mb-2">
-        <Icon size={14} className={accent ? 'text-blue-400' : 'text-slate-500'} />
+        <Icon size={14} className={accent ? 'text-blue-400' : 'text-slate-400'} />
         <span className="text-xs text-slate-400 uppercase tracking-wide font-medium">{label}</span>
       </div>
       <p className={clsx('text-xl font-bold', accent ? 'text-blue-300' : 'text-slate-100')}>{value}</p>
-      {sub && <p className="text-xs text-slate-500 mt-0.5">{sub}</p>}
+      {sub && <p className="text-xs text-slate-400 mt-0.5">{sub}</p>}
     </div>
   )
 }
@@ -131,12 +131,12 @@ function TaskRow({ task }: { task: Task }) {
         >
           <p className={clsx(
             'text-sm leading-snug',
-            task.status === 'complete' ? 'line-through text-slate-500' : 'text-slate-200'
+            task.status === 'complete' ? 'line-through text-slate-400' : 'text-slate-200'
           )}>
             {task.title}
           </p>
           {task.dueDate && (
-            <span className={clsx('flex items-center gap-0.5 text-xs mt-0.5', isOverdue ? 'text-red-400' : isDueSoon ? 'text-amber-400' : 'text-slate-500')}>
+            <span className={clsx('flex items-center gap-0.5 text-xs mt-0.5', isOverdue ? 'text-red-400' : isDueSoon ? 'text-amber-400' : 'text-slate-400')}>
               {isOverdue ? <AlertCircle size={10} /> : <Clock size={10} />}
               {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               {isOverdue && ' overdue'}
@@ -176,15 +176,15 @@ function TaskGroup({ category, tasks }: { category: string; tasks: Task[] }) {
         className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-750 transition-colors"
       >
         <div className="flex items-center gap-3">
-          {collapsed ? <ChevronRight size={15} className="text-slate-500" /> : <ChevronDown size={15} className="text-slate-500" />}
+          {collapsed ? <ChevronRight size={15} className="text-slate-400" /> : <ChevronDown size={15} className="text-slate-400" />}
           <span className="text-slate-100 font-medium text-sm">{category}</span>
-          <span className="text-xs text-slate-500">{done}/{tasks.length}</span>
+          <span className="text-xs text-slate-400">{done}/{tasks.length}</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-24 h-1.5 bg-slate-700 rounded-full overflow-hidden">
             <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${pct}%` }} />
           </div>
-          <span className="text-xs text-slate-500 w-8 text-right">{pct}%</span>
+          <span className="text-xs text-slate-400 w-8 text-right">{pct}%</span>
         </div>
       </button>
       {!collapsed && (
@@ -206,7 +206,7 @@ function ScoreBar({ label, score, max, detail }: { label: string; score: number;
       <div className="flex items-center justify-between text-xs">
         <span className="text-slate-400">{label}</span>
         <div className="flex items-center gap-2">
-          <span className="text-slate-500">{detail}</span>
+          <span className="text-slate-400">{detail}</span>
           <span className="text-slate-300 font-medium tabular-nums">{score}/{max}</span>
         </div>
       </div>
@@ -233,14 +233,14 @@ function HealthScorecard({ project, taskCompletionPct, raidItems, milestones }: 
         {/* Score ring */}
         <div className={clsx('shrink-0 w-16 h-16 rounded-full border-4 flex flex-col items-center justify-center', ringBg)}>
           <span className={clsx('text-xl font-bold leading-none', ringColor)}>{h.total}</span>
-          <span className="text-xs text-slate-500 leading-none mt-0.5">/ 100</span>
+          <span className="text-xs text-slate-400 leading-none mt-0.5">/ 100</span>
         </div>
 
         {/* Label + breakdown */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2">
             <p className={clsx('text-sm font-semibold', ringColor)}>{h.label}</p>
-            <span className="text-xs text-slate-500 uppercase tracking-wide font-medium">Project Health</span>
+            <span className="text-xs text-slate-400 uppercase tracking-wide font-medium">Project Health</span>
           </div>
           <div className="space-y-2">
             <ScoreBar label="Budget"   score={h.budget}         max={30} detail={h.budgetLabel} />
@@ -371,7 +371,7 @@ export function ProjectDetailPage() {
 
   if (!project) {
     return (
-      <div className="text-center py-20 text-slate-500">
+      <div className="text-center py-20 text-slate-400">
         <p>Project not found.</p>
         <button onClick={() => navigate('/projects')} className="text-blue-400 text-sm mt-2">← Back to Projects</button>
       </div>
@@ -471,7 +471,7 @@ export function ProjectDetailPage() {
 
       {/* Stage gate progress */}
       <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
-        <p className="text-xs text-slate-500 uppercase tracking-wide font-medium mb-3">Project Stage</p>
+        <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-3">Project Stage</p>
         <div className="flex items-center gap-0">
           {STAGES.map((stage, i) => (
             <div key={stage} className="flex items-center flex-1 min-w-0">
@@ -484,7 +484,7 @@ export function ProjectDetailPage() {
                 )} />
                 <span className={clsx(
                   'text-xs mt-1.5 text-center leading-tight hidden sm:block',
-                  i === currentStage ? 'text-blue-400 font-medium' : 'text-slate-500'
+                  i === currentStage ? 'text-blue-400 font-medium' : 'text-slate-400'
                 )}>
                   {stage}
                 </span>
@@ -535,7 +535,7 @@ export function ProjectDetailPage() {
               style={{ width: `${Math.min(100, budgetUsed)}%` }}
             />
           </div>
-          <p className="text-xs text-slate-500 mt-1">{Math.round(budgetUsed)}% of budget utilized</p>
+          <p className="text-xs text-slate-400 mt-1">{Math.round(budgetUsed)}% of budget utilized</p>
         </div>
       )}
 
@@ -647,9 +647,9 @@ export function ProjectDetailPage() {
                       )}>
                         {a.title}
                       </p>
-                      <p className="text-xs text-slate-500 truncate mt-0.5">{a.desc}</p>
+                      <p className="text-xs text-slate-400 truncate mt-0.5">{a.desc}</p>
                     </div>
-                    <span className="text-xs text-slate-600 shrink-0">→</span>
+                    <span className="text-xs text-slate-400 shrink-0">→</span>
                   </button>
                 ))}
               </div>
@@ -698,7 +698,7 @@ export function ProjectDetailPage() {
             {
               label: 'CO Exposure',
               value: coPending > 0 ? fmt(coPending) : '—',
-              color: coPending > 0 ? 'text-amber-300' : 'text-slate-500',
+              color: coPending > 0 ? 'text-amber-300' : 'text-slate-400',
               sub: coPending > 0 ? 'Pending approval' : 'No pending COs',
             },
           ]
@@ -706,9 +706,9 @@ export function ProjectDetailPage() {
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {tiles.map(t => (
                 <div key={t.label} className="bg-slate-800 border border-slate-700 rounded-xl p-3">
-                  <p className="text-xs text-slate-500 mb-1">{t.label}</p>
+                  <p className="text-xs text-slate-400 mb-1">{t.label}</p>
                   <p className={clsx('text-lg font-bold tabular-nums', t.color)}>{t.value}</p>
-                  {t.sub && <p className="text-xs text-slate-600 mt-0.5">{t.sub}</p>}
+                  {t.sub && <p className="text-xs text-slate-400 mt-0.5">{t.sub}</p>}
                 </div>
               ))}
             </div>
@@ -734,10 +734,10 @@ export function ProjectDetailPage() {
                 onClick={() => setTab('raid')}
                 className="w-full flex items-center gap-3 bg-slate-800 border border-slate-700 rounded-xl p-4 hover:border-slate-600 transition-colors text-left"
               >
-                <ShieldAlert size={16} className="text-slate-500 shrink-0" />
+                <ShieldAlert size={16} className="text-slate-400 shrink-0" />
                 <div>
                   <p className="text-sm text-slate-400">No open risks</p>
-                  <p className="text-xs text-slate-600 mt-0.5">All RAID items resolved. Go to RAID tab to add items.</p>
+                  <p className="text-xs text-slate-400 mt-0.5">All RAID items resolved. Go to RAID tab to add items.</p>
                 </div>
               </button>
             )
@@ -752,7 +752,7 @@ export function ProjectDetailPage() {
                 <div className="flex items-center gap-2">
                   <ShieldAlert size={15} className={highCount > 0 ? 'text-red-400' : medCount > 0 ? 'text-amber-400' : 'text-slate-400'} />
                   <span className="text-sm font-semibold text-slate-100">Open Risks &amp; Issues</span>
-                  <span className="text-xs text-slate-500">{openRaid.length} open</span>
+                  <span className="text-xs text-slate-400">{openRaid.length} open</span>
                 </div>
                 <span className="text-xs text-blue-400">View RAID →</span>
               </div>
@@ -762,25 +762,25 @@ export function ProjectDetailPage() {
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-red-500" />
                     <span className="text-sm font-bold text-red-400">{highCount}</span>
-                    <span className="text-xs text-slate-500">High</span>
+                    <span className="text-xs text-slate-400">High</span>
                   </div>
                 )}
                 {medCount > 0 && (
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-amber-500" />
                     <span className="text-sm font-bold text-amber-400">{medCount}</span>
-                    <span className="text-xs text-slate-500">Medium</span>
+                    <span className="text-xs text-slate-400">Medium</span>
                   </div>
                 )}
                 {lowCount > 0 && (
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-slate-500" />
                     <span className="text-sm font-bold text-slate-400">{lowCount}</span>
-                    <span className="text-xs text-slate-500">Low</span>
+                    <span className="text-xs text-slate-400">Low</span>
                   </div>
                 )}
                 {(totalCostExposure > 0 || totalScheduleExposure > 0) && (
-                  <div className="ml-auto flex items-center gap-3 text-xs text-slate-500">
+                  <div className="ml-auto flex items-center gap-3 text-xs text-slate-400">
                     {totalCostExposure > 0 && (
                       <span className="text-amber-400 font-medium">{fmt$(totalCostExposure)} exposure</span>
                     )}
@@ -832,16 +832,16 @@ export function ProjectDetailPage() {
                 <p className={clsx('text-2xl font-bold leading-none tabular-nums', urgency === 'red' ? 'text-red-300' : urgency === 'amber' ? 'text-amber-300' : 'text-blue-300')}>
                   {daysUntil}
                 </p>
-                <p className="text-[10px] text-slate-500 mt-0.5">days</p>
+                <p className="text-[10px] text-slate-400 mt-0.5">days</p>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-slate-500 uppercase tracking-wide font-medium mb-0.5">Next Milestone</p>
+                <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-0.5">Next Milestone</p>
                 <p className="text-sm font-semibold text-slate-100 truncate">{next.name}</p>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-slate-400 mt-0.5">
                   {new Date(next.targetDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                 </p>
               </div>
-              <span className="text-xs text-slate-600 shrink-0">View Schedule →</span>
+              <span className="text-xs text-slate-400 shrink-0">View Schedule →</span>
             </button>
           )
         })()}
@@ -853,10 +853,10 @@ export function ProjectDetailPage() {
           if (dated.length === 0) {
             return (
               <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 flex items-center gap-3">
-                <Calendar size={16} className="text-slate-500 shrink-0" />
+                <Calendar size={16} className="text-slate-400 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-slate-400">No milestone dates set.</p>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-xs text-slate-400 mt-0.5">
                     Go to the{' '}
                     <button onClick={() => setTab('schedule')} className="text-blue-400 hover:text-blue-300 underline">
                       Schedule
@@ -890,7 +890,7 @@ export function ProjectDetailPage() {
                         </div>
                         <div className="ml-2 pb-4">
                           <p className={clsx('text-xs font-medium leading-tight', textColor)}>{m.name}</p>
-                          <p className="text-[10px] text-slate-600 mt-0.5">
+                          <p className="text-[10px] text-slate-400 mt-0.5">
                             {new Date(m.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                           </p>
                         </div>
@@ -990,9 +990,9 @@ export function ProjectDetailPage() {
                     }
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-slate-200 truncate">{e.title}</p>
-                      <p className="text-xs text-slate-500 mt-0.5">{e.sub}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">{e.sub}</p>
                     </div>
-                    <span className="text-xs text-slate-600 shrink-0 tabular-nums">{timeAgo(e.updatedAt)}</span>
+                    <span className="text-xs text-slate-400 shrink-0 tabular-nums">{timeAgo(e.updatedAt)}</span>
                   </button>
                 ))}
               </div>
@@ -1045,7 +1045,7 @@ export function ProjectDetailPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-slate-200 truncate">{doc.name}</p>
-                    <p className="text-xs text-slate-500">{doc.category} · {new Date(doc.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                    <p className="text-xs text-slate-400">{doc.category} · {new Date(doc.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
                   </div>
                 </a>
               ))}
@@ -1105,7 +1105,7 @@ export function ProjectDetailPage() {
               </div>
               <div>
                 <h3 className="text-slate-100 font-semibold mb-1">No checklist tasks yet</h3>
-                <p className="text-slate-500 text-sm max-w-sm mx-auto">
+                <p className="text-slate-400 text-sm max-w-sm mx-auto">
                   Start from the master template — {masterTasks.length} tasks across all project phases — or add tasks manually.
                 </p>
               </div>
@@ -1120,13 +1120,13 @@ export function ProjectDetailPage() {
                 </button>
               </div>
               {masterTasks.length === 0 && (
-                <p className="text-xs text-slate-600">
+                <p className="text-xs text-slate-400">
                   No master tasks defined yet. Go to the Checklist page to add tasks to the template first.
                 </p>
               )}
             </div>
           ) : Object.keys(grouped).length === 0 ? (
-            <p className="text-center text-slate-500 py-12 text-sm">No tasks match the current filter.</p>
+            <p className="text-center text-slate-400 py-12 text-sm">No tasks match the current filter.</p>
           ) : (
             Object.entries(grouped).map(([cat, catTasks]) => (
               <TaskGroup key={cat} category={cat} tasks={catTasks} />
@@ -1177,7 +1177,7 @@ export function ProjectDetailPage() {
             </p>
           </div>
           {team.length === 0 ? (
-            <p className="text-slate-500 text-sm text-center py-8">No team members added yet.</p>
+            <p className="text-slate-400 text-sm text-center py-8">No team members added yet.</p>
           ) : (
             <div className="space-y-3">
               {team.map((m) => (
@@ -1187,7 +1187,7 @@ export function ProjectDetailPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-slate-200 text-sm font-medium">{m.name}</p>
-                    <p className="text-slate-500 text-xs">{m.role} · {m.company}</p>
+                    <p className="text-slate-400 text-xs">{m.role} · {m.company}</p>
                   </div>
                   {m.email && (
                     <a href={`mailto:${m.email}`} className="text-blue-400 hover:text-blue-300 text-xs shrink-0 hidden sm:block">
@@ -1268,7 +1268,7 @@ export function ProjectDetailPage() {
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between gap-4 text-sm">
-      <span className="text-slate-500 shrink-0">{label}</span>
+      <span className="text-slate-400 shrink-0">{label}</span>
       <span className="text-slate-200 text-right">{value}</span>
     </div>
   )

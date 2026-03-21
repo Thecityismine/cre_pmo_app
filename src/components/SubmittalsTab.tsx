@@ -25,11 +25,11 @@ function StatusTimeline({ events }: { events: SubmittalStatusEvent[] }) {
                 <span className={clsx('text-xs px-2 py-0.5 rounded-full font-medium', cfg.color)}>
                   {cfg.label}
                 </span>
-                <span className="text-xs text-slate-500">
+                <span className="text-xs text-slate-400">
                   {new Date(ev.changedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                 </span>
               </div>
-              {ev.note && <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{ev.note}</p>}
+              {ev.note && <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">{ev.note}</p>}
             </div>
           </div>
         )
@@ -142,7 +142,7 @@ function SubmittalRow({
             className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-lg disabled:opacity-50">
             <Check size={12} /> {saving ? 'Saving...' : 'Save'}
           </button>
-          <button onClick={cancel} className="text-xs text-slate-500 hover:text-slate-300 px-2">Cancel</button>
+          <button onClick={cancel} className="text-xs text-slate-400 hover:text-slate-300 px-2">Cancel</button>
         </div>
       </div>
     )
@@ -155,17 +155,17 @@ function SubmittalRow({
     )}>
       <div className="flex items-center gap-3 px-4 py-3 group">
         {/* Number */}
-        <span className="text-xs font-mono text-slate-500 shrink-0 w-18">{submittal.number}</span>
+        <span className="text-xs font-mono text-slate-400 shrink-0 w-18">{submittal.number}</span>
 
         {/* Title + meta */}
         <button className="flex-1 min-w-0 text-left" onClick={() => setExpanded(!expanded)}>
           <p className="text-sm font-medium text-slate-100 truncate">{submittal.title}</p>
-          <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500 flex-wrap">
+          <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-400 flex-wrap">
             {submittal.specSection && <span>{submittal.specSection}</span>}
             {submittal.submittedBy && <span>· {submittal.submittedBy}</span>}
             {submittal.reviewer && <span>→ {submittal.reviewer}</span>}
             {submittal.dueDate && (
-              <span className={clsx('flex items-center gap-0.5', isOverdue ? 'text-red-400' : 'text-slate-600')}>
+              <span className={clsx('flex items-center gap-0.5', isOverdue ? 'text-red-400' : 'text-slate-400')}>
                 {isOverdue ? <AlertCircle size={10} /> : <Clock size={10} />}
                 Due {new Date(submittal.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               </span>
@@ -178,14 +178,14 @@ function SubmittalRow({
           {STATUS_CONFIG[submittal.status].label}
         </span>
 
-        <button onClick={() => setExpanded(!expanded)} className="text-slate-600 shrink-0">
+        <button onClick={() => setExpanded(!expanded)} className="text-slate-400 shrink-0">
           {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
         </button>
 
         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-          <button onClick={() => setEditing(true)} className="text-xs text-slate-500 hover:text-blue-400 px-1">Edit</button>
+          <button onClick={() => setEditing(true)} className="text-xs text-slate-400 hover:text-blue-400 px-1">Edit</button>
           <button onClick={() => { if (confirm(`Delete ${submittal.number}?`)) onDelete(submittal.id) }}
-            className="p-1 text-slate-600 hover:text-red-400">
+            className="p-1 text-slate-400 hover:text-red-400">
             <Trash2 size={12} />
           </button>
         </div>
@@ -195,18 +195,18 @@ function SubmittalRow({
         <div className="px-4 pb-4 border-t border-slate-700/50 pt-3 space-y-3">
           {submittal.notes && (
             <div>
-              <p className="text-xs text-slate-500 uppercase tracking-wide font-medium mb-1">Review Notes</p>
+              <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-1">Review Notes</p>
               <p className="text-sm text-slate-400 leading-relaxed">{submittal.notes}</p>
             </div>
           )}
           {submittal.statusHistory && submittal.statusHistory.length > 0 && (
             <div>
-              <p className="text-xs text-slate-500 uppercase tracking-wide font-medium mb-2">Status History</p>
+              <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-2">Status History</p>
               <StatusTimeline events={submittal.statusHistory} />
             </div>
           )}
           {(!submittal.notes && (!submittal.statusHistory || submittal.statusHistory.length === 0)) && (
-            <p className="text-xs text-slate-600 italic">No notes or status history yet.</p>
+            <p className="text-xs text-slate-400 italic">No notes or status history yet.</p>
           )}
         </div>
       )}
@@ -271,7 +271,7 @@ function AddSubmittalForm({
           className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-40">
           <Plus size={14} /> {saving ? 'Adding...' : 'Add Submittal'}
         </button>
-        <button onClick={onCancel} className="text-sm text-slate-500 hover:text-slate-300 px-3 py-2">Cancel</button>
+        <button onClick={onCancel} className="text-sm text-slate-400 hover:text-slate-300 px-3 py-2">Cancel</button>
       </div>
     </div>
   )
@@ -301,7 +301,7 @@ export function SubmittalsTab({ project }: { project: Project }) {
         ].map(s => (
           <div key={s.label} className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-center">
             <p className={clsx('text-xl font-bold', s.color)}>{s.value}</p>
-            <p className="text-xs text-slate-500 mt-0.5">{s.label}</p>
+            <p className="text-xs text-slate-400 mt-0.5">{s.label}</p>
           </div>
         ))}
       </div>
@@ -317,7 +317,7 @@ export function SubmittalsTab({ project }: { project: Project }) {
                 'px-2.5 py-1 rounded text-xs font-medium transition-colors',
                 statusFilter === s
                   ? s === 'all' ? 'bg-blue-600 text-white' : STATUS_CONFIG[s].color
-                  : 'text-slate-500 hover:text-slate-300'
+                  : 'text-slate-400 hover:text-slate-300'
               )}
             >
               {s === 'all' ? 'All' : STATUS_CONFIG[s].label}
@@ -342,9 +342,9 @@ export function SubmittalsTab({ project }: { project: Project }) {
           <div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-16 text-slate-500">
+        <div className="text-center py-16 text-slate-400">
           <p>{submittals.length === 0 ? 'No submittals yet.' : 'No submittals match the current filter.'}</p>
-          {submittals.length === 0 && <p className="text-xs text-slate-600 mt-1">Track shop drawings, product data, and samples for review.</p>}
+          {submittals.length === 0 && <p className="text-xs text-slate-400 mt-1">Track shop drawings, product data, and samples for review.</p>}
         </div>
       ) : (
         <div className="space-y-2">

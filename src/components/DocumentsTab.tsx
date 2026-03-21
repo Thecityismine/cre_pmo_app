@@ -77,7 +77,7 @@ function UploadModal({
       <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h3 className="text-slate-100 font-semibold text-sm">Add Document</h3>
-          <button onClick={onClose} className="text-slate-500 hover:text-slate-300"><X size={16} /></button>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-300"><X size={16} /></button>
         </div>
 
         {/* Category */}
@@ -94,7 +94,7 @@ function UploadModal({
 
         {/* Display name */}
         <div>
-          <label className="text-xs text-slate-400 block mb-1.5">Display Name <span className="text-slate-600">(optional)</span></label>
+          <label className="text-xs text-slate-400 block mb-1.5">Display Name <span className="text-slate-400">(optional)</span></label>
           <input
             value={displayName}
             onChange={e => setDisplayName(e.target.value)}
@@ -113,12 +113,12 @@ function UploadModal({
             'border-2 border-dashed rounded-xl py-8 flex flex-col items-center gap-2 cursor-pointer transition-colors',
             dragging
               ? 'border-blue-500 bg-blue-500/10 text-blue-300'
-              : 'border-slate-700 hover:border-slate-500 text-slate-500 hover:text-slate-400'
+              : 'border-slate-700 hover:border-slate-500 text-slate-400 hover:text-slate-400'
           )}
         >
           <Upload size={20} />
           <p className="text-sm font-medium">{dragging ? 'Drop files here' : 'Click or drag & drop'}</p>
-          <p className="text-xs text-slate-600">PDFs, images, Word, Excel — up to 50 MB</p>
+          <p className="text-xs text-slate-400">PDFs, images, Word, Excel — up to 50 MB</p>
         </div>
         <input ref={fileInputRef} type="file" multiple className="hidden" onChange={e => pick(Array.from(e.target.files ?? []))} />
       </div>
@@ -155,7 +155,7 @@ function Lightbox({ doc: d, all, onClose }: { doc: ProjectDocument; all: Project
           <div className="flex items-center gap-2 min-w-0">
             <span className={clsx('text-xs px-2 py-0.5 rounded font-medium shrink-0', categoryColor(current.category))}>{current.category}</span>
             <span className="text-slate-200 text-sm font-medium truncate">{label}</span>
-            <span className="text-slate-500 text-xs shrink-0">{formatSize(current.size)}</span>
+            <span className="text-slate-400 text-xs shrink-0">{formatSize(current.size)}</span>
           </div>
           <div className="flex items-center gap-1 shrink-0 ml-2">
             <a href={current.url} download={current.originalName}
@@ -193,7 +193,7 @@ function Lightbox({ doc: d, all, onClose }: { doc: ProjectDocument; all: Project
               className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-200 disabled:opacity-30 px-2 py-1 rounded-lg hover:bg-slate-800 transition-colors">
               <ChevronLeft size={14} /> Prev
             </button>
-            <span className="text-xs text-slate-500">{currentIdx + 1} / {all.length}</span>
+            <span className="text-xs text-slate-400">{currentIdx + 1} / {all.length}</span>
             <button onClick={next} disabled={currentIdx === all.length - 1}
               className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-200 disabled:opacity-30 px-2 py-1 rounded-lg hover:bg-slate-800 transition-colors">
               Next <ChevronRight size={14} />
@@ -233,7 +233,7 @@ function EditModal({
       <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h3 className="text-slate-100 font-semibold text-sm">Edit Document</h3>
-          <button onClick={onClose} className="text-slate-500 hover:text-slate-300"><X size={16} /></button>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-300"><X size={16} /></button>
         </div>
 
         <form onSubmit={handleSave} className="space-y-4">
@@ -295,7 +295,7 @@ function DocCard({ doc: d, onOpen, onDelete, onEdit, deleting }: {
         ) : (
           <div className="flex flex-col items-center gap-2 px-2">
             <DocTypeIcon type={d.type} size={40} />
-            <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wide">
+            <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wide">
               {d.type.split('/').pop()?.toUpperCase() || 'FILE'}
             </span>
           </div>
@@ -309,7 +309,7 @@ function DocCard({ doc: d, onOpen, onDelete, onEdit, deleting }: {
         </button>
         <div className="flex items-center justify-between gap-1">
           <span className={clsx('text-[10px] px-1.5 py-0.5 rounded font-medium truncate', categoryColor(d.category))}>{d.category}</span>
-          <span className="text-[10px] text-slate-500 shrink-0">{formatSize(d.size)}</span>
+          <span className="text-[10px] text-slate-400 shrink-0">{formatSize(d.size)}</span>
         </div>
       </div>
 
@@ -467,9 +467,9 @@ export function DocumentsTab({ project }: { project: Project }) {
 
       {/* ── Document grid ── */}
       {loading ? (
-        <div className="flex justify-center py-12"><Loader2 size={20} className="animate-spin text-slate-500" /></div>
+        <div className="flex justify-center py-12"><Loader2 size={20} className="animate-spin text-slate-400" /></div>
       ) : documents.length === 0 ? (
-        <div className="text-center py-20 text-slate-500 bg-slate-800 border border-slate-700 rounded-xl">
+        <div className="text-center py-20 text-slate-400 bg-slate-800 border border-slate-700 rounded-xl">
           <FolderOpen size={36} className="mx-auto mb-3 opacity-40" />
           <p className="text-sm">No documents yet.</p>
           <p className="text-xs mt-1 mb-4">Upload drawings, contracts, photos, or any project files.</p>
@@ -483,7 +483,7 @@ export function DocumentsTab({ project }: { project: Project }) {
           {Object.entries(grouped).map(([cat, docs]) => (
             <div key={cat}>
               {catFilter === 'All' && (
-                <p className="text-xs text-slate-500 uppercase tracking-wide font-medium mb-2 px-0.5">{cat}</p>
+                <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-2 px-0.5">{cat}</p>
               )}
               <div className="grid grid-cols-2 gap-3">
                 {docs.map(d => (

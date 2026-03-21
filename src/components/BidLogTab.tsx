@@ -12,7 +12,7 @@ const STATUS_CONFIG: Record<BidStatus, { label: string; color: string; bg: strin
   'bid-received': { label: 'Bid Received', color: 'text-blue-300',   bg: 'bg-blue-900/50' },
   'awarded':      { label: 'Awarded',      color: 'text-emerald-300',bg: 'bg-emerald-900/50' },
   'rejected':     { label: 'Rejected',     color: 'text-red-300',    bg: 'bg-red-900/50' },
-  'no-bid':       { label: 'No Bid',       color: 'text-slate-500',  bg: 'bg-slate-800' },
+  'no-bid':       { label: 'No Bid',       color: 'text-slate-400',  bg: 'bg-slate-800' },
 }
 
 const TRADES = [
@@ -40,9 +40,9 @@ function SummaryCard({ label, value, sub, color = 'default' }: {
     : 'text-slate-100'
   return (
     <div className={clsx('rounded-xl p-3 border', accent)}>
-      <p className="text-xs text-slate-500 mb-1">{label}</p>
+      <p className="text-xs text-slate-400 mb-1">{label}</p>
       <p className={clsx('text-lg font-bold', txt)}>{value}</p>
-      {sub && <p className="text-xs text-slate-500 mt-0.5">{sub}</p>}
+      {sub && <p className="text-xs text-slate-400 mt-0.5">{sub}</p>}
     </div>
   )
 }
@@ -98,7 +98,7 @@ function BidForm({
           className="col-span-2 bg-slate-700 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
 
         <div>
-          <label className="text-xs text-slate-500 mb-1 block">Trade / Scope</label>
+          <label className="text-xs text-slate-400 mb-1 block">Trade / Scope</label>
           <select value={form.trade} onChange={f('trade')}
             className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500">
             <option value="">Select trade…</option>
@@ -107,19 +107,19 @@ function BidForm({
         </div>
 
         <div>
-          <label className="text-xs text-slate-500 mb-1 block">Bid Amount ($)</label>
+          <label className="text-xs text-slate-400 mb-1 block">Bid Amount ($)</label>
           <input type="number" value={form.bidAmount} onChange={f('bidAmount')} placeholder="0"
             className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500" />
         </div>
 
         <div>
-          <label className="text-xs text-slate-500 mb-1 block">Bid Due Date</label>
+          <label className="text-xs text-slate-400 mb-1 block">Bid Due Date</label>
           <input type="date" value={form.bidDueDate} onChange={f('bidDueDate')}
             className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500" />
         </div>
 
         <div>
-          <label className="text-xs text-slate-500 mb-1 block">Submitted Date</label>
+          <label className="text-xs text-slate-400 mb-1 block">Submitted Date</label>
           <input type="date" value={form.submittedDate} onChange={f('submittedDate')}
             className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500" />
         </div>
@@ -128,7 +128,7 @@ function BidForm({
           className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
 
         <div>
-          <label className="text-xs text-slate-500 mb-1 block">Status</label>
+          <label className="text-xs text-slate-400 mb-1 block">Status</label>
           <select value={form.status} onChange={f('status')}
             className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500">
             {(Object.keys(STATUS_CONFIG) as BidStatus[]).map(s => (
@@ -146,7 +146,7 @@ function BidForm({
           className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-2 rounded-lg disabled:opacity-50 font-medium">
           <Check size={13} /> {saving ? 'Saving…' : 'Save'}
         </button>
-        <button onClick={onCancel} className="text-xs text-slate-500 hover:text-slate-300 px-3 py-2">Cancel</button>
+        <button onClick={onCancel} className="text-xs text-slate-400 hover:text-slate-300 px-3 py-2">Cancel</button>
       </div>
     </div>
   )
@@ -185,7 +185,7 @@ function BidRow({ bid, projectId, onUpdate, onDelete }: {
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm font-medium text-slate-100">{bid.vendor}</span>
           {bid.trade && (
-            <span className="text-xs text-slate-500 bg-slate-700/60 px-2 py-0.5 rounded">{bid.trade}</span>
+            <span className="text-xs text-slate-400 bg-slate-700/60 px-2 py-0.5 rounded">{bid.trade}</span>
           )}
           <span className={clsx('text-xs px-2 py-0.5 rounded-full font-medium', cfg.color, cfg.bg)}>
             {cfg.label}
@@ -197,22 +197,22 @@ function BidRow({ bid, projectId, onUpdate, onDelete }: {
               {fmt(bid.bidAmount)}
             </span>
           )}
-          {bid.contact && <span className="text-xs text-slate-500">{bid.contact}</span>}
+          {bid.contact && <span className="text-xs text-slate-400">{bid.contact}</span>}
           {bid.bidDueDate && (
-            <span className="flex items-center gap-0.5 text-xs text-slate-500">
+            <span className="flex items-center gap-0.5 text-xs text-slate-400">
               <Clock size={10} /> Due {new Date(bid.bidDueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
             </span>
           )}
         </div>
-        {bid.notes && <p className="text-xs text-slate-500 mt-1 italic">{bid.notes}</p>}
+        {bid.notes && <p className="text-xs text-slate-400 mt-1 italic">{bid.notes}</p>}
       </div>
 
       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-        <button onClick={() => setEditing(true)} className="p-1 text-slate-500 hover:text-blue-400">
+        <button onClick={() => setEditing(true)} className="p-1 text-slate-400 hover:text-blue-400">
           <Pencil size={13} />
         </button>
         <button onClick={() => { if (confirm('Delete this bid?')) onDelete(bid.id) }}
-          className="p-1 text-slate-600 hover:text-red-400">
+          className="p-1 text-slate-400 hover:text-red-400">
           <Trash2 size={13} />
         </button>
       </div>
@@ -281,10 +281,10 @@ export function BidLogTab({ project }: { project: Project }) {
           <div className="animate-spin w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-12 text-slate-500">
+        <div className="text-center py-12 text-slate-400">
           <Award size={32} className="mx-auto mb-2 opacity-30" />
           <p className="text-sm">{filter === 'all' ? 'No bids logged yet.' : `No ${STATUS_CONFIG[filter as BidStatus]?.label} bids.`}</p>
-          {filter === 'all' && <p className="text-xs mt-1 text-slate-600">Click "Add Bid" to invite vendors and track their responses.</p>}
+          {filter === 'all' && <p className="text-xs mt-1 text-slate-400">Click "Add Bid" to invite vendors and track their responses.</p>}
         </div>
       ) : (
         <div className="space-y-3">
@@ -292,7 +292,7 @@ export function BidLogTab({ project }: { project: Project }) {
             <div key={trade} className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
               <div className="px-4 py-2 border-b border-slate-700 bg-slate-800/80 flex items-center justify-between">
                 <span className="text-xs font-medium text-slate-300 uppercase tracking-wide">{trade}</span>
-                <span className="text-xs text-slate-500">{tradeBids.length} bid{tradeBids.length !== 1 ? 's' : ''}</span>
+                <span className="text-xs text-slate-400">{tradeBids.length} bid{tradeBids.length !== 1 ? 's' : ''}</span>
               </div>
               {tradeBids.map(b => (
                 <BidRow key={b.id} bid={b} projectId={project.id} onUpdate={updateBid} onDelete={deleteBid} />
@@ -319,7 +319,7 @@ export function BidLogTab({ project }: { project: Project }) {
               style={{ width: `${Math.min(100, (awardedTotal / project.totalBudget) * 100)}%` }}
             />
           </div>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-400 mt-1">
             {Math.round((awardedTotal / project.totalBudget) * 100)}% of total budget awarded
           </p>
         </div>

@@ -58,7 +58,7 @@ function KPI({ icon: Icon, label, value, sub, color }: {
         <div className="min-w-0">
           <p className="text-slate-400 text-xs uppercase tracking-wide font-medium">{label}</p>
           <p className="text-xl font-bold text-slate-100 mt-1 truncate">{value}</p>
-          {sub && <p className="text-xs text-slate-500 mt-0.5">{sub}</p>}
+          {sub && <p className="text-xs text-slate-400 mt-0.5">{sub}</p>}
         </div>
         <div className={clsx('p-2 rounded-lg shrink-0 ml-2', color)}>
           <Icon size={16} className="text-white" />
@@ -73,11 +73,11 @@ function SummaryItem({ label, value, accent, sub }: {
 }) {
   return (
     <div>
-      <p className="text-slate-500 text-xs mb-1">{label}</p>
+      <p className="text-slate-400 text-xs mb-1">{label}</p>
       <p className={clsx('text-lg font-semibold', accent === 'red' ? 'text-red-400' : accent === 'green' ? 'text-emerald-400' : 'text-slate-100')}>
         {value}
       </p>
-      {sub && <p className={clsx('text-xs mt-0.5', accent === 'red' ? 'text-red-500' : accent === 'green' ? 'text-emerald-500' : 'text-slate-500')}>{sub}</p>}
+      {sub && <p className={clsx('text-xs mt-0.5', accent === 'red' ? 'text-red-500' : accent === 'green' ? 'text-emerald-500' : 'text-slate-400')}>{sub}</p>}
     </div>
   )
 }
@@ -440,7 +440,7 @@ Format your response exactly like this:
           <div className="flex items-center gap-2 mb-3">
             <AlertTriangle size={15} className="text-red-400" />
             <h2 className="text-sm font-semibold text-red-300">Off-Track Projects ({offTrack.length})</h2>
-            <span className="text-xs text-slate-500">Health &lt; 60 or over budget</span>
+            <span className="text-xs text-slate-400">Health &lt; 60 or over budget</span>
           </div>
           <div className="space-y-2">
             {offTrack.map(({ p, h }) => {
@@ -465,7 +465,7 @@ Format your response exactly like this:
                   )} />
                   <span className="text-sm text-slate-200 font-medium truncate flex-1">{p.projectName}</span>
                   <span className="text-xs text-slate-400 shrink-0">{primaryIssue}</span>
-                  <ChevronRight size={12} className="text-slate-600 shrink-0" />
+                  <ChevronRight size={12} className="text-slate-400 shrink-0" />
                 </button>
               )
             })}
@@ -478,19 +478,19 @@ Format your response exactly like this:
         <div className="px-5 py-4 border-b border-slate-700 flex items-center justify-between">
           <div>
             <h2 className="text-slate-100 font-semibold">Portfolio Health Matrix</h2>
-            <p className="text-xs text-slate-500 mt-0.5">Project × Health × Budget — sorted worst to best</p>
+            <p className="text-xs text-slate-400 mt-0.5">Project × Health × Budget — sorted worst to best</p>
           </div>
         </div>
 
         {active.length === 0 ? (
-          <p className="text-slate-500 text-sm text-center py-10">No active projects.</p>
+          <p className="text-slate-400 text-sm text-center py-10">No active projects.</p>
         ) : (
           <>
             {/* Desktop table */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-slate-500 text-xs uppercase tracking-wide border-b border-slate-700 bg-slate-800/60">
+                  <tr className="text-slate-400 text-xs uppercase tracking-wide border-b border-slate-700 bg-slate-800/60">
                     <th className="text-left px-5 py-2.5">Project</th>
                     <th className="text-left px-4 py-2.5">Stage</th>
                     <th className="text-center px-4 py-2.5">Health</th>
@@ -544,7 +544,7 @@ Format your response exactly like this:
                             {variance >= 0 ? `-${fmtM(variance)}` : `+${fmtM(Math.abs(variance))}`}
                           </td>
                           <td className={clsx('px-4 py-2.5 text-center text-xs',
-                            daysLeft === null ? 'text-slate-600' :
+                            daysLeft === null ? 'text-slate-400' :
                             daysLeft < 0 ? 'text-red-400 font-medium' :
                             daysLeft <= 30 ? 'text-amber-400' : 'text-slate-400')}>
                             {daysLeft === null ? '—' : daysLeft < 0 ? `${Math.abs(daysLeft)}d over` : `${daysLeft}d`}
@@ -584,7 +584,7 @@ Format your response exactly like this:
                         </div>
                         <span className={clsx('text-sm font-bold tabular-nums shrink-0', healthColor(h.total))}>{h.total}</span>
                       </div>
-                      <div className="flex items-center justify-between text-xs text-slate-500 ml-4">
+                      <div className="flex items-center justify-between text-xs text-slate-400 ml-4">
                         <span>{STATUS_LABEL[p.status]}</span>
                         <span className={over ? 'text-red-400' : 'text-emerald-400'}>
                           {fmtM(p.forecastCost)} / {fmtM(p.totalBudget)}
@@ -609,7 +609,7 @@ Format your response exactly like this:
           </div>
         </div>
         {active.length === 0 ? (
-          <p className="text-slate-500 text-sm text-center py-8">No active projects.</p>
+          <p className="text-slate-400 text-sm text-center py-8">No active projects.</p>
         ) : (
           <div className="space-y-5">
             {active.map(p => {
@@ -624,7 +624,7 @@ Format your response exactly like this:
                     <div className="flex items-center gap-3 shrink-0 text-xs">
                       <span className="text-blue-400">A: {fmtM(p.actualCost)}</span>
                       <span className={over ? 'text-red-400 font-medium' : 'text-amber-400'}>F: {fmtM(p.forecastCost)}</span>
-                      <span className="text-slate-500">B: {fmtM(budget)}</span>
+                      <span className="text-slate-400">B: {fmtM(budget)}</span>
                     </div>
                   </div>
                   <div className="relative h-4 bg-slate-700 rounded-lg overflow-hidden">
@@ -638,9 +638,9 @@ Format your response exactly like this:
                     />
                     <div className="absolute inset-y-0 right-0 w-px bg-slate-500" title="Budget" />
                   </div>
-                  <div className="flex justify-between text-[10px] text-slate-600 mt-0.5">
+                  <div className="flex justify-between text-[10px] text-slate-400 mt-0.5">
                     <span>0%</span>
-                    <span className={over ? 'text-red-500' : 'text-slate-500'}>{Math.round(forecastPct)}% of budget</span>
+                    <span className={over ? 'text-red-500' : 'text-slate-400'}>{Math.round(forecastPct)}% of budget</span>
                   </div>
                 </div>
               )
@@ -688,7 +688,7 @@ Format your response exactly like this:
                   <div className={clsx('h-full rounded-full', profileColors[profile] ?? 'bg-slate-500')}
                     style={{ width: `${(data.count / projects.length) * 100}%` }} />
                 </div>
-                <p className="text-xs text-slate-500 mt-1">Budget: {fmtM(data.budget)}</p>
+                <p className="text-xs text-slate-400 mt-1">Budget: {fmtM(data.budget)}</p>
               </div>
             ))}
           </div>
@@ -751,7 +751,7 @@ Format your response exactly like this:
           </div>
         </div>
 
-        <p className="text-xs text-slate-500 mb-3">
+        <p className="text-xs text-slate-400 mb-3">
           Pulls live budget, schedule, tasks, milestones, and risk data across all active projects. Outputs an executive-ready report.
         </p>
 
@@ -786,10 +786,10 @@ Format your response exactly like this:
             )}
           </div>
         ) : (
-          <div className="bg-slate-900/40 border border-slate-700/50 rounded-lg p-4 text-center text-slate-500">
+          <div className="bg-slate-900/40 border border-slate-700/50 rounded-lg p-4 text-center text-slate-400">
             <Sparkles size={24} className="mx-auto mb-2 opacity-30" />
             <p className="text-sm">Click "Generate Weekly Report" to create a full portfolio status report powered by AI.</p>
-            <p className="text-xs mt-1 text-slate-600">Report covers: Executive Summary · Project Status · Risks · Milestones · Priority Actions</p>
+            <p className="text-xs mt-1 text-slate-400">Report covers: Executive Summary · Project Status · Risks · Milestones · Priority Actions</p>
           </div>
         )}
       </div>

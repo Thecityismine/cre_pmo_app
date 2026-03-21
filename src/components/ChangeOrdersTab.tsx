@@ -137,7 +137,7 @@ function CORow({
             className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-lg disabled:opacity-50">
             <Check size={12} /> {saving ? 'Saving...' : 'Save'}
           </button>
-          <button onClick={cancel} className="text-xs text-slate-500 hover:text-slate-300 px-2">Cancel</button>
+          <button onClick={cancel} className="text-xs text-slate-400 hover:text-slate-300 px-2">Cancel</button>
         </div>
       </div>
     )
@@ -146,17 +146,17 @@ function CORow({
   return (
     <div className="flex items-center gap-3 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl hover:border-slate-600 group transition-colors">
       {/* CO number */}
-      <span className="text-xs font-mono text-slate-500 shrink-0 w-10">CO#{co.number}</span>
+      <span className="text-xs font-mono text-slate-400 shrink-0 w-10">CO#{co.number}</span>
 
       {/* Title + meta */}
       <div className="flex-1 min-w-0">
         <p className="text-sm text-slate-200 font-medium truncate">{co.title}</p>
-        <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500 flex-wrap">
+        <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-400 flex-wrap">
           {co.requestedBy && <span>{co.requestedBy}</span>}
           {co.category && <span>· {co.category}</span>}
           {co.date && <span>· {new Date(co.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>}
         </div>
-        {co.description && <p className="text-xs text-slate-500 mt-0.5 truncate">{co.description}</p>}
+        {co.description && <p className="text-xs text-slate-400 mt-0.5 truncate">{co.description}</p>}
       </div>
 
       {/* Amount */}
@@ -171,9 +171,9 @@ function CORow({
 
       {/* Actions (hover) */}
       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-        <button onClick={() => setEditing(true)} className="text-slate-500 hover:text-blue-400 text-xs px-1">Edit</button>
+        <button onClick={() => setEditing(true)} className="text-slate-400 hover:text-blue-400 text-xs px-1">Edit</button>
         <button onClick={() => { if (confirm(`Delete CO#${co.number}?`)) onDelete(co.id) }}
-          className="p-1 text-slate-600 hover:text-red-400">
+          className="p-1 text-slate-400 hover:text-red-400">
           <Trash2 size={12} />
         </button>
       </div>
@@ -253,7 +253,7 @@ function AddCOForm({
           className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-40">
           <Plus size={14} /> {saving ? 'Adding...' : 'Add Change Order'}
         </button>
-        <button onClick={onCancel} className="text-sm text-slate-500 hover:text-slate-300 px-3 py-2">Cancel</button>
+        <button onClick={onCancel} className="text-sm text-slate-400 hover:text-slate-300 px-3 py-2">Cancel</button>
       </div>
     </div>
   )
@@ -283,7 +283,7 @@ export function ChangeOrdersTab({ project }: { project: Project }) {
           <p className={clsx('text-xl font-bold', approvedTotal >= 0 ? 'text-red-400' : 'text-emerald-400')}>
             {approvedTotal >= 0 ? '+' : ''}{fmt(approvedTotal)}
           </p>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-slate-400 mt-0.5">
             {changeOrders.filter(c => c.status === 'approved').length} CO{changeOrders.filter(c => c.status === 'approved').length !== 1 ? 's' : ''}
           </p>
         </div>
@@ -296,7 +296,7 @@ export function ChangeOrdersTab({ project }: { project: Project }) {
           <p className="text-xl font-bold text-amber-400">
             {pendingTotal >= 0 ? '+' : ''}{fmt(pendingTotal)}
           </p>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-slate-400 mt-0.5">
             {changeOrders.filter(c => c.status === 'pending').length} awaiting approval
           </p>
         </div>
@@ -309,7 +309,7 @@ export function ChangeOrdersTab({ project }: { project: Project }) {
           <p className={clsx('text-xl font-bold', approvedTotal > 0 ? 'text-red-400' : 'text-emerald-400')}>
             {approvedTotal >= 0 ? '+' : ''}{fmt(approvedTotal)}
           </p>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-slate-400 mt-0.5">
             {rejectedTotal !== 0 && `${fmt(Math.abs(rejectedTotal))} rejected`}
             {rejectedTotal === 0 && 'from approved COs'}
           </p>
@@ -350,7 +350,7 @@ export function ChangeOrdersTab({ project }: { project: Project }) {
                 'px-3 py-1 rounded text-xs font-medium transition-colors',
                 statusFilter === s
                   ? s === 'all' ? 'bg-blue-600 text-white' : STATUS_CONFIG[s].color
-                  : 'text-slate-500 hover:text-slate-300'
+                  : 'text-slate-400 hover:text-slate-300'
               )}
             >
               {s === 'all' ? 'All' : STATUS_CONFIG[s].label}
@@ -393,10 +393,10 @@ export function ChangeOrdersTab({ project }: { project: Project }) {
           <div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-16 text-slate-500">
+        <div className="text-center py-16 text-slate-400">
           <p>{changeOrders.length === 0 ? 'No change orders yet.' : 'No change orders match the current filter.'}</p>
           {changeOrders.length === 0 && (
-            <p className="text-xs text-slate-600 mt-1">Track scope changes and their budget impact.</p>
+            <p className="text-xs text-slate-400 mt-1">Track scope changes and their budget impact.</p>
           )}
         </div>
       ) : (
@@ -409,7 +409,7 @@ export function ChangeOrdersTab({ project }: { project: Project }) {
 
       {/* Budget base note */}
       {changeOrders.length > 0 && project.totalBudget > 0 && (
-        <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-3 flex items-center justify-between text-xs text-slate-500">
+        <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-3 flex items-center justify-between text-xs text-slate-400">
           <span>Original Budget: <span className="text-slate-300 font-medium">{fmt(project.totalBudget)}</span></span>
           <span>After Approved COs: <span className={clsx('font-medium', approvedTotal > 0 ? 'text-red-400' : 'text-emerald-400')}>
             {fmt(project.totalBudget + approvedTotal)}

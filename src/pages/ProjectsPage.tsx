@@ -34,7 +34,7 @@ const STATUS_COLORS: Record<string, string> = {
   handover:       'bg-orange-900 text-orange-300',
   closeout:       'bg-emerald-900 text-emerald-300',
   'defect-period':'bg-yellow-900 text-yellow-300',
-  closed:         'bg-slate-700 text-slate-500',
+  closed:         'bg-slate-700 text-slate-400',
 }
 
 const PROFILE_COLORS: Record<string, string> = {
@@ -126,7 +126,7 @@ function ProjectCard({ project, taskStat, insightSeverity, onClick }: { project:
           {atRisk && <AlertTriangle size={14} className="text-red-400" />}
         </div>
       </div>
-      <p className="text-slate-500 text-xs mb-3">{project.projectNumber} · {project.city}, {project.state}</p>
+      <p className="text-slate-400 text-xs mb-3">{project.projectNumber} · {project.city}, {project.state}</p>
 
       {/* Badges */}
       <div className="flex items-center gap-2 flex-wrap mb-3">
@@ -142,7 +142,7 @@ function ProjectCard({ project, taskStat, insightSeverity, onClick }: { project:
       {/* Budget bar */}
       {project.totalBudget > 0 && (
         <div className="space-y-1.5 mb-3">
-          <div className="flex justify-between text-xs text-slate-500">
+          <div className="flex justify-between text-xs text-slate-400">
             <span>Spent</span>
             <span className={clsx(atRisk && 'text-red-400')}>{fmt(project.actualCost)} / {fmt(project.totalBudget)}</span>
           </div>
@@ -158,7 +158,7 @@ function ProjectCard({ project, taskStat, insightSeverity, onClick }: { project:
       {/* Checklist progress */}
       {taskStat && taskStat.total > 0 && (
         <div className="space-y-1 mb-3">
-          <div className="flex justify-between text-xs text-slate-500">
+          <div className="flex justify-between text-xs text-slate-400">
             <span>Checklist</span>
             <span className={clsx(taskStat.pct === 100 ? 'text-emerald-400' : 'text-slate-400')}>
               {taskStat.complete}/{taskStat.total} tasks
@@ -175,9 +175,9 @@ function ProjectCard({ project, taskStat, insightSeverity, onClick }: { project:
 
       {/* Footer */}
       <div className="flex items-center justify-between pt-3 border-t border-slate-700">
-        <span className="text-slate-500 text-xs truncate max-w-[55%]">{project.projectManager || '—'}</span>
+        <span className="text-slate-400 text-xs truncate max-w-[55%]">{project.projectManager || '—'}</span>
         {project.targetCompletionDate && (
-          <span className="text-slate-500 text-xs">
+          <span className="text-slate-400 text-xs">
             Target: {new Date(project.targetCompletionDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
           </span>
         )}
@@ -204,7 +204,7 @@ function ProjectRow({ project, insightSeverity, onClick }: { project: ReturnType
           {insightSeverity === 'warning' && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" title="Warning insight" />}
           {atRisk && <AlertTriangle size={12} className="text-red-400 shrink-0" />}
         </div>
-        <p className="text-slate-500 text-xs mt-0.5">{project.projectNumber} · {project.city}, {project.state}</p>
+        <p className="text-slate-400 text-xs mt-0.5">{project.projectNumber} · {project.city}, {project.state}</p>
       </div>
 
       <div className="hidden sm:flex items-center gap-2 shrink-0">
@@ -226,7 +226,7 @@ function ProjectRow({ project, insightSeverity, onClick }: { project: ReturnType
 
       <div className="text-right shrink-0">
         <p className="text-slate-200 text-sm font-medium">{fmt(project.totalBudget)}</p>
-        <p className={clsx('text-xs', atRisk ? 'text-red-400' : 'text-slate-500')}>
+        <p className={clsx('text-xs', atRisk ? 'text-red-400' : 'text-slate-400')}>
           {atRisk ? `↑ ${fmt(project.forecastCost)}` : project.projectManager || ''}
         </p>
       </div>
@@ -339,7 +339,7 @@ export function ProjectsPage() {
         {/* Row 1: search + view toggle */}
         <div className="flex items-center gap-2">
           <div className="relative flex-1 max-w-sm">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -347,7 +347,7 @@ export function ProjectsPage() {
               className="w-full bg-slate-800 text-slate-200 placeholder-slate-500 text-sm rounded-lg pl-9 pr-4 py-2 border border-slate-700 focus:outline-none focus:border-blue-500"
             />
             {search && (
-              <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
+              <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300">
                 <X size={14} />
               </button>
             )}
@@ -355,7 +355,7 @@ export function ProjectsPage() {
 
           {/* Sort */}
           <div className="relative">
-            <ArrowUpDown size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+            <ArrowUpDown size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value)}
@@ -369,13 +369,13 @@ export function ProjectsPage() {
           <div className="flex bg-slate-800 border border-slate-700 rounded-lg p-0.5">
             <button
               onClick={() => setViewMode('grid')}
-              className={clsx('p-1.5 rounded transition-colors', viewMode === 'grid' ? 'bg-slate-600 text-slate-200' : 'text-slate-500 hover:text-slate-300')}
+              className={clsx('p-1.5 rounded transition-colors', viewMode === 'grid' ? 'bg-slate-600 text-slate-200' : 'text-slate-400 hover:text-slate-300')}
             >
               <LayoutGrid size={15} />
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={clsx('p-1.5 rounded transition-colors', viewMode === 'list' ? 'bg-slate-600 text-slate-200' : 'text-slate-500 hover:text-slate-300')}
+              className={clsx('p-1.5 rounded transition-colors', viewMode === 'list' ? 'bg-slate-600 text-slate-200' : 'text-slate-400 hover:text-slate-300')}
             >
               <List size={15} />
             </button>
@@ -423,7 +423,7 @@ export function ProjectsPage() {
           {hasActiveFilter && (
             <button
               onClick={clearFilters}
-              className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-300 transition-colors ml-1"
+              className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-300 transition-colors ml-1"
             >
               <X size={12} /> Clear
             </button>
@@ -437,7 +437,7 @@ export function ProjectsPage() {
           <div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-20 text-slate-500 bg-slate-800 border border-slate-700 rounded-xl">
+        <div className="text-center py-20 text-slate-400 bg-slate-800 border border-slate-700 rounded-xl">
           <FolderOpen size={40} className="mx-auto mb-3 opacity-40" />
           <p className="font-medium">No projects found</p>
           <p className="text-sm mt-1">

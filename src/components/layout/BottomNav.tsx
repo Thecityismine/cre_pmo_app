@@ -21,7 +21,7 @@ export function BottomNav() {
           className={({ isActive }) =>
             clsx(
               'flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 text-xs transition-colors',
-              isActive ? 'text-blue-400' : 'text-slate-500'
+              isActive ? 'text-blue-400' : 'text-slate-400'
             )
           }
         >

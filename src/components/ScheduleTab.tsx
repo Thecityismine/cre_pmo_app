@@ -231,7 +231,7 @@ function GanttView({ items, milestones, criticalIds }: GanttProps) {
         <div className="shrink-0 border-r border-slate-700/50" style={{ width: LABEL_W }}>
           {/* Header */}
           <div className="h-8 flex items-center px-3 border-b border-slate-700/50 bg-slate-800/60">
-            <span className="text-xs text-slate-500 font-medium">Activity</span>
+            <span className="text-xs text-slate-400 font-medium">Activity</span>
           </div>
           {items.map(item => {
             const status = itemStatus(item)
@@ -245,7 +245,7 @@ function GanttView({ items, milestones, criticalIds }: GanttProps) {
                 <span className={clsx('w-1.5 h-1.5 rounded-full shrink-0', cfg.dot)} />
                 <span className={clsx(
                   'text-xs truncate',
-                  item.percentComplete === 100 ? 'text-slate-500 line-through' : 'text-slate-200'
+                  item.percentComplete === 100 ? 'text-slate-400 line-through' : 'text-slate-200'
                 )} title={item.name}>
                   {item.name}
                 </span>
@@ -258,7 +258,7 @@ function GanttView({ items, milestones, criticalIds }: GanttProps) {
           {milestonesWithDates.length > 0 && (
             <>
               <div className="h-6 flex items-center px-3 border-b border-slate-700/50 bg-slate-800/40">
-                <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wide">Milestones</span>
+                <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wide">Milestones</span>
               </div>
               {milestonesWithDates.map(m => (
                 <div key={m.id}
@@ -284,7 +284,7 @@ function GanttView({ items, milestones, criticalIds }: GanttProps) {
                 <div key={i}
                   className="absolute top-0 h-full flex items-center border-l border-slate-700/40 pl-1"
                   style={{ left: `${m.leftPct}%` }}>
-                  <span className="text-[10px] text-slate-500 whitespace-nowrap">{m.label}</span>
+                  <span className="text-[10px] text-slate-400 whitespace-nowrap">{m.label}</span>
                 </div>
               ))}
             </div>
@@ -380,7 +380,7 @@ function GanttView({ items, milestones, criticalIds }: GanttProps) {
                   {/* No dates placeholder */}
                   {!hasBar && (
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-[10px] text-slate-600 italic">no dates</span>
+                      <span className="text-[10px] text-slate-400 italic">no dates</span>
                     </div>
                   )}
                 </div>
@@ -426,7 +426,7 @@ function GanttView({ items, milestones, criticalIds }: GanttProps) {
 
       {/* Legend */}
       <div className="flex items-center gap-4 px-4 py-2 border-t border-slate-700/50 bg-slate-800/30 flex-wrap">
-        <span className="text-[10px] text-slate-500 font-medium">Legend:</span>
+        <span className="text-[10px] text-slate-400 font-medium">Legend:</span>
         {Object.entries(STATUS_CFG).map(([k, v]) => (
           <span key={k} className="flex items-center gap-1">
             <span className={clsx('inline-block w-6 h-2 rounded', v.bar)} />
@@ -549,7 +549,7 @@ function ScheduleForm({
           <input type="checkbox" id="crit" checked={f.isCriticalPath} onChange={e => set('isCriticalPath', e.target.checked)}
             className="accent-red-500" />
           <label htmlFor="crit" className="text-sm text-slate-300">Manual critical path flag</label>
-          <span className="text-xs text-slate-600">(auto-detected when dependencies are set)</span>
+          <span className="text-xs text-slate-400">(auto-detected when dependencies are set)</span>
         </div>
 
         {availablePreds.length > 0 && (
@@ -693,7 +693,7 @@ function ScheduleRow({
         {/* Name + critical path badge */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className={clsx('text-sm font-medium', item.percentComplete === 100 ? 'line-through text-slate-500' : 'text-slate-100')}>
+            <span className={clsx('text-sm font-medium', item.percentComplete === 100 ? 'line-through text-slate-400' : 'text-slate-100')}>
               {item.name}
             </span>
             {isAutoCritical && (
@@ -713,7 +713,7 @@ function ScheduleRow({
             )}
           </div>
           {/* Dates row */}
-          <div className="flex items-center gap-3 mt-0.5 text-xs text-slate-500 flex-wrap">
+          <div className="flex items-center gap-3 mt-0.5 text-xs text-slate-400 flex-wrap">
             {(item.startDate || item.endDate) && (
               <span className="flex items-center gap-1">
                 <Calendar size={10} />
@@ -721,7 +721,7 @@ function ScheduleRow({
               </span>
             )}
             {(item.baselineStart || item.baselineEnd) && (
-              <span className="text-slate-600">
+              <span className="text-slate-400">
                 Baseline: {fmt(item.baselineStart)} → {fmt(item.baselineEnd)}
               </span>
             )}
@@ -748,18 +748,18 @@ function ScheduleRow({
         </span>
 
         {/* Expand */}
-        <button onClick={() => setExpanded(!expanded)} className="text-slate-600 shrink-0">
+        <button onClick={() => setExpanded(!expanded)} className="text-slate-400 shrink-0">
           {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
         </button>
 
         {/* Actions */}
         <div className="flex items-center gap-1 shrink-0">
           <button onClick={() => setEditing(true)}
-            className="p-1 text-slate-600 hover:text-blue-400 transition-colors">
+            className="p-1 text-slate-400 hover:text-blue-400 transition-colors">
             <Pencil size={13} />
           </button>
           <button onClick={() => onDelete(item.id)}
-            className="p-1 text-slate-600 hover:text-red-400 transition-colors">
+            className="p-1 text-slate-400 hover:text-red-400 transition-colors">
             <Trash2 size={13} />
           </button>
         </div>
@@ -769,32 +769,32 @@ function ScheduleRow({
       {expanded && (
         <div className="px-4 pb-3 border-t border-slate-700/50 mt-1 pt-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
           <div>
-            <p className="text-slate-500 mb-0.5">Start Variance</p>
-            <p className={clsx('font-medium', startVariance === null ? 'text-slate-500' : startVariance > 0 ? 'text-red-300' : startVariance < 0 ? 'text-emerald-300' : 'text-slate-300')}>
+            <p className="text-slate-400 mb-0.5">Start Variance</p>
+            <p className={clsx('font-medium', startVariance === null ? 'text-slate-400' : startVariance > 0 ? 'text-red-300' : startVariance < 0 ? 'text-emerald-300' : 'text-slate-300')}>
               {startVariance === null ? '—' : startVariance > 0 ? `+${startVariance}d late` : startVariance < 0 ? `${Math.abs(startVariance)}d early` : 'On time'}
             </p>
           </div>
           <div>
-            <p className="text-slate-500 mb-0.5">End Variance</p>
-            <p className={clsx('font-medium', endVariance === null ? 'text-slate-500' : endVariance > 0 ? 'text-red-300' : endVariance < 0 ? 'text-emerald-300' : 'text-slate-300')}>
+            <p className="text-slate-400 mb-0.5">End Variance</p>
+            <p className={clsx('font-medium', endVariance === null ? 'text-slate-400' : endVariance > 0 ? 'text-red-300' : endVariance < 0 ? 'text-emerald-300' : 'text-slate-300')}>
               {endVariance === null ? '—' : endVariance > 0 ? `+${endVariance}d late` : endVariance < 0 ? `${Math.abs(endVariance)}d early` : 'On time'}
             </p>
           </div>
           <div>
-            <p className="text-slate-500 mb-0.5">Duration (Actual)</p>
+            <p className="text-slate-400 mb-0.5">Duration (Actual)</p>
             <p className="text-slate-300 font-medium">
               {item.startDate && item.endDate ? `${daysBetween(item.startDate, item.endDate)}d` : '—'}
             </p>
           </div>
           <div>
-            <p className="text-slate-500 mb-0.5">Duration (Baseline)</p>
+            <p className="text-slate-400 mb-0.5">Duration (Baseline)</p>
             <p className="text-slate-300 font-medium">
               {item.baselineStart && item.baselineEnd ? `${daysBetween(item.baselineStart, item.baselineEnd)}d` : '—'}
             </p>
           </div>
           {predecessors.length > 0 && (
             <div className="col-span-2 sm:col-span-4">
-              <p className="text-slate-500 mb-0.5">Predecessors (must finish first)</p>
+              <p className="text-slate-400 mb-0.5">Predecessors (must finish first)</p>
               <div className="flex flex-wrap gap-1.5">
                 {predecessors.map(p => {
                   const ps = itemStatus(p)
@@ -816,7 +816,7 @@ function ScheduleRow({
           )}
           {successors.length > 0 && (
             <div className="col-span-2 sm:col-span-4">
-              <p className="text-slate-500 mb-0.5">Successors (depend on this)</p>
+              <p className="text-slate-400 mb-0.5">Successors (depend on this)</p>
               <div className="flex flex-wrap gap-1.5">
                 {successors.map(s => (
                   <span key={s.id} className="text-xs px-2 py-0.5 rounded border bg-slate-800 border-slate-700 text-slate-400">
@@ -828,7 +828,7 @@ function ScheduleRow({
           )}
           {item.notes && (
             <div className="col-span-2 sm:col-span-4">
-              <p className="text-slate-500 mb-0.5">Notes</p>
+              <p className="text-slate-400 mb-0.5">Notes</p>
               <p className="text-slate-300">{item.notes}</p>
             </div>
           )}
@@ -888,30 +888,30 @@ export function ScheduleTab({ project }: { project: Project }) {
       {/* KPI Bar */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-3 text-center">
-          <p className="text-xs text-slate-500 mb-1">Schedule Performance</p>
+          <p className="text-xs text-slate-400 mb-1">Schedule Performance</p>
           <p className={clsx('text-2xl font-bold', spiColor)}>
             {spi !== null ? spi.toFixed(2) : '—'}
           </p>
           <p className={clsx('text-xs mt-0.5', spiColor)}>{spiLabel}</p>
         </div>
         <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-3 text-center">
-          <p className="text-xs text-slate-500 mb-1">Overall Progress</p>
+          <p className="text-xs text-slate-400 mb-1">Overall Progress</p>
           <p className="text-2xl font-bold text-blue-300">{overallPct}%</p>
-          <p className="text-xs text-slate-500 mt-0.5">{items.length} activities</p>
+          <p className="text-xs text-slate-400 mt-0.5">{items.length} activities</p>
         </div>
         <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-3 text-center">
-          <p className="text-xs text-slate-500 mb-1">Behind Schedule</p>
+          <p className="text-xs text-slate-400 mb-1">Behind Schedule</p>
           <p className={clsx('text-2xl font-bold', behindCount > 0 ? 'text-red-400' : 'text-emerald-400')}>
             {behindCount}
           </p>
-          <p className="text-xs text-slate-500 mt-0.5">activities overdue</p>
+          <p className="text-xs text-slate-400 mt-0.5">activities overdue</p>
         </div>
         <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-3 text-center">
-          <p className="text-xs text-slate-500 mb-1">Critical Path Items</p>
+          <p className="text-xs text-slate-400 mb-1">Critical Path Items</p>
           <p className="text-2xl font-bold text-red-400">
             {criticalIds.size}
           </p>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-slate-400 mt-0.5">
             {items.some(i => (i.predecessors?.length ?? 0) > 0) ? 'auto-detected' : 'manually flagged'}
           </p>
         </div>
@@ -1026,20 +1026,20 @@ export function ScheduleTab({ project }: { project: Project }) {
         </div>
       ) : viewMode === 'gantt' ? (
         items.length === 0 ? (
-          <div className="text-center py-12 text-slate-500">
+          <div className="text-center py-12 text-slate-400">
             <Clock size={32} className="mx-auto mb-2 opacity-30" />
             <p className="text-sm">No schedule activities yet.</p>
-            <p className="text-xs mt-1 text-slate-600">Add activities or use "Seed defaults" to get started.</p>
+            <p className="text-xs mt-1 text-slate-400">Add activities or use "Seed defaults" to get started.</p>
           </div>
         ) : (
           <GanttView items={items} milestones={milestones} criticalIds={criticalIds} />
         )
       ) : filtered.length === 0 ? (
-        <div className="text-center py-12 text-slate-500">
+        <div className="text-center py-12 text-slate-400">
           <Clock size={32} className="mx-auto mb-2 opacity-30" />
           <p className="text-sm">{filter === 'all' ? 'No schedule activities yet.' : `No ${STATUS_CFG[filter]?.label} activities.`}</p>
           {filter === 'all' && (
-            <p className="text-xs mt-1 text-slate-600">Add activities or use "Seed defaults" to get started.</p>
+            <p className="text-xs mt-1 text-slate-400">Add activities or use "Seed defaults" to get started.</p>
           )}
         </div>
       ) : (

@@ -87,13 +87,13 @@ function ContactCard({ contact, onDelete }: { contact: Contact; onDelete: (id: s
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <p className="text-slate-100 font-medium text-sm truncate">{contact.name}</p>
-              <p className="text-slate-500 text-xs truncate">{contact.company}</p>
+              <p className="text-slate-400 text-xs truncate">{contact.company}</p>
             </div>
             <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button onClick={() => setEditing(true)} className="p-1.5 text-slate-500 hover:text-slate-200 hover:bg-slate-700 rounded-lg">
+              <button onClick={() => setEditing(true)} className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-700 rounded-lg">
                 <Pencil size={13} />
               </button>
-              <button onClick={() => onDelete(contact.id)} className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-slate-700 rounded-lg">
+              <button onClick={() => onDelete(contact.id)} className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded-lg">
                 <Trash2 size={13} />
               </button>
             </div>
@@ -120,7 +120,7 @@ function ContactCard({ contact, onDelete }: { contact: Contact; onDelete: (id: s
           </div>
 
           {contact.notes && (
-            <p className="mt-2 text-xs text-slate-500 line-clamp-2">{contact.notes}</p>
+            <p className="mt-2 text-xs text-slate-400 line-clamp-2">{contact.notes}</p>
           )}
         </div>
       </div>
@@ -158,32 +158,32 @@ function AddContactModal({ onClose }: { onClose: () => void }) {
         <form onSubmit={save} className="p-5 space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-slate-500 text-xs mb-1 block">Name *</label>
+              <label className="text-slate-400 text-xs mb-1 block">Name *</label>
               <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required className={inp()} />
             </div>
             <div>
-              <label className="text-slate-500 text-xs mb-1 block">Company</label>
+              <label className="text-slate-400 text-xs mb-1 block">Company</label>
               <input value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))} className={inp()} />
             </div>
           </div>
           <div>
-            <label className="text-slate-500 text-xs mb-1 block">Role</label>
+            <label className="text-slate-400 text-xs mb-1 block">Role</label>
             <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} className={inp()}>
               {ROLES.map(r => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
             </select>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-slate-500 text-xs mb-1 block">Email</label>
+              <label className="text-slate-400 text-xs mb-1 block">Email</label>
               <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} className={inp()} />
             </div>
             <div>
-              <label className="text-slate-500 text-xs mb-1 block">Phone</label>
+              <label className="text-slate-400 text-xs mb-1 block">Phone</label>
               <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} className={inp()} />
             </div>
           </div>
           <div>
-            <label className="text-slate-500 text-xs mb-1 block">Notes</label>
+            <label className="text-slate-400 text-xs mb-1 block">Notes</label>
             <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} className={clsx(inp(), 'resize-none')} />
           </div>
           <div className="flex gap-2 pt-1">
@@ -240,7 +240,7 @@ export function TeamPage() {
       {/* Search + filter */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
@@ -270,7 +270,7 @@ export function TeamPage() {
           <div className="animate-spin w-7 h-7 border-2 border-blue-500 border-t-transparent rounded-full" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-16 text-slate-500 bg-slate-800 border border-slate-700 rounded-xl">
+        <div className="text-center py-16 text-slate-400 bg-slate-800 border border-slate-700 rounded-xl">
           <Users size={36} className="mx-auto mb-3 opacity-30" />
           <p>{search ? `No contacts matching "${search}"` : 'No contacts yet.'}</p>
         </div>

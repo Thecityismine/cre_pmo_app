@@ -151,7 +151,7 @@ export function EditProjectModal({ project, onClose }: Props) {
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700 shrink-0">
           <div>
             <h2 className="text-slate-100 font-semibold text-lg">Edit Project</h2>
-            <p className="text-slate-500 text-xs mt-0.5 truncate max-w-xs">{project.projectName}</p>
+            <p className="text-slate-400 text-xs mt-0.5 truncate max-w-xs">{project.projectName}</p>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-200 p-1 rounded-lg hover:bg-slate-800">
             <X size={20} />
@@ -309,7 +309,7 @@ export function EditProjectModal({ project, onClose }: Props) {
                   <button
                     type="button"
                     onClick={() => { setShowDelete(false); setDeleteConfirm(''); setDeleteError('') }}
-                    className="text-sm text-slate-500 hover:text-slate-300 px-3 py-2"
+                    className="text-sm text-slate-400 hover:text-slate-300 px-3 py-2"
                   >
                     Cancel
                   </button>

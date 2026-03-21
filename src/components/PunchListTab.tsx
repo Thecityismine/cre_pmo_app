@@ -17,7 +17,7 @@ const STATUS_CONFIG: Record<PunchStatus, { label: string; color: string; bg: str
 const PRIORITY_CONFIG: Record<PunchPriority, { label: string; color: string }> = {
   'high':   { label: 'High',   color: 'text-red-400' },
   'medium': { label: 'Medium', color: 'text-amber-400' },
-  'low':    { label: 'Low',    color: 'text-slate-500' },
+  'low':    { label: 'Low',    color: 'text-slate-400' },
 }
 
 const TRADES = [
@@ -44,7 +44,7 @@ function SummaryCard({ label, value, color = 'default' }: {
     : 'text-slate-100'
   return (
     <div className={clsx('rounded-xl p-3 border', accent)}>
-      <p className="text-xs text-slate-500 mb-1">{label}</p>
+      <p className="text-xs text-slate-400 mb-1">{label}</p>
       <p className={clsx('text-xl font-bold', txt)}>{value}</p>
     </div>
   )
@@ -100,7 +100,7 @@ function PunchForm({
         </select>
 
         <div>
-          <label className="text-xs text-slate-500 mb-1 block">Priority</label>
+          <label className="text-xs text-slate-400 mb-1 block">Priority</label>
           <div className="flex gap-1">
             {(['high', 'medium', 'low'] as PunchPriority[]).map(p => (
               <button key={p} onClick={() => setForm(prev => ({ ...prev, priority: p }))}
@@ -110,7 +110,7 @@ function PunchForm({
                     ? p === 'high' ? 'bg-red-900/60 text-red-300 border-red-700'
                       : p === 'medium' ? 'bg-amber-900/60 text-amber-300 border-amber-700'
                       : 'bg-slate-700 text-slate-300 border-slate-500'
-                    : 'bg-slate-800 text-slate-500 border-slate-700'
+                    : 'bg-slate-800 text-slate-400 border-slate-700'
                 )}>
                 {PRIORITY_CONFIG[p].label}
               </button>
@@ -119,7 +119,7 @@ function PunchForm({
         </div>
 
         <div>
-          <label className="text-xs text-slate-500 mb-1 block">Status</label>
+          <label className="text-xs text-slate-400 mb-1 block">Status</label>
           <select value={form.status} onChange={f('status')}
             className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500">
             {(Object.keys(STATUS_CONFIG) as PunchStatus[]).map(s => (
@@ -129,13 +129,13 @@ function PunchForm({
         </div>
 
         <div>
-          <label className="text-xs text-slate-500 mb-1 block">Due Date</label>
+          <label className="text-xs text-slate-400 mb-1 block">Due Date</label>
           <input type="date" value={form.dueDate} onChange={f('dueDate')}
             className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500" />
         </div>
 
         <div>
-          <label className="text-xs text-slate-500 mb-1 block">Completed Date</label>
+          <label className="text-xs text-slate-400 mb-1 block">Completed Date</label>
           <input type="date" value={form.completedDate} onChange={f('completedDate')}
             className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500" />
         </div>
@@ -149,7 +149,7 @@ function PunchForm({
           className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-2 rounded-lg disabled:opacity-50 font-medium">
           <Check size={13} /> {saving ? 'Saving…' : 'Save'}
         </button>
-        <button onClick={onCancel} className="text-xs text-slate-500 hover:text-slate-300 px-3 py-2">Cancel</button>
+        <button onClick={onCancel} className="text-xs text-slate-400 hover:text-slate-300 px-3 py-2">Cancel</button>
       </div>
     </div>
   )
@@ -205,18 +205,18 @@ function PunchRow({ item, projectId, onUpdate, onDelete }: {
       {/* Content */}
       <div className="flex-1 min-w-0">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-mono text-slate-500">{item.number}</span>
-          <p className={clsx('text-sm', isComplete ? 'line-through text-slate-500' : 'text-slate-100 font-medium')}>
+          <span className="text-xs font-mono text-slate-400">{item.number}</span>
+          <p className={clsx('text-sm', isComplete ? 'line-through text-slate-400' : 'text-slate-100 font-medium')}>
             {item.description}
           </p>
           <span className={clsx('text-xs font-semibold', prio.color)}>{prio.label}</span>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 mt-0.5">
-          {item.location && <span className="text-xs text-slate-500">📍 {item.location}</span>}
-          {item.trade && <span className="text-xs text-slate-500 bg-slate-700/60 px-1.5 py-0.5 rounded">{item.trade}</span>}
+          {item.location && <span className="text-xs text-slate-400">📍 {item.location}</span>}
+          {item.trade && <span className="text-xs text-slate-400 bg-slate-700/60 px-1.5 py-0.5 rounded">{item.trade}</span>}
           {item.dueDate && !isComplete && (
-            <span className={clsx('text-xs', new Date(item.dueDate) < new Date() ? 'text-red-400' : 'text-slate-500')}>
+            <span className={clsx('text-xs', new Date(item.dueDate) < new Date() ? 'text-red-400' : 'text-slate-400')}>
               Due {fmtDate(item.dueDate)}
             </span>
           )}
@@ -226,7 +226,7 @@ function PunchRow({ item, projectId, onUpdate, onDelete }: {
         </div>
 
         {item.notes && (
-          <button onClick={() => setExpanded(!expanded)} className="flex items-center gap-1 text-xs text-slate-600 hover:text-slate-400 mt-1">
+          <button onClick={() => setExpanded(!expanded)} className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-400 mt-1">
             {expanded ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
             {expanded ? 'Hide note' : 'View note'}
           </button>
@@ -243,11 +243,11 @@ function PunchRow({ item, projectId, onUpdate, onDelete }: {
 
       {/* Actions */}
       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-        <button onClick={() => setEditing(true)} className="p-1 text-slate-500 hover:text-blue-400">
+        <button onClick={() => setEditing(true)} className="p-1 text-slate-400 hover:text-blue-400">
           <Pencil size={13} />
         </button>
         <button onClick={() => { if (confirm('Delete this punch item?')) onDelete(item.id) }}
-          className="p-1 text-slate-600 hover:text-red-400">
+          className="p-1 text-slate-400 hover:text-red-400">
           <Trash2 size={13} />
         </button>
       </div>
@@ -270,9 +270,9 @@ function PunchGroup({ trade, items, projectId, onUpdate, onDelete }: {
       <button onClick={() => setCollapsed(!collapsed)}
         className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-700/30 transition-colors">
         <div className="flex items-center gap-2">
-          {collapsed ? <ChevronRight size={14} className="text-slate-500" /> : <ChevronDown size={14} className="text-slate-500" />}
+          {collapsed ? <ChevronRight size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}
           <span className="text-sm font-medium text-slate-200">{trade}</span>
-          <span className="text-xs text-slate-500">{done}/{items.length}</span>
+          <span className="text-xs text-slate-400">{done}/{items.length}</span>
         </div>
         <div className="w-20 h-1.5 bg-slate-700 rounded-full overflow-hidden">
           <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${items.length > 0 ? Math.round((done / items.length) * 100) : 0}%` }} />
@@ -362,10 +362,10 @@ export function PunchListTab({ project }: { project: Project }) {
           <div className="animate-spin w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-12 text-slate-500">
+        <div className="text-center py-12 text-slate-400">
           <ClipboardList size={32} className="mx-auto mb-2 opacity-30" />
           <p className="text-sm">{filter === 'all' ? 'No punch list items yet.' : `No ${STATUS_CONFIG[filter as PunchStatus]?.label} items.`}</p>
-          {filter === 'all' && <p className="text-xs mt-1 text-slate-600">Track construction deficiencies and closeout items.</p>}
+          {filter === 'all' && <p className="text-xs mt-1 text-slate-400">Track construction deficiencies and closeout items.</p>}
         </div>
       ) : (
         Object.entries(grouped).map(([trade, tradeItems]) => (

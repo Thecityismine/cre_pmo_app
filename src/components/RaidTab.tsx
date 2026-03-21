@@ -141,7 +141,7 @@ function LinkedItemsPicker({
                 onClick={() => setTab(t.id)}
                 className={clsx(
                   'flex items-center gap-1.5 px-3 py-2 text-xs font-medium transition-colors flex-1 justify-center',
-                  tab === t.id ? 'text-blue-300 border-b-2 border-blue-500 bg-blue-950/20' : 'text-slate-500 hover:text-slate-300',
+                  tab === t.id ? 'text-blue-300 border-b-2 border-blue-500 bg-blue-950/20' : 'text-slate-400 hover:text-slate-300',
                 )}
               >
                 <t.icon size={10} />
@@ -158,7 +158,7 @@ function LinkedItemsPicker({
           {/* Options */}
           <div className="max-h-36 overflow-y-auto divide-y divide-slate-800">
             {TABS.find(t => t.id === tab)!.opts.length === 0 ? (
-              <p className="text-xs text-slate-600 text-center py-4 italic">
+              <p className="text-xs text-slate-400 text-center py-4 italic">
                 No {TABS.find(t => t.id === tab)!.label.toLowerCase()} on this project yet.
               </p>
             ) : (
@@ -181,7 +181,7 @@ function LinkedItemsPicker({
                       {selected && <Check size={9} className="text-white" />}
                     </span>
                     <span className="flex-1 truncate">{opt.label}</span>
-                    {opt.sub && <span className="text-slate-600 shrink-0">{opt.sub}</span>}
+                    {opt.sub && <span className="text-slate-400 shrink-0">{opt.sub}</span>}
                   </button>
                 )
               })
@@ -352,7 +352,7 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
               onClick={() => setType(t)}
               className={clsx(
                 'px-3 py-1 rounded-lg text-xs font-medium border transition-colors',
-                type === t ? TYPE_CONFIG[t].bg + ' ' + TYPE_CONFIG[t].color : 'bg-slate-800 text-slate-500 border-slate-700'
+                type === t ? TYPE_CONFIG[t].bg + ' ' + TYPE_CONFIG[t].color : 'bg-slate-800 text-slate-400 border-slate-700'
               )}
             >
               {TYPE_CONFIG[t].label}
@@ -365,7 +365,7 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
               onClick={() => setPriority(p)}
               className={clsx(
                 'flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium border transition-colors',
-                priority === p ? 'bg-slate-700 text-slate-200 border-slate-500' : 'bg-slate-800 text-slate-500 border-slate-700'
+                priority === p ? 'bg-slate-700 text-slate-200 border-slate-500' : 'bg-slate-800 text-slate-400 border-slate-700'
               )}
             >
               <span className={clsx('w-1.5 h-1.5 rounded-full', PRIORITY_CONFIG[p].dot)} />
@@ -400,7 +400,7 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
         {/* Impact fields */}
         <div className="grid grid-cols-3 gap-2">
           <div className="relative">
-            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs">$</span>
+            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
             <input
               type="number"
               value={costImpact}
@@ -417,7 +417,7 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
               placeholder="Days impact"
               className="w-full bg-slate-900/60 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500"
             />
-            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 text-[10px]">days</span>
+            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px]">days</span>
           </div>
           <input
             value={scopeImpact}
@@ -443,7 +443,7 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
               onClick={() => setStatus(s)}
               className={clsx(
                 'px-3 py-1 rounded-lg text-xs font-medium transition-colors',
-                status === s ? STATUS_CONFIG[s].color : 'bg-slate-800 text-slate-500'
+                status === s ? STATUS_CONFIG[s].color : 'bg-slate-800 text-slate-400'
               )}
             >
               {STATUS_CONFIG[s].label}
@@ -468,7 +468,7 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
           >
             <Check size={12} /> {saving ? 'Saving...' : 'Save'}
           </button>
-          <button onClick={cancel} className="text-xs text-slate-500 hover:text-slate-300 px-2">Cancel</button>
+          <button onClick={cancel} className="text-xs text-slate-400 hover:text-slate-300 px-2">Cancel</button>
         </div>
       </div>
     )
@@ -483,7 +483,7 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
         {/* Title */}
         <button className="flex-1 text-left min-w-0" onClick={() => setExpanded(!expanded)}>
           <div className="flex items-center gap-1.5 flex-wrap">
-            <p className={clsx('text-sm font-medium', item.status === 'closed' ? 'line-through text-slate-500' : 'text-slate-100')}>
+            <p className={clsx('text-sm font-medium', item.status === 'closed' ? 'line-through text-slate-400' : 'text-slate-100')}>
               {item.title}
             </p>
             {item.isSystemGenerated && (
@@ -506,9 +506,9 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
             })()}
           </div>
           <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-            {item.owner && <span className="text-xs text-slate-500">{item.owner}</span>}
+            {item.owner && <span className="text-xs text-slate-400">{item.owner}</span>}
             {item.dueDate && (
-              <span className="text-xs text-slate-600">
+              <span className="text-xs text-slate-400">
                 Due {new Date(item.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               </span>
             )}
@@ -525,16 +525,16 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
         </span>
 
         {/* Expand / collapse chevron */}
-        <button onClick={() => setExpanded(!expanded)} className="text-slate-600 shrink-0">
+        <button onClick={() => setExpanded(!expanded)} className="text-slate-400 shrink-0">
           {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
         </button>
 
         {/* Actions (hover) */}
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-          <button onClick={() => setEditing(true)} className="p-1 text-slate-500 hover:text-blue-400 text-xs">Edit</button>
+          <button onClick={() => setEditing(true)} className="p-1 text-slate-400 hover:text-blue-400 text-xs">Edit</button>
           <button
             onClick={() => { if (confirm('Delete this item?')) onDelete(item.id) }}
-            className="p-1 text-slate-600 hover:text-red-400"
+            className="p-1 text-slate-400 hover:text-red-400"
           >
             <Trash2 size={12} />
           </button>
@@ -549,13 +549,13 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
           )}
           {item.scopeImpact && (
             <div className="flex items-start gap-2">
-              <Layers size={12} className="text-slate-500 mt-0.5 shrink-0" />
-              <p className="text-xs text-slate-500">{item.scopeImpact}</p>
+              <Layers size={12} className="text-slate-400 mt-0.5 shrink-0" />
+              <p className="text-xs text-slate-400">{item.scopeImpact}</p>
             </div>
           )}
           {item.linkedItems && item.linkedItems.length > 0 && (
             <div>
-              <p className="text-[10px] text-slate-600 uppercase tracking-wider mb-1">Linked items</p>
+              <p className="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Linked items</p>
               <LinkedItemChips items={item.linkedItems} onNavigate={onSourceClick} />
             </div>
           )}
@@ -585,7 +585,7 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
                 </div>
               )}
               {!mitigation && !mitigating && (
-                <p className="text-xs text-slate-600 italic">Click "Suggest" to get AI-recommended mitigation strategies.</p>
+                <p className="text-xs text-slate-400 italic">Click "Suggest" to get AI-recommended mitigation strategies.</p>
               )}
             </div>
           )}
@@ -689,7 +689,7 @@ function AddRaidForm({
       {/* Impact fields */}
       <div className="grid grid-cols-3 gap-2">
         <div className="relative">
-          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs">$</span>
+          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">$</span>
           <input
             type="number"
             value={costImpact}
@@ -706,7 +706,7 @@ function AddRaidForm({
             placeholder="Days impact"
             className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500"
           />
-          <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 text-[10px]">days</span>
+          <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px]">days</span>
         </div>
         <input
           value={scopeImpact}
@@ -735,14 +735,14 @@ function AddRaidForm({
 
       {/* Priority */}
       <div className="flex items-center gap-2">
-        <span className="text-xs text-slate-500">Priority:</span>
+        <span className="text-xs text-slate-400">Priority:</span>
         {RAID_PRIORITIES.map(p => (
           <button
             key={p}
             onClick={() => setPriority(p)}
             className={clsx(
               'flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs border transition-colors',
-              priority === p ? 'bg-slate-700 text-slate-200 border-slate-500' : 'text-slate-500 border-slate-700 hover:text-slate-300'
+              priority === p ? 'bg-slate-700 text-slate-200 border-slate-500' : 'text-slate-400 border-slate-700 hover:text-slate-300'
             )}
           >
             <span className={clsx('w-1.5 h-1.5 rounded-full', PRIORITY_CONFIG[p].dot)} />
@@ -759,7 +759,7 @@ function AddRaidForm({
         >
           <Plus size={14} /> {saving ? 'Adding...' : 'Add Item'}
         </button>
-        <button onClick={onCancel} className="text-sm text-slate-500 hover:text-slate-300 px-3 py-2">Cancel</button>
+        <button onClick={onCancel} className="text-sm text-slate-400 hover:text-slate-300 px-3 py-2">Cancel</button>
       </div>
     </div>
   )
@@ -823,7 +823,7 @@ export function RaidTab({ project, setTab }: { project: Project; setTab?: (tab: 
             >
               <cfg.Icon size={16} className={clsx('mx-auto mb-1', cfg.color)} />
               <p className={clsx('text-xl font-bold', cfg.color)}>{counts[t]}</p>
-              <p className="text-xs text-slate-500">{cfg.label}s</p>
+              <p className="text-xs text-slate-400">{cfg.label}s</p>
             </button>
           )
         })}
@@ -836,7 +836,7 @@ export function RaidTab({ project, setTab }: { project: Project; setTab?: (tab: 
             <div className="flex items-center gap-2 bg-amber-900/20 border border-amber-700/30 rounded-lg px-3 py-2">
               <DollarSign size={13} className="text-amber-400 shrink-0" />
               <div>
-                <p className="text-xs text-slate-500">Total Cost Exposure</p>
+                <p className="text-xs text-slate-400">Total Cost Exposure</p>
                 <p className="text-sm font-semibold text-amber-300">{fmt$(totalCostExposure)}</p>
               </div>
             </div>
@@ -845,7 +845,7 @@ export function RaidTab({ project, setTab }: { project: Project; setTab?: (tab: 
             <div className="flex items-center gap-2 bg-blue-900/20 border border-blue-700/30 rounded-lg px-3 py-2">
               <Clock3 size={13} className="text-blue-400 shrink-0" />
               <div>
-                <p className="text-xs text-slate-500">Schedule Exposure</p>
+                <p className="text-xs text-slate-400">Schedule Exposure</p>
                 <p className="text-sm font-semibold text-blue-300">{totalScheduleExposure} days</p>
               </div>
             </div>
@@ -901,10 +901,10 @@ export function RaidTab({ project, setTab }: { project: Project; setTab?: (tab: 
           <div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-16 text-slate-500">
+        <div className="text-center py-16 text-slate-400">
           <p className="mb-2">{items.length === 0 ? 'No RAID items yet.' : 'No items match the current filter.'}</p>
           {items.length === 0 && (
-            <p className="text-xs text-slate-600">Track Risks, Actions, Issues, and Decisions for this project.</p>
+            <p className="text-xs text-slate-400">Track Risks, Actions, Issues, and Decisions for this project.</p>
           )}
         </div>
       ) : (

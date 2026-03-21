@@ -120,7 +120,7 @@ export function LoginPage() {
 
           <div className="flex items-center gap-3">
             <div className="flex-1 border-t border-slate-600" />
-            <span className="text-slate-500 text-xs">or</span>
+            <span className="text-slate-400 text-xs">or</span>
             <div className="flex-1 border-t border-slate-600" />
           </div>
 
@@ -174,7 +174,7 @@ export function LoginPage() {
           </form>
 
           {/* Toggle mode */}
-          <p className="text-center text-sm text-slate-500">
+          <p className="text-center text-sm text-slate-400">
             {mode === 'signin' ? (
               <>
                 No account yet?{' '}
@@ -193,7 +193,7 @@ export function LoginPage() {
           </p>
         </div>
 
-        <p className="text-center text-slate-600 text-xs mt-6">
+        <p className="text-center text-slate-400 text-xs mt-6">
           JLL Corporate Real Estate — Internal Tool
         </p>
       </div>

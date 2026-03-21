@@ -57,12 +57,12 @@ function InsightCard({
                 {insight.title}
               </p>
               {expanded
-                ? <ChevronDown size={12} className="text-slate-500 shrink-0" />
-                : <ChevronRight size={12} className="text-slate-500 shrink-0" />}
+                ? <ChevronDown size={12} className="text-slate-400 shrink-0" />
+                : <ChevronRight size={12} className="text-slate-400 shrink-0" />}
             </button>
             <button
               onClick={onDismiss}
-              className="p-0.5 text-slate-600 hover:text-slate-400 transition-colors shrink-0"
+              className="p-0.5 text-slate-400 hover:text-slate-400 transition-colors shrink-0"
               title="Dismiss"
             >
               <X size={12} />
@@ -142,7 +142,7 @@ export function AIInsightsPanel({
         <button
           onClick={refreshInsights}
           disabled={refreshing}
-          className="p-1 text-slate-600 hover:text-slate-400 transition-colors"
+          className="p-1 text-slate-400 hover:text-slate-400 transition-colors"
           title="Refresh insights"
         >
           <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} />
@@ -150,7 +150,7 @@ export function AIInsightsPanel({
       </div>
 
       {insights.length === 0 ? (
-        <div className="text-center py-3 text-slate-600 text-xs">
+        <div className="text-center py-3 text-slate-400 text-xs">
           <p>No active insights.</p>
           <button
             onClick={refreshInsights}
@@ -170,7 +170,7 @@ export function AIInsightsPanel({
           {hiddenCount > 0 && !showAll && (
             <button
               onClick={() => setShowAll(true)}
-              className="text-xs text-slate-500 hover:text-slate-400 transition-colors w-full text-center py-1"
+              className="text-xs text-slate-400 hover:text-slate-400 transition-colors w-full text-center py-1"
             >
               +{hiddenCount} more insight{hiddenCount > 1 ? 's' : ''}
             </button>
