@@ -28,20 +28,22 @@ const PRIORITY_COLORS: Record<ProjectTaskPriority, string> = {
 const fmt = (iso: string) =>
   iso ? new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'
 
+// Parse date-only strings (YYYY-MM-DD) as local midnight to avoid UTC shifting the day
+const parseLocal = (s: string) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d) }
+
 const fmtShort = (iso: string) =>
-  iso ? new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'
+  iso ? parseLocal(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'
 
 function isOverdue(dueDate: string) {
   if (!dueDate) return false
   const today = new Date(); today.setHours(0, 0, 0, 0)
-  return new Date(dueDate) < today
+  return parseLocal(dueDate) < today
 }
 
 function isDueToday(dueDate: string) {
   if (!dueDate) return false
   const today = new Date(); today.setHours(0, 0, 0, 0)
-  const d = new Date(dueDate); d.setHours(0, 0, 0, 0)
-  return d.getTime() === today.getTime()
+  return parseLocal(dueDate).getTime() === today.getTime()
 }
 
 // ─── Blank form ───────────────────────────────────────────────────────────────

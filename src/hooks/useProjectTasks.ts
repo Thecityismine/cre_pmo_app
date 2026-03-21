@@ -63,11 +63,13 @@ export function useProjectTasks(projectId: string | undefined) {
 
   const today = new Date(); today.setHours(0, 0, 0, 0)
   const in7 = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
+  // Parse date-only strings (YYYY-MM-DD) as local midnight to avoid UTC offset shifting the day
+  const parseLocal = (d: string) => { const [y, m, day] = d.split('-').map(Number); return new Date(y, m - 1, day) }
 
   const open      = tasks.filter(t => t.status === 'open')
   const completed = tasks.filter(t => t.status === 'completed')
-  const overdue   = open.filter(t => t.dueDate && new Date(t.dueDate) < today)
-  const dueSoon   = open.filter(t => t.dueDate && new Date(t.dueDate) >= today && new Date(t.dueDate) <= in7)
+  const overdue   = open.filter(t => t.dueDate && parseLocal(t.dueDate) < today)
+  const dueSoon   = open.filter(t => t.dueDate && parseLocal(t.dueDate) >= today && parseLocal(t.dueDate) <= in7)
 
   return { tasks, loading, addTask, updateTask, completeTask, deleteTask, open, completed, overdue, dueSoon }
 }
