@@ -12,7 +12,7 @@ const STATUS_CONFIG: Record<BidStatus, { label: string; color: string; bg: strin
   'bid-received': { label: 'Bid Received', color: 'text-blue-300',   bg: 'bg-blue-900/50' },
   'awarded':      { label: 'Awarded',      color: 'text-emerald-300',bg: 'bg-emerald-900/50' },
   'rejected':     { label: 'Rejected',     color: 'text-red-300',    bg: 'bg-red-900/50' },
-  'no-bid':       { label: 'No Bid',       color: 'text-slate-400',  bg: 'bg-slate-800' },
+  'no-bid':       { label: 'No Bid',       color: 'text-slate-400',  bg: 'bg-slate-900' },
 }
 
 const TRADES = [
@@ -33,7 +33,7 @@ function SummaryCard({ label, value, sub, color = 'default' }: {
   const accent = color === 'emerald' ? 'border-emerald-700/50 bg-emerald-900/20'
     : color === 'blue' ? 'border-blue-700/50 bg-blue-900/20'
     : color === 'amber' ? 'border-amber-700/50 bg-amber-900/20'
-    : 'border-slate-700 bg-slate-800'
+    : 'border-slate-600 bg-slate-900'
   const txt = color === 'emerald' ? 'text-emerald-300'
     : color === 'blue' ? 'text-blue-300'
     : color === 'amber' ? 'text-amber-300'
@@ -92,7 +92,7 @@ function BidForm({
   }
 
   return (
-    <div className="bg-slate-800 border border-blue-600/50 rounded-xl p-4 space-y-3 mb-3">
+    <div className="bg-slate-900 border border-blue-600/50 rounded-xl p-4 space-y-3 mb-3">
       <div className="grid grid-cols-2 gap-2">
         <input value={form.vendor} onChange={f('vendor')} placeholder="Vendor / Company *" autoFocus
           className="col-span-2 bg-slate-700 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
@@ -180,7 +180,7 @@ function BidRow({ bid, projectId, onUpdate, onDelete }: {
   }
 
   return (
-    <div className="flex items-start gap-3 px-4 py-3 border-b border-slate-700/50 last:border-0 group hover:bg-slate-700/20 transition-colors">
+    <div className="flex items-start gap-3 px-4 py-3 border-b border-slate-600/50 last:border-0 group hover:bg-slate-700/20 transition-colors">
       <div className="flex-1 min-w-0">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm font-medium text-slate-100">{bid.vendor}</span>
@@ -259,7 +259,7 @@ export function BidLogTab({ project }: { project: Project }) {
                 'px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors',
                 filter === s
                   ? 'bg-blue-600 text-white border-blue-500'
-                  : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-200'
+                  : 'bg-slate-900 text-slate-400 border-slate-600 hover:text-slate-200'
               )}>
               {s === 'all' ? 'All' : STATUS_CONFIG[s].label}
             </button>
@@ -289,8 +289,8 @@ export function BidLogTab({ project }: { project: Project }) {
       ) : (
         <div className="space-y-3">
           {Object.entries(grouped).map(([trade, tradeBids]) => (
-            <div key={trade} className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
-              <div className="px-4 py-2 border-b border-slate-700 bg-slate-800/80 flex items-center justify-between">
+            <div key={trade} className="bg-slate-900 border border-slate-600 rounded-xl overflow-hidden">
+              <div className="px-4 py-2 border-b border-slate-600 bg-slate-900/80 flex items-center justify-between">
                 <span className="text-xs font-medium text-slate-300 uppercase tracking-wide">{trade}</span>
                 <span className="text-xs text-slate-400">{tradeBids.length} bid{tradeBids.length !== 1 ? 's' : ''}</span>
               </div>
@@ -304,7 +304,7 @@ export function BidLogTab({ project }: { project: Project }) {
 
       {/* Footer — awarded total bar */}
       {bids.length > 0 && project.totalBudget > 0 && (
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
+        <div className="bg-slate-900 border border-slate-600 rounded-xl p-4">
           <div className="flex justify-between text-xs text-slate-400 mb-2">
             <span>Awarded vs. Budget</span>
             <span>{fmt(awardedTotal)} / {fmt(project.totalBudget)}</span>

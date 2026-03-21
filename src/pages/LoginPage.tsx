@@ -96,7 +96,7 @@ export function LoginPage() {
         </div>
 
         {/* Card */}
-        <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 space-y-5">
+        <div className="bg-slate-900 border border-slate-600 rounded-2xl p-6 space-y-5">
           {error && (
             <div className="bg-red-900/40 border border-red-700 text-red-300 text-sm rounded-lg px-4 py-3">
               {error}

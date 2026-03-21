@@ -12,8 +12,8 @@ import { useProjects } from '@/hooks/useProjects'
 
 function Section({ title, icon: Icon, children }: { title: string; icon: React.ElementType; children: React.ReactNode }) {
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
-      <div className="flex items-center gap-2 px-5 py-4 border-b border-slate-700">
+    <div className="bg-slate-900 border border-slate-600 rounded-xl overflow-hidden">
+      <div className="flex items-center gap-2 px-5 py-4 border-b border-slate-600">
         <Icon size={16} className="text-slate-400" />
         <h2 className="text-slate-100 font-semibold text-sm">{title}</h2>
       </div>
@@ -31,7 +31,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   )
 }
 
-const inp = () => clsx('w-full bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2.5 border border-slate-700 focus:outline-none focus:border-blue-500 placeholder-slate-500 disabled:opacity-50 disabled:cursor-not-allowed')
+const inp = () => clsx('w-full bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2.5 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500 disabled:opacity-50 disabled:cursor-not-allowed')
 
 // ─── API Key row ──────────────────────────────────────────────────────────────
 
@@ -72,7 +72,7 @@ function ProjectTypesSection() {
         {/* Existing types */}
         <div className="space-y-2">
           {types.map(t => (
-            <div key={t.code} className="flex items-center justify-between px-3 py-2 bg-slate-900/60 rounded-lg border border-slate-700">
+            <div key={t.code} className="flex items-center justify-between px-3 py-2 bg-slate-900/60 rounded-lg border border-slate-600">
               <div className="flex items-center gap-3">
                 <span className="text-xs font-mono text-blue-300 bg-blue-900/40 px-2 py-0.5 rounded">{t.code}</span>
                 <span className="text-sm text-slate-200">{t.label}</span>
@@ -91,7 +91,7 @@ function ProjectTypesSection() {
         </div>
 
         {/* Add new type */}
-        <div className="border-t border-slate-700 pt-4 space-y-3">
+        <div className="border-t border-slate-600 pt-4 space-y-3">
           <p className="text-xs font-medium text-slate-400">Add New Type</p>
           <div className="flex gap-2">
             <input
@@ -99,14 +99,14 @@ function ProjectTypesSection() {
               onChange={e => { setCode(e.target.value.toUpperCase()); setError('') }}
               placeholder="Code (e.g. XL)"
               maxLength={5}
-              className="w-24 bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-700 focus:outline-none focus:border-blue-500 placeholder-slate-600 font-mono uppercase"
+              className="w-24 bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-600 font-mono uppercase"
             />
             <input
               value={label}
               onChange={e => { setLabel(e.target.value); setError('') }}
               onKeyDown={e => { if (e.key === 'Enter') handleAdd() }}
               placeholder="Label (e.g. Extra Large)"
-              className="flex-1 bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-700 focus:outline-none focus:border-blue-500 placeholder-slate-600"
+              className="flex-1 bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-600"
             />
             <button
               onClick={handleAdd}
@@ -192,7 +192,7 @@ function DataAuditSection() {
           <select
             value={selectedProjectId}
             onChange={e => { setSelectedProjectId(e.target.value); setAuditDone(false); setCounts({}) }}
-            className="flex-1 bg-slate-900 border border-slate-700 text-slate-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+            className="flex-1 bg-slate-900 border border-slate-600 text-slate-200 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
           >
             <option value="">Select a project…</option>
             {projects.map(p => (
@@ -224,7 +224,7 @@ function DataAuditSection() {
                   'flex items-center justify-between px-3 py-2 rounded-lg border',
                   count > 0
                     ? 'bg-amber-900/20 border-amber-700/40'
-                    : 'bg-slate-900/40 border-slate-700/50'
+                    : 'bg-slate-900/40 border-slate-600/50'
                 )}>
                   <div className="flex items-center gap-2">
                     <span className={clsx(

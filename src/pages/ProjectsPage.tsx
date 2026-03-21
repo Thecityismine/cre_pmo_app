@@ -103,10 +103,10 @@ function ProjectCard({ project, taskStat, insightSeverity, onClick }: { project:
     <div
       onClick={onClick}
       className={clsx(
-        'bg-slate-800 border rounded-xl p-5 cursor-pointer transition-all hover:shadow-lg hover:shadow-black/20',
+        'bg-slate-900 border rounded-xl p-5 cursor-pointer transition-all hover:shadow-lg hover:shadow-black/20',
         health.total < 60 ? 'border-red-800 hover:border-red-600'
         : health.total < 80 ? 'border-amber-800/50 hover:border-amber-600'
-        : 'border-slate-700 hover:border-blue-500'
+        : 'border-slate-600 hover:border-blue-500'
       )}
     >
       {/* Top row */}
@@ -174,7 +174,7 @@ function ProjectCard({ project, taskStat, insightSeverity, onClick }: { project:
       )}
 
       {/* Footer */}
-      <div className="flex items-center justify-between pt-3 border-t border-slate-700">
+      <div className="flex items-center justify-between pt-3 border-t border-slate-600">
         <span className="text-slate-400 text-xs truncate max-w-[55%]">{project.projectManager || '—'}</span>
         {project.targetCompletionDate && (
           <span className="text-slate-400 text-xs">
@@ -195,7 +195,7 @@ function ProjectRow({ project, insightSeverity, onClick }: { project: ReturnType
   return (
     <div
       onClick={onClick}
-      className="flex items-center gap-4 px-4 py-3 border-b border-slate-700 last:border-0 hover:bg-slate-700/40 transition-colors cursor-pointer"
+      className="flex items-center gap-4 px-4 py-3 border-b border-slate-600 last:border-0 hover:bg-slate-700/40 transition-colors cursor-pointer"
     >
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
@@ -344,7 +344,7 @@ export function ProjectsPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search name, number, city, PM..."
-              className="w-full bg-slate-800 text-slate-200 placeholder-slate-500 text-sm rounded-lg pl-9 pr-4 py-2 border border-slate-700 focus:outline-none focus:border-blue-500"
+              className="w-full bg-slate-900 text-slate-200 placeholder-slate-500 text-sm rounded-lg pl-9 pr-4 py-2 border border-slate-600 focus:outline-none focus:border-blue-500"
             />
             {search && (
               <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300">
@@ -359,14 +359,14 @@ export function ProjectsPage() {
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value)}
-              className="bg-slate-800 border border-slate-700 text-slate-300 text-xs rounded-lg pl-8 pr-3 py-2 focus:outline-none focus:border-blue-500 appearance-none"
+              className="bg-slate-900 border border-slate-600 text-slate-300 text-xs rounded-lg pl-8 pr-3 py-2 focus:outline-none focus:border-blue-500 appearance-none"
             >
               {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
           </div>
 
           {/* View toggle */}
-          <div className="flex bg-slate-800 border border-slate-700 rounded-lg p-0.5">
+          <div className="flex bg-slate-900 border border-slate-600 rounded-lg p-0.5">
             <button
               onClick={() => setViewMode('grid')}
               className={clsx('p-1.5 rounded transition-colors', viewMode === 'grid' ? 'bg-slate-600 text-slate-200' : 'text-slate-400 hover:text-slate-300')}
@@ -389,7 +389,7 @@ export function ProjectsPage() {
             onClick={() => setActiveOnly(!activeOnly)}
             className={clsx(
               'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border',
-              activeOnly ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-200'
+              activeOnly ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-900 text-slate-400 border-slate-600 hover:text-slate-200'
             )}
           >
             Active only
@@ -400,8 +400,8 @@ export function ProjectsPage() {
             value={profileFilter}
             onChange={e => setProfileFilter(e.target.value)}
             className={clsx(
-              'bg-slate-800 border text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-500 transition-colors',
-              profileFilter !== 'all' ? 'border-blue-500 text-blue-300' : 'border-slate-700 text-slate-400'
+              'bg-slate-900 border text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-500 transition-colors',
+              profileFilter !== 'all' ? 'border-blue-500 text-blue-300' : 'border-slate-600 text-slate-400'
             )}
           >
             <option value="all">All Types</option>
@@ -414,7 +414,7 @@ export function ProjectsPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-slate-800 border border-slate-700 text-slate-400 text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-500"
+            className="bg-slate-900 border border-slate-600 text-slate-400 text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-500"
           >
             {STATUSES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
           </select>
@@ -437,7 +437,7 @@ export function ProjectsPage() {
           <div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-20 text-slate-400 bg-slate-800 border border-slate-700 rounded-xl">
+        <div className="text-center py-20 text-slate-400 bg-slate-900 border border-slate-600 rounded-xl">
           <FolderOpen size={40} className="mx-auto mb-3 opacity-40" />
           <p className="font-medium">No projects found</p>
           <p className="text-sm mt-1">
@@ -454,7 +454,7 @@ export function ProjectsPage() {
           ))}
         </div>
       ) : (
-        <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
+        <div className="bg-slate-900 border border-slate-600 rounded-xl overflow-hidden">
           {filtered.map(p => (
             <ProjectRow key={p.id} project={p} insightSeverity={insightMap[p.id]} onClick={() => navigate(`/projects/${p.id}`)} />
           ))}

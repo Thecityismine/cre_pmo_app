@@ -27,7 +27,7 @@ const CATEGORY_COLORS: Record<string, { pill: string; bar: string; border: strin
 const fmt = (n: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
 
-const inp = 'w-full bg-slate-900 text-slate-100 text-xs rounded px-2 py-1.5 border border-slate-700 focus:outline-none focus:border-blue-500 placeholder-slate-600'
+const inp = 'w-full bg-slate-900 text-slate-100 text-xs rounded px-2 py-1.5 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-600'
 
 // Extended BudgetItem type with optional extra fields stored in Firestore
 type ExtBudgetItem = BudgetItem & {
@@ -108,7 +108,7 @@ function LineItemForm({
   }
 
   return (
-    <form onSubmit={handleSave} className="mt-3 p-3 bg-slate-900/60 border border-slate-700 rounded-xl space-y-2">
+    <form onSubmit={handleSave} className="mt-3 p-3 bg-slate-900/60 border border-slate-600 rounded-xl space-y-2">
       <div className="grid grid-cols-2 gap-2">
         <input value={form.description} onChange={e => set('description', e.target.value)}
           placeholder="Description *" required className={inp} autoFocus />
@@ -133,7 +133,7 @@ function LineItemForm({
           <Check size={12} /> {saving ? 'Saving…' : 'Add Item'}
         </button>
         <button type="button" onClick={onCancel}
-          className="flex items-center gap-1 border border-slate-600 text-slate-400 text-xs px-3 py-1.5 rounded-lg hover:bg-slate-800">
+          className="flex items-center gap-1 border border-slate-600 text-slate-400 text-xs px-3 py-1.5 rounded-lg hover:bg-slate-900">
           <X size={12} /> Cancel
         </button>
       </div>
@@ -236,7 +236,7 @@ function LineItemRow({ item, onDelete }: {
     const lbl = 'block text-[10px] text-slate-400 mb-1'
 
     return (
-      <tr className="bg-slate-900/80 border-t border-slate-700">
+      <tr className="bg-slate-900/80 border-t border-slate-600">
         <td className="px-3 py-3" colSpan={5}>
           <div className="space-y-3">
 
@@ -285,7 +285,7 @@ function LineItemRow({ item, onDelete }: {
                 <Check size={12} /> {saving ? 'Saving…' : 'Save'}
               </button>
               <button onClick={() => setEditing(false)}
-                className="flex items-center gap-1.5 border border-slate-600 text-slate-400 text-xs px-4 py-2 rounded-lg hover:bg-slate-800">
+                className="flex items-center gap-1.5 border border-slate-600 text-slate-400 text-xs px-4 py-2 rounded-lg hover:bg-slate-900">
                 <X size={12} /> Cancel
               </button>
             </div>
@@ -297,7 +297,7 @@ function LineItemRow({ item, onDelete }: {
 
   return (
     <>
-      <tr className="border-t border-slate-700/50 hover:bg-slate-800/40 group cursor-pointer" onClick={() => setEditing(true)}>
+      <tr className="border-t border-slate-600/50 hover:bg-slate-900/40 group cursor-pointer" onClick={() => setEditing(true)}>
         <td className="px-3 py-2.5 w-4">
           <HealthDot forecast={forecast} budget={item.budgetAmount} />
         </td>
@@ -382,7 +382,7 @@ function LineItemRow({ item, onDelete }: {
               </button>
               <button
                 onClick={() => { setInvoicing(false); setInvoiceAmt('') }}
-                className="flex items-center gap-1 border border-slate-600 text-slate-400 text-xs px-3 py-1.5 rounded-lg hover:bg-slate-800"
+                className="flex items-center gap-1 border border-slate-600 text-slate-400 text-xs px-3 py-1.5 rounded-lg hover:bg-slate-900"
               >
                 <X size={11} /> Cancel
               </button>
@@ -457,7 +457,7 @@ function CategoryCard({
   }
 
   return (
-    <div className={clsx('bg-slate-800 border rounded-xl overflow-hidden', expanded ? cfg.border : 'border-slate-700')}>
+    <div className={clsx('bg-slate-900 border rounded-xl overflow-hidden', expanded ? cfg.border : 'border-slate-600')}>
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full flex flex-col gap-3 px-4 pt-4 pb-3 hover:bg-slate-700/20 transition-colors text-left"
@@ -534,11 +534,11 @@ function CategoryCard({
       </button>
 
       {expanded && (
-        <div className="border-t border-slate-700/50">
+        <div className="border-t border-slate-600/50">
 
           {/* ── Approved budget editor ─────────────────────────────────────── */}
           {editingBudget ? (
-            <div className="px-4 py-3 bg-slate-900/40 border-b border-slate-700/50 flex items-center gap-2 flex-wrap">
+            <div className="px-4 py-3 bg-slate-900/40 border-b border-slate-600/50 flex items-center gap-2 flex-wrap">
               <span className="text-xs text-slate-400 font-medium">Approved {category} Budget:</span>
               <input
                 type="number"
@@ -554,7 +554,7 @@ function CategoryCard({
                 <Check size={11} /> {savingBudget ? 'Saving…' : 'Save'}
               </button>
               <button onClick={() => setEditingBudget(false)}
-                className="flex items-center gap-1 border border-slate-600 text-slate-400 text-xs px-3 py-1.5 rounded-lg hover:bg-slate-800">
+                className="flex items-center gap-1 border border-slate-600 text-slate-400 text-xs px-3 py-1.5 rounded-lg hover:bg-slate-900">
                 <X size={11} /> Cancel
               </button>
               {approvedBudget && (
@@ -565,7 +565,7 @@ function CategoryCard({
               )}
             </div>
           ) : (
-            <div className="px-4 py-2 border-b border-slate-700/30 flex items-center justify-between">
+            <div className="px-4 py-2 border-b border-slate-600/30 flex items-center justify-between">
               <div className="flex items-center gap-3 text-sm flex-wrap">
                 <span className="text-slate-400">
                   Approved Budget: <span className="text-slate-100 font-semibold tabular-nums">
@@ -602,7 +602,7 @@ function CategoryCard({
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-slate-400 text-[10px] uppercase tracking-wide border-b border-slate-700/50">
+                  <tr className="text-slate-400 text-[10px] uppercase tracking-wide border-b border-slate-600/50">
                     <th className="px-3 py-2 w-4" />
                     <th className="text-left px-3 py-2">Description / Vendor</th>
                     <th className="text-right px-3 py-2">Forecast</th>
@@ -619,7 +619,7 @@ function CategoryCard({
                     />
                   ))}
                   {/* Category subtotal row */}
-                  <tr className="border-t border-slate-700/50 bg-slate-900/30 text-xs font-semibold">
+                  <tr className="border-t border-slate-600/50 bg-slate-900/30 text-xs font-semibold">
                     <td className="px-3 py-2" />
                     <td className="px-3 py-2 text-slate-400">
                       Total <span className="text-slate-400 font-normal">of {approvedBudget ? fmt(approvedBudget) : 'budget'}</span>
@@ -675,7 +675,7 @@ function CategoryCard({
 
 function EmptyOnboardingCard() {
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-xl p-6 text-center space-y-4">
+    <div className="bg-slate-900 border border-slate-600 rounded-xl p-6 text-center space-y-4">
       <div className="w-12 h-12 rounded-full bg-blue-900/40 border border-blue-700/40 flex items-center justify-center mx-auto">
         <BookOpen size={22} className="text-blue-400" />
       </div>
@@ -718,7 +718,7 @@ function ContingencyTracker({ items, coApproved }: { items: ExtBudgetItem[]; coA
   const drawdownPct      = effectiveContingency > 0 ? Math.min(100, (overrun / effectiveContingency) * 100) : 0
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
+    <div className="bg-slate-900 border border-slate-600 rounded-xl p-4">
       <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-3">Contingency Drawdown</p>
       <div className="flex items-center gap-4 flex-wrap text-xs mb-3">
         <div>
@@ -869,7 +869,7 @@ export function BudgetTab({ project }: { project: Project }) {
           { label: 'Total Forecast',   value: fmt(totalForecast), color: budgetHealth === 'green' ? 'text-blue-300' : budgetHealth === 'amber' ? 'text-amber-400' : 'text-red-400' },
           { label: 'Actual Spent',     value: fmt(totalActual || totalPaid), color: 'text-slate-200' },
         ].map(s => (
-          <div key={s.label} className="bg-slate-800 border border-slate-700 rounded-xl p-3">
+          <div key={s.label} className="bg-slate-900 border border-slate-600 rounded-xl p-3">
             <p className="text-xs text-slate-400 mb-1">{s.label}</p>
             <p className={clsx('text-lg font-bold tabular-nums', s.color)}>{s.value}</p>
           </div>
@@ -878,7 +878,7 @@ export function BudgetTab({ project }: { project: Project }) {
 
       {/* ── CO Rollup banner ─────────────────────────────────────────────── */}
       {(coApproved !== 0 || coPending !== 0) && (
-        <div className="bg-slate-800/60 border border-slate-700 rounded-xl p-3 flex flex-wrap gap-4 text-xs">
+        <div className="bg-slate-900/60 border border-slate-600 rounded-xl p-3 flex flex-wrap gap-4 text-xs">
           {coApproved !== 0 && (
             <div>
               <span className="text-slate-400">Approved COs: </span>
@@ -913,7 +913,7 @@ export function BudgetTab({ project }: { project: Project }) {
         const paidPct     = Math.min(forecastPct, (totalPaid / (netBudget || 1)) * 100)
         const barColor    = budgetHealth === 'red' ? 'bg-red-500' : budgetHealth === 'amber' ? 'bg-amber-500' : 'bg-blue-500'
         return (
-          <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
+          <div className="bg-slate-900 border border-slate-600 rounded-xl p-4">
             <div className="flex justify-between text-sm mb-2">
               <span className="text-slate-300 font-medium">Budget Utilization</span>
               <span className={clsx('font-semibold', totalVariance < 0 ? 'text-red-400' : 'text-emerald-400')}>
@@ -972,13 +972,13 @@ export function BudgetTab({ project }: { project: Project }) {
           const orphans = ext.filter(i => !CATEGORIES.includes(i.category))
           if (orphans.length === 0) return null
           return (
-            <div className="bg-slate-800 border border-red-800/40 rounded-xl overflow-hidden">
+            <div className="bg-slate-900 border border-red-800/40 rounded-xl overflow-hidden">
               <div className="flex items-center gap-3 px-4 py-3">
                 <AlertTriangle size={13} className="text-red-400 shrink-0" />
                 <span className="text-sm font-medium text-red-300">Unrecognized Category ({orphans.length} item{orphans.length > 1 ? 's' : ''})</span>
                 <span className="text-xs text-slate-400 ml-1">— imported from external source, unknown category</span>
               </div>
-              <div className="border-t border-slate-700 divide-y divide-slate-700/50">
+              <div className="border-t border-slate-600 divide-y divide-slate-700/50">
                 {orphans.map(item => (
                   <div key={item.id} className="flex items-center gap-3 px-4 py-2.5 text-xs text-slate-400">
                     <span className="flex-1 truncate">{item.description || '(no description)'}</span>
@@ -997,7 +997,7 @@ export function BudgetTab({ project }: { project: Project }) {
 
       {/* ── Financial summary footer ──────────────────────────────────────── */}
       {hasItems && (
-        <div className="bg-slate-900/70 border border-slate-700 rounded-xl px-4 py-3 flex flex-wrap gap-4 text-xs">
+        <div className="bg-slate-900/70 border border-slate-600 rounded-xl px-4 py-3 flex flex-wrap gap-4 text-xs">
           <div><span className="text-slate-400">Baseline: </span><span className="text-slate-200 font-medium">{fmt(baseBudget)}</span></div>
           <div>
             <span className="text-slate-400">+ Approved COs: </span>

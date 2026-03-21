@@ -37,7 +37,7 @@ function SummaryCard({ label, value, color = 'default' }: {
   const accent = color === 'emerald' ? 'border-emerald-700/50 bg-emerald-900/20'
     : color === 'red' ? 'border-red-700/50 bg-red-900/20'
     : color === 'amber' ? 'border-amber-700/50 bg-amber-900/20'
-    : 'border-slate-700 bg-slate-800'
+    : 'border-slate-600 bg-slate-900'
   const txt = color === 'emerald' ? 'text-emerald-300'
     : color === 'red' ? 'text-red-300'
     : color === 'amber' ? 'text-amber-300'
@@ -85,7 +85,7 @@ function PunchForm({
   }
 
   return (
-    <div className="bg-slate-800 border border-blue-600/50 rounded-xl p-4 space-y-3 mb-3">
+    <div className="bg-slate-900 border border-blue-600/50 rounded-xl p-4 space-y-3 mb-3">
       <textarea value={form.description} onChange={f('description')} placeholder="Deficiency description *" rows={2} autoFocus
         className="w-full bg-slate-700 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 resize-none placeholder-slate-500" />
 
@@ -110,7 +110,7 @@ function PunchForm({
                     ? p === 'high' ? 'bg-red-900/60 text-red-300 border-red-700'
                       : p === 'medium' ? 'bg-amber-900/60 text-amber-300 border-amber-700'
                       : 'bg-slate-700 text-slate-300 border-slate-500'
-                    : 'bg-slate-800 text-slate-400 border-slate-700'
+                    : 'bg-slate-900 text-slate-400 border-slate-600'
                 )}>
                 {PRIORITY_CONFIG[p].label}
               </button>
@@ -193,7 +193,7 @@ function PunchRow({ item, projectId, onUpdate, onDelete }: {
 
   return (
     <div className={clsx(
-      'flex items-start gap-3 px-4 py-3 border-b border-slate-700/50 last:border-0 group transition-colors',
+      'flex items-start gap-3 px-4 py-3 border-b border-slate-600/50 last:border-0 group transition-colors',
       isComplete ? 'opacity-60' : 'hover:bg-slate-700/20'
     )}>
       {/* Status dot — click to toggle complete */}
@@ -266,7 +266,7 @@ function PunchGroup({ trade, items, projectId, onUpdate, onDelete }: {
   const done = items.filter(i => i.status === 'complete').length
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden mb-3">
+    <div className="bg-slate-900 border border-slate-600 rounded-xl overflow-hidden mb-3">
       <button onClick={() => setCollapsed(!collapsed)}
         className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-700/30 transition-colors">
         <div className="flex items-center gap-2">
@@ -279,7 +279,7 @@ function PunchGroup({ trade, items, projectId, onUpdate, onDelete }: {
         </div>
       </button>
       {!collapsed && (
-        <div className="border-t border-slate-700">
+        <div className="border-t border-slate-600">
           {items.map(i => (
             <PunchRow key={i.id} item={i} projectId={projectId} onUpdate={onUpdate} onDelete={onDelete} />
           ))}
@@ -321,7 +321,7 @@ export function PunchListTab({ project }: { project: Project }) {
 
       {/* Progress bar */}
       {items.length > 0 && (
-        <div className="bg-slate-800 border border-slate-700 rounded-xl px-4 py-3">
+        <div className="bg-slate-900 border border-slate-600 rounded-xl px-4 py-3">
           <div className="flex items-center gap-3">
             <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
               <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
@@ -340,7 +340,7 @@ export function PunchListTab({ project }: { project: Project }) {
                 'px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors',
                 filter === s
                   ? 'bg-blue-600 text-white border-blue-500'
-                  : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-200'
+                  : 'bg-slate-900 text-slate-400 border-slate-600 hover:text-slate-200'
               )}>
               {s === 'all' ? 'All' : STATUS_CONFIG[s].label}
             </button>

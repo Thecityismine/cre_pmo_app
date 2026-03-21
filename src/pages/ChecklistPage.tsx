@@ -62,7 +62,7 @@ function TaskRow({
 
   if (editing) {
     return (
-      <div className="border-b border-slate-700/50 last:border-0 bg-slate-900/60 px-4 py-3 space-y-3">
+      <div className="border-b border-slate-600/50 last:border-0 bg-slate-900/60 px-4 py-3 space-y-3">
         {/* Title */}
         <input
           autoFocus
@@ -161,8 +161,8 @@ function TaskRow({
   }
 
   return (
-    <div className="border-b border-slate-700/50 last:border-0">
-      <div className="flex items-center gap-2 px-4 py-2.5 hover:bg-slate-800/50 group">
+    <div className="border-b border-slate-600/50 last:border-0">
+      <div className="flex items-center gap-2 px-4 py-2.5 hover:bg-slate-900/50 group">
         <span className="flex-1 text-slate-200 text-sm">{task.title}</span>
 
         <div className="flex items-center gap-2 shrink-0">
@@ -211,10 +211,10 @@ function CategoryGroup({
   const [collapsed, setCollapsed] = useState(true)
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden mb-3">
+    <div className="bg-slate-900 border border-slate-600 rounded-xl overflow-hidden mb-3">
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-800/80 transition-colors"
+        className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-900/80 transition-colors"
       >
         <div className="flex items-center gap-2">
           {collapsed ? <ChevronRight size={15} className="text-slate-400" /> : <ChevronDown size={15} className="text-slate-400" />}
@@ -224,7 +224,7 @@ function CategoryGroup({
       </button>
 
       {!collapsed && (
-        <div className="border-t border-slate-700">
+        <div className="border-t border-slate-600">
           {tasks.map(t => (
             <TaskRow key={t.id} task={t} teams={teams} subdivisions={subdivisions} onDelete={onDelete} />
           ))}
@@ -318,7 +318,7 @@ function AddTaskPanel({
   const canSave = title.trim() && ((addingSub ? newSub.trim() : category))
 
   return (
-    <div className="bg-slate-800 border border-blue-600 rounded-xl px-5 py-4 space-y-3">
+    <div className="bg-slate-900 border border-blue-600 rounded-xl px-5 py-4 space-y-3">
       <h3 className="text-sm font-semibold text-slate-100">Add New Task</h3>
 
       {/* Title + Team row */}
@@ -483,14 +483,14 @@ export function ChecklistPage() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search tasks, categories, or teams..."
-            className="w-full bg-slate-800 text-slate-200 placeholder-slate-500 text-sm rounded-xl pl-9 pr-4 py-2.5 border border-slate-700 focus:outline-none focus:border-blue-500"
+            className="w-full bg-slate-900 text-slate-200 placeholder-slate-500 text-sm rounded-xl pl-9 pr-4 py-2.5 border border-slate-600 focus:outline-none focus:border-blue-500"
           />
         </div>
         <div className="flex gap-2">
           <select
             value={teamFilter}
             onChange={e => setTeamFilter(e.target.value)}
-            className="flex-1 bg-slate-800 border border-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+            className="flex-1 bg-slate-900 border border-slate-600 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
           >
             <option value="all">All Teams</option>
             {teams.map(t => <option key={t} value={t}>{t}</option>)}
@@ -498,7 +498,7 @@ export function ChecklistPage() {
           <select
             value={subdivisionFilter}
             onChange={e => setSubdivisionFilter(e.target.value)}
-            className="flex-1 bg-slate-800 border border-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+            className="flex-1 bg-slate-900 border border-slate-600 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
           >
             <option value="all">All Subdivisions</option>
             {subdivisions.map(s => <option key={s} value={s}>{s}</option>)}
@@ -513,7 +513,7 @@ export function ChecklistPage() {
           { label: 'Categories', value: subdivisions.length },
           { label: 'Seeded to New Projects', value: '✓ All' },
         ].map(s => (
-          <div key={s.label} className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-center">
+          <div key={s.label} className="bg-slate-900 border border-slate-600 rounded-xl p-3 text-center">
             <p className="text-xl font-bold text-slate-100">{s.value}</p>
             <p className="text-xs text-slate-400 mt-0.5">{s.label}</p>
           </div>

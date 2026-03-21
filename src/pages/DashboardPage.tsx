@@ -66,7 +66,7 @@ You are a CRE PM assistant. Generate exactly 3 action-oriented focus bullets for
   }
 
   return (
-    <div className="bg-slate-800 border border-blue-800/30 rounded-xl p-4">
+    <div className="bg-slate-900 border border-blue-800/30 rounded-xl p-4">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Sparkles size={14} className="text-blue-400" />
@@ -164,7 +164,7 @@ function StatCard({ label, value, sub, icon: Icon, color, onClick }: {
   return (
     <div
       onClick={onClick}
-      className={clsx('bg-slate-800 border border-slate-700 rounded-xl p-5', onClick && 'cursor-pointer hover:border-slate-600 transition-colors')}
+      className={clsx('bg-slate-900 border border-slate-600 rounded-xl p-5', onClick && 'cursor-pointer hover:border-slate-600 transition-colors')}
     >
       <div className="flex items-start justify-between">
         <div className="min-w-0">
@@ -188,8 +188,8 @@ function BudgetSummaryBars({ projects }: { projects: Project[] }) {
   if (withBudget.length === 0) return null
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
-      <div className="px-5 py-4 border-b border-slate-700">
+    <div className="bg-slate-900 border border-slate-600 rounded-xl overflow-hidden">
+      <div className="px-5 py-4 border-b border-slate-600">
         <h2 className="text-slate-100 font-semibold text-sm">Budget Utilization</h2>
         <p className="text-xs text-slate-400 mt-0.5">Forecast vs. approved budget per project</p>
       </div>
@@ -278,8 +278,8 @@ function AttentionRequiredPanel({
   })
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-700">
+    <div className="bg-slate-900 border border-slate-600 rounded-xl overflow-hidden">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-600">
         <AlertTriangle size={14} className={alerts.length > 0 ? 'text-red-400' : 'text-emerald-400'} />
         <h3 className="text-sm font-semibold text-slate-200">Attention Required</h3>
         {alerts.length > 0 && (
@@ -341,8 +341,8 @@ function PendingDecisionsPanel({
   if (total === 0) return null
 
   return (
-    <div className="bg-slate-800 border border-amber-800/30 rounded-xl overflow-hidden">
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-700 bg-amber-950/20">
+    <div className="bg-slate-900 border border-amber-800/30 rounded-xl overflow-hidden">
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-600 bg-amber-950/20">
         <Inbox size={14} className="text-amber-400" />
         <h3 className="text-sm font-semibold text-amber-300">Pending Decisions</h3>
         <span className="ml-auto text-xs bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded-full font-medium border border-amber-700/40">
@@ -477,7 +477,7 @@ export function DashboardPage() {
             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
           </p>
         </div>
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-12 text-center">
+        <div className="bg-slate-900 border border-slate-600 rounded-xl p-12 text-center">
           <FolderOpen size={48} className="mx-auto mb-4 text-slate-400" />
           <h2 className="text-xl font-semibold text-slate-200 mb-2">No projects yet</h2>
           <p className="text-slate-400 text-sm max-w-md mx-auto mb-6">
@@ -555,7 +555,7 @@ export function DashboardPage() {
 
       {/* Portfolio Burn Rate */}
       {totalBudget > 0 && (
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
+        <div className="bg-slate-900 border border-slate-600 rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <DollarSign size={14} className="text-slate-400" />
@@ -644,8 +644,8 @@ export function DashboardPage() {
         const myUpcoming = myTasks.filter(t => { const d = new Date(t.dueDate); d.setHours(0,0,0,0); const td = new Date(); td.setHours(0,0,0,0); return d > td })
 
         return (
-          <div className="bg-slate-800 border border-blue-800/40 rounded-xl overflow-hidden">
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-700 bg-blue-950/20">
+          <div className="bg-slate-900 border border-blue-800/40 rounded-xl overflow-hidden">
+            <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-600 bg-blue-950/20">
               <User size={14} className="text-blue-400" />
               <h3 className="text-sm font-semibold text-blue-300">My Tasks</h3>
               <span className="text-xs text-slate-400">{user?.displayName}</span>
@@ -680,7 +680,7 @@ export function DashboardPage() {
                 )
               })}
             </div>
-            <div className="flex gap-4 px-4 py-2 border-t border-slate-700/50 text-[10px] text-slate-400">
+            <div className="flex gap-4 px-4 py-2 border-t border-slate-600/50 text-[10px] text-slate-400">
               {myOverdue.length > 0  && <span className="text-red-400">{myOverdue.length} overdue</span>}
               {myToday.length > 0   && <span className="text-amber-400">{myToday.length} due today</span>}
               {myUpcoming.length > 0 && <span>{myUpcoming.length} upcoming</span>}
@@ -710,8 +710,8 @@ export function DashboardPage() {
       <div className="grid md:grid-cols-2 gap-4">
 
         {/* Next 30-Day Milestones */}
-        <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
+        <div className="bg-slate-900 border border-slate-600 rounded-xl overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-600">
             <div className="flex items-center gap-2">
               <Calendar size={14} className="text-blue-400" />
               <h3 className="text-sm font-semibold text-slate-200">Next 30-Day Milestones</h3>
@@ -773,8 +773,8 @@ export function DashboardPage() {
         {!tasksLoading && (overdue.length > 0 || upcoming.length > 0) ? (
           <div className="space-y-4">
             {overdue.length > 0 && (
-              <div className="bg-slate-800 border border-red-800/40 rounded-xl overflow-hidden">
-                <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-700 bg-red-950/20">
+              <div className="bg-slate-900 border border-red-800/40 rounded-xl overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-600 bg-red-950/20">
                   <AlertTriangle size={14} className="text-red-400" />
                   <h3 className="text-sm font-semibold text-red-300">Overdue Tasks ({overdue.length})</h3>
                 </div>
@@ -803,8 +803,8 @@ export function DashboardPage() {
             )}
 
             {upcoming.length > 0 && (
-              <div className="bg-slate-800 border border-amber-800/40 rounded-xl overflow-hidden">
-                <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-700 bg-amber-950/20">
+              <div className="bg-slate-900 border border-amber-800/40 rounded-xl overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-600 bg-amber-950/20">
                   <Clock size={14} className="text-amber-400" />
                   <h3 className="text-sm font-semibold text-amber-300">Due in 14 Days ({upcoming.length})</h3>
                 </div>
@@ -836,7 +836,7 @@ export function DashboardPage() {
             )}
           </div>
         ) : (
-          <div className="bg-slate-800 border border-slate-700 rounded-xl flex items-center justify-center py-8 text-slate-400">
+          <div className="bg-slate-900 border border-slate-600 rounded-xl flex items-center justify-center py-8 text-slate-400">
             <div className="text-center">
               <CheckCircle size={24} className="mx-auto mb-2 text-emerald-500 opacity-70" />
               <p className="text-sm">No overdue or upcoming tasks</p>
@@ -847,7 +847,7 @@ export function DashboardPage() {
 
       {/* Portfolio AI Insights */}
       {portfolioInsights.length > 0 && (
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
+        <div className="bg-slate-900 border border-slate-600 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-3">
             <Sparkles size={14} className="text-blue-400" />
             <h3 className="text-sm font-semibold text-slate-200">Portfolio Risk Insights</h3>
@@ -900,8 +900,8 @@ export function DashboardPage() {
       <BudgetSummaryBars projects={active} />
 
       {/* Active projects table */}
-      <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-700">
+      <div className="bg-slate-900 border border-slate-600 rounded-xl overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-600">
           <h2 className="text-slate-100 font-semibold">Active Projects</h2>
           <button onClick={() => navigate('/projects')} className="text-blue-400 hover:text-blue-300 text-sm flex items-center gap-1">
             View all <ChevronRight size={14} />
@@ -929,7 +929,7 @@ export function DashboardPage() {
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-slate-400 text-xs uppercase tracking-wide border-b border-slate-700">
+                  <tr className="text-slate-400 text-xs uppercase tracking-wide border-b border-slate-600">
                     <th className="text-left px-5 py-3">Project</th>
                     <th className="text-left px-5 py-3">Stage</th>
                     <th className="text-right px-5 py-3">Budget</th>
@@ -948,7 +948,7 @@ export function DashboardPage() {
                         key={p.id}
                         onClick={() => navigate(`/projects/${p.id}`)}
                         className={clsx(
-                          'border-t border-slate-700 hover:bg-slate-700/40 cursor-pointer transition-colors',
+                          'border-t border-slate-600 hover:bg-slate-700/40 cursor-pointer transition-colors',
                           i % 2 !== 0 ? 'bg-slate-900/20' : ''
                         )}
                       >
@@ -1013,7 +1013,7 @@ export function DashboardPage() {
 
       {/* Closed projects summary */}
       {closed.length > 0 && (
-        <div className="flex items-center justify-between px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl">
+        <div className="flex items-center justify-between px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-xl">
           <div className="flex items-center gap-2">
             <CheckCircle size={15} className="text-emerald-500" />
             <span className="text-sm text-slate-400">

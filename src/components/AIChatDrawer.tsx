@@ -48,7 +48,7 @@ function MessageBubble({ msg }: { msg: Message }) {
         'group max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed',
         isUser
           ? 'bg-blue-600 text-white rounded-br-sm'
-          : 'bg-slate-800 border border-slate-700 text-slate-200 rounded-bl-sm'
+          : 'bg-slate-900 border border-slate-600 text-slate-200 rounded-bl-sm'
       )}>
         <p className="whitespace-pre-wrap">{msg.content}</p>
         {!isUser && (
@@ -244,7 +244,7 @@ Answer questions about this portfolio. Be specific, cite project names and numbe
             {messages.length > 0 && (
               <button
                 onClick={() => setMessages([])}
-                className="p-1.5 text-slate-400 hover:text-slate-300 hover:bg-slate-800 rounded-lg transition-colors"
+                className="p-1.5 text-slate-400 hover:text-slate-300 hover:bg-slate-900 rounded-lg transition-colors"
                 title="Clear conversation"
               >
                 <Trash2 size={14} />
@@ -252,7 +252,7 @@ Answer questions about this portfolio. Be specific, cite project names and numbe
             )}
             <button
               onClick={onClose}
-              className="p-1.5 text-slate-400 hover:text-slate-300 hover:bg-slate-800 rounded-lg transition-colors"
+              className="p-1.5 text-slate-400 hover:text-slate-300 hover:bg-slate-900 rounded-lg transition-colors"
             >
               <X size={16} />
             </button>
@@ -280,7 +280,7 @@ Answer questions about this portfolio. Be specific, cite project names and numbe
                   <button
                     key={s}
                     onClick={() => sendMessage(s)}
-                    className="w-full text-left text-xs px-3 py-2.5 bg-slate-800/60 hover:bg-slate-700/60 border border-slate-700 hover:border-slate-600 rounded-xl text-slate-300 transition-colors"
+                    className="w-full text-left text-xs px-3 py-2.5 bg-slate-900/60 hover:bg-slate-700/60 border border-slate-600 hover:border-slate-600 rounded-xl text-slate-300 transition-colors"
                   >
                     {s}
                   </button>
@@ -297,7 +297,7 @@ Answer questions about this portfolio. Be specific, cite project names and numbe
               <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center shrink-0">
                 <Sparkles size={13} className="text-white" />
               </div>
-              <div className="bg-slate-800 border border-slate-700 rounded-2xl rounded-bl-sm px-4 py-3">
+              <div className="bg-slate-900 border border-slate-600 rounded-2xl rounded-bl-sm px-4 py-3">
                 <div className="flex gap-1">
                   <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                   <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -321,7 +321,7 @@ Answer questions about this portfolio. Be specific, cite project names and numbe
               placeholder="Ask about projects, budgets, tasks..."
               rows={1}
               disabled={noKey || streaming}
-              className="flex-1 resize-none bg-slate-800 border border-slate-700 focus:border-blue-500 rounded-xl px-3 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none disabled:opacity-50 max-h-32 overflow-y-auto"
+              className="flex-1 resize-none bg-slate-900 border border-slate-600 focus:border-blue-500 rounded-xl px-3 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none disabled:opacity-50 max-h-32 overflow-y-auto"
               style={{ minHeight: '42px' }}
             />
             <button

@@ -109,33 +109,33 @@ function SubmittalRow({
       <div className="border border-blue-600/40 rounded-xl bg-slate-900/60 p-4 space-y-3">
         <div className="grid grid-cols-2 gap-2">
           <input value={form.title} onChange={f('title')} placeholder="Title *" autoFocus
-            className="bg-slate-800 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
+            className="bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
           <input value={form.specSection} onChange={f('specSection')} placeholder="Spec Section"
-            className="bg-slate-800 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
+            className="bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           <input value={form.submittedBy} onChange={f('submittedBy')} placeholder="Submitted by"
-            className="bg-slate-800 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
+            className="bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
           <input value={form.reviewer} onChange={f('reviewer')} placeholder="Reviewer"
-            className="bg-slate-800 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
+            className="bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
           <input type="date" value={form.submittedDate} onChange={f('submittedDate')} title="Date Submitted"
-            className="bg-slate-800 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500" />
+            className="bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500" />
           <input type="date" value={form.dueDate} onChange={f('dueDate')} title="Review Due Date"
-            className="bg-slate-800 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500" />
+            className="bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500" />
         </div>
 
         <div className="grid grid-cols-2 gap-2">
           <select value={form.status} onChange={f('status')}
-            className="bg-slate-800 border border-slate-600 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
+            className="bg-slate-900 border border-slate-600 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
             {SUBMITTAL_STATUSES.map(s => <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>)}
           </select>
           <input type="date" value={form.reviewedDate} onChange={f('reviewedDate')} title="Date Reviewed"
-            className="bg-slate-800 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500" />
+            className="bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500" />
         </div>
 
         <textarea value={form.notes} onChange={f('notes')} placeholder="Notes / comments" rows={2}
-          className="w-full bg-slate-800 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 resize-none placeholder-slate-500" />
+          className="w-full bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 resize-none placeholder-slate-500" />
 
         <div className="flex gap-2">
           <button onClick={save} disabled={saving || !form.title.trim()}
@@ -151,7 +151,7 @@ function SubmittalRow({
   return (
     <div className={clsx(
       'border rounded-xl overflow-hidden transition-colors',
-      isOverdue ? 'border-red-800/50 bg-red-950/10' : 'border-slate-700 bg-slate-800'
+      isOverdue ? 'border-red-800/50 bg-red-950/10' : 'border-slate-600 bg-slate-900'
     )}>
       <div className="flex items-center gap-3 px-4 py-3 group">
         {/* Number */}
@@ -192,7 +192,7 @@ function SubmittalRow({
       </div>
 
       {expanded && (
-        <div className="px-4 pb-4 border-t border-slate-700/50 pt-3 space-y-3">
+        <div className="px-4 pb-4 border-t border-slate-600/50 pt-3 space-y-3">
           {submittal.notes && (
             <div>
               <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-1">Review Notes</p>
@@ -246,7 +246,7 @@ function AddSubmittalForm({
   }
 
   return (
-    <div className="bg-slate-800 border border-blue-600 rounded-xl p-4 space-y-3">
+    <div className="bg-slate-900 border border-blue-600 rounded-xl p-4 space-y-3">
       <h3 className="text-sm font-semibold text-slate-100">New Submittal — {nextNumber}</h3>
 
       <div className="grid grid-cols-2 gap-2">
@@ -299,7 +299,7 @@ export function SubmittalsTab({ project }: { project: Project }) {
           { label: 'Overdue', value: overdueCount, color: overdueCount > 0 ? 'text-red-400' : 'text-slate-100' },
           { label: 'Approved', value: approved, color: approved > 0 ? 'text-emerald-400' : 'text-slate-100' },
         ].map(s => (
-          <div key={s.label} className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-center">
+          <div key={s.label} className="bg-slate-900 border border-slate-600 rounded-xl p-3 text-center">
             <p className={clsx('text-xl font-bold', s.color)}>{s.value}</p>
             <p className="text-xs text-slate-400 mt-0.5">{s.label}</p>
           </div>
@@ -308,7 +308,7 @@ export function SubmittalsTab({ project }: { project: Project }) {
 
       {/* Toolbar */}
       <div className="flex items-center gap-2 flex-wrap">
-        <div className="flex gap-1 bg-slate-800 border border-slate-700 rounded-lg p-1 flex-wrap">
+        <div className="flex gap-1 bg-slate-900 border border-slate-600 rounded-lg p-1 flex-wrap">
           {(['all', ...SUBMITTAL_STATUSES] as const).map(s => (
             <button
               key={s}

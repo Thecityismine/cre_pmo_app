@@ -131,9 +131,9 @@ function LinkedItemsPicker({
       </button>
 
       {open && (
-        <div className="mt-2 bg-slate-900/80 border border-slate-700 rounded-xl overflow-hidden">
+        <div className="mt-2 bg-slate-900/80 border border-slate-600 rounded-xl overflow-hidden">
           {/* Tabs */}
-          <div className="flex border-b border-slate-700">
+          <div className="flex border-b border-slate-600">
             {TABS.map(t => (
               <button
                 key={t.id}
@@ -171,7 +171,7 @@ function LinkedItemsPicker({
                     onClick={() => toggle(tab, opt)}
                     className={clsx(
                       'w-full text-left flex items-center gap-2.5 px-3 py-2 text-xs transition-colors',
-                      selected ? 'bg-blue-950/40 text-blue-200' : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200',
+                      selected ? 'bg-blue-950/40 text-blue-200' : 'text-slate-400 hover:bg-slate-900/60 hover:text-slate-200',
                     )}
                   >
                     <span className={clsx(
@@ -234,17 +234,17 @@ function ImpactChips({ item }: { item: RaidItem }) {
   return (
     <div className="flex items-center gap-2 flex-wrap mt-1.5">
       {!!item.costImpact && (
-        <span className="flex items-center gap-1 text-[10px] bg-slate-800 border border-slate-700 rounded px-1.5 py-0.5 text-amber-300">
+        <span className="flex items-center gap-1 text-[10px] bg-slate-900 border border-slate-600 rounded px-1.5 py-0.5 text-amber-300">
           <DollarSign size={9} /> {fmt$(item.costImpact)}
         </span>
       )}
       {!!item.scheduleImpact && (
-        <span className="flex items-center gap-1 text-[10px] bg-slate-800 border border-slate-700 rounded px-1.5 py-0.5 text-blue-300">
+        <span className="flex items-center gap-1 text-[10px] bg-slate-900 border border-slate-600 rounded px-1.5 py-0.5 text-blue-300">
           <Clock3 size={9} /> {item.scheduleImpact}d
         </span>
       )}
       {item.scopeImpact && (
-        <span className="flex items-center gap-1 text-[10px] bg-slate-800 border border-slate-700 rounded px-1.5 py-0.5 text-slate-400">
+        <span className="flex items-center gap-1 text-[10px] bg-slate-900 border border-slate-600 rounded px-1.5 py-0.5 text-slate-400">
           <Layers size={9} /> Scope
         </span>
       )}
@@ -352,7 +352,7 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
               onClick={() => setType(t)}
               className={clsx(
                 'px-3 py-1 rounded-lg text-xs font-medium border transition-colors',
-                type === t ? TYPE_CONFIG[t].bg + ' ' + TYPE_CONFIG[t].color : 'bg-slate-800 text-slate-400 border-slate-700'
+                type === t ? TYPE_CONFIG[t].bg + ' ' + TYPE_CONFIG[t].color : 'bg-slate-900 text-slate-400 border-slate-600'
               )}
             >
               {TYPE_CONFIG[t].label}
@@ -365,7 +365,7 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
               onClick={() => setPriority(p)}
               className={clsx(
                 'flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium border transition-colors',
-                priority === p ? 'bg-slate-700 text-slate-200 border-slate-500' : 'bg-slate-800 text-slate-400 border-slate-700'
+                priority === p ? 'bg-slate-700 text-slate-200 border-slate-500' : 'bg-slate-900 text-slate-400 border-slate-600'
               )}
             >
               <span className={clsx('w-1.5 h-1.5 rounded-full', PRIORITY_CONFIG[p].dot)} />
@@ -443,7 +443,7 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
               onClick={() => setStatus(s)}
               className={clsx(
                 'px-3 py-1 rounded-lg text-xs font-medium transition-colors',
-                status === s ? STATUS_CONFIG[s].color : 'bg-slate-800 text-slate-400'
+                status === s ? STATUS_CONFIG[s].color : 'bg-slate-900 text-slate-400'
               )}
             >
               {STATUS_CONFIG[s].label}
@@ -543,7 +543,7 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
 
       {/* Expanded section */}
       {expanded && (
-        <div className="px-4 pb-4 border-t border-slate-700/40 space-y-3 pt-3">
+        <div className="px-4 pb-4 border-t border-slate-600/40 space-y-3 pt-3">
           {item.description && (
             <p className="text-sm text-slate-400 leading-relaxed">{item.description}</p>
           )}
@@ -562,7 +562,7 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
 
           {/* AI Mitigation */}
           {hasClaudeKey() && (item.status === 'open' || item.status === 'in-progress') && (
-            <div className="border-t border-slate-700/40 pt-3">
+            <div className="border-t border-slate-600/40 pt-3">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-1.5">
                   <Sparkles size={12} className="text-violet-400" />
@@ -640,7 +640,7 @@ function AddRaidForm({
   }
 
   return (
-    <div className="bg-slate-800 border border-blue-600 rounded-xl p-4 space-y-3">
+    <div className="bg-slate-900 border border-blue-600 rounded-xl p-4 space-y-3">
       <h3 className="text-sm font-semibold text-slate-100">Add RAID Item</h3>
 
       {/* Type selector */}
@@ -742,7 +742,7 @@ function AddRaidForm({
             onClick={() => setPriority(p)}
             className={clsx(
               'flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs border transition-colors',
-              priority === p ? 'bg-slate-700 text-slate-200 border-slate-500' : 'text-slate-400 border-slate-700 hover:text-slate-300'
+              priority === p ? 'bg-slate-700 text-slate-200 border-slate-500' : 'text-slate-400 border-slate-600 hover:text-slate-300'
             )}
           >
             <span className={clsx('w-1.5 h-1.5 rounded-full', PRIORITY_CONFIG[p].dot)} />
@@ -818,7 +818,7 @@ export function RaidTab({ project, setTab }: { project: Project; setTab?: (tab: 
               onClick={() => setTypeFilter(typeFilter === t ? 'all' : t)}
               className={clsx(
                 'rounded-xl p-3 text-center border transition-colors',
-                typeFilter === t ? cfg.bg : 'bg-slate-800 border-slate-700 hover:border-slate-600'
+                typeFilter === t ? cfg.bg : 'bg-slate-900 border-slate-600 hover:border-slate-600'
               )}
             >
               <cfg.Icon size={16} className={clsx('mx-auto mb-1', cfg.color)} />
@@ -858,7 +858,7 @@ export function RaidTab({ project, setTab }: { project: Project; setTab?: (tab: 
         <select
           value={statusFilter}
           onChange={e => setStatusFilter(e.target.value as RaidStatus | 'all')}
-          className="bg-slate-800 border border-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+          className="bg-slate-900 border border-slate-600 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
         >
           <option value="open">Open Items</option>
           <option value="all">All Statuses</option>
@@ -869,7 +869,7 @@ export function RaidTab({ project, setTab }: { project: Project; setTab?: (tab: 
 
         <button
           onClick={() => exportToCSV(items, project.projectName)}
-          className="flex items-center gap-1.5 text-slate-400 hover:text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm px-3 py-2 rounded-lg transition-colors"
+          className="flex items-center gap-1.5 text-slate-400 hover:text-slate-200 bg-slate-900 hover:bg-slate-700 border border-slate-600 text-sm px-3 py-2 rounded-lg transition-colors"
           title="Export to CSV"
         >
           <Download size={13} /> <span className="hidden sm:inline">CSV</span>

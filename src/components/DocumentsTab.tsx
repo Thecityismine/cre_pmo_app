@@ -74,7 +74,7 @@ function UploadModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4" onClick={e => e.stopPropagation()}>
+      <div className="bg-slate-900 border border-slate-600 rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h3 className="text-slate-100 font-semibold text-sm">Add Document</h3>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-300"><X size={16} /></button>
@@ -86,7 +86,7 @@ function UploadModal({
           <select
             value={category}
             onChange={e => setCategory(e.target.value)}
-            className="w-full bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-blue-500"
+            className="w-full bg-slate-900 border border-slate-600 text-slate-200 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-blue-500"
           >
             {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
@@ -99,7 +99,7 @@ function UploadModal({
             value={displayName}
             onChange={e => setDisplayName(e.target.value)}
             placeholder="e.g. 23rd Floor Plan"
-            className="w-full bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-blue-500 placeholder-slate-600"
+            className="w-full bg-slate-900 border border-slate-600 text-slate-200 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-blue-500 placeholder-slate-600"
           />
         </div>
 
@@ -113,7 +113,7 @@ function UploadModal({
             'border-2 border-dashed rounded-xl py-8 flex flex-col items-center gap-2 cursor-pointer transition-colors',
             dragging
               ? 'border-blue-500 bg-blue-500/10 text-blue-300'
-              : 'border-slate-700 hover:border-slate-500 text-slate-400 hover:text-slate-400'
+              : 'border-slate-600 hover:border-slate-500 text-slate-400 hover:text-slate-400'
           )}
         >
           <Upload size={20} />
@@ -151,7 +151,7 @@ function Lightbox({ doc: d, all, onClose }: { doc: ProjectDocument; all: Project
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={onClose}>
       <div className="relative max-w-5xl w-full max-h-[90vh] flex flex-col bg-slate-900 rounded-2xl shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700 shrink-0">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-600 shrink-0">
           <div className="flex items-center gap-2 min-w-0">
             <span className={clsx('text-xs px-2 py-0.5 rounded font-medium shrink-0', categoryColor(current.category))}>{current.category}</span>
             <span className="text-slate-200 text-sm font-medium truncate">{label}</span>
@@ -159,10 +159,10 @@ function Lightbox({ doc: d, all, onClose }: { doc: ProjectDocument; all: Project
           </div>
           <div className="flex items-center gap-1 shrink-0 ml-2">
             <a href={current.url} download={current.originalName}
-              className="p-1.5 text-slate-400 hover:text-blue-400 hover:bg-slate-800 rounded-lg transition-colors" title="Download">
+              className="p-1.5 text-slate-400 hover:text-blue-400 hover:bg-slate-900 rounded-lg transition-colors" title="Download">
               <Download size={15} />
             </a>
-            <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors">
+            <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-900 rounded-lg transition-colors">
               <X size={15} />
             </button>
           </div>
@@ -173,7 +173,7 @@ function Lightbox({ doc: d, all, onClose }: { doc: ProjectDocument; all: Project
           {isImage(current.type) ? (
             <img src={current.url} alt={label} className="max-w-full max-h-full object-contain rounded-lg" />
           ) : isPdf(current.type) ? (
-            <iframe src={current.url} className="w-full rounded-lg border border-slate-700" style={{ height: 'min(70vh, 600px)' }} title={label} />
+            <iframe src={current.url} className="w-full rounded-lg border border-slate-600" style={{ height: 'min(70vh, 600px)' }} title={label} />
           ) : (
             <div className="flex flex-col items-center gap-4 py-12">
               <DocTypeIcon type={current.type} size={56} />
@@ -188,14 +188,14 @@ function Lightbox({ doc: d, all, onClose }: { doc: ProjectDocument; all: Project
 
         {/* Navigation */}
         {all.length > 1 && (
-          <div className="flex items-center justify-between px-4 py-2 border-t border-slate-700 shrink-0">
+          <div className="flex items-center justify-between px-4 py-2 border-t border-slate-600 shrink-0">
             <button onClick={prev} disabled={currentIdx === 0}
-              className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-200 disabled:opacity-30 px-2 py-1 rounded-lg hover:bg-slate-800 transition-colors">
+              className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-200 disabled:opacity-30 px-2 py-1 rounded-lg hover:bg-slate-900 transition-colors">
               <ChevronLeft size={14} /> Prev
             </button>
             <span className="text-xs text-slate-400">{currentIdx + 1} / {all.length}</span>
             <button onClick={next} disabled={currentIdx === all.length - 1}
-              className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-200 disabled:opacity-30 px-2 py-1 rounded-lg hover:bg-slate-800 transition-colors">
+              className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-200 disabled:opacity-30 px-2 py-1 rounded-lg hover:bg-slate-900 transition-colors">
               Next <ChevronRight size={14} />
             </button>
           </div>
@@ -230,7 +230,7 @@ function EditModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4" onClick={e => e.stopPropagation()}>
+      <div className="bg-slate-900 border border-slate-600 rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <h3 className="text-slate-100 font-semibold text-sm">Edit Document</h3>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-300"><X size={16} /></button>
@@ -242,7 +242,7 @@ function EditModal({
             <input
               value={displayName}
               onChange={e => setDisplayName(e.target.value)}
-              className="w-full bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-blue-500"
+              className="w-full bg-slate-900 border border-slate-600 text-slate-200 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-blue-500"
               autoFocus
             />
           </div>
@@ -252,7 +252,7 @@ function EditModal({
             <select
               value={category}
               onChange={e => setCategory(e.target.value)}
-              className="w-full bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-blue-500"
+              className="w-full bg-slate-900 border border-slate-600 text-slate-200 text-sm rounded-lg px-3 py-2.5 focus:outline-none focus:border-blue-500"
             >
               {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
@@ -264,7 +264,7 @@ function EditModal({
               <Check size={13} /> {saving ? 'Saving…' : 'Save'}
             </button>
             <button type="button" onClick={onClose}
-              className="border border-slate-600 text-slate-400 text-sm px-4 py-2 rounded-lg hover:bg-slate-800 transition-colors">
+              className="border border-slate-600 text-slate-400 text-sm px-4 py-2 rounded-lg hover:bg-slate-900 transition-colors">
               Cancel
             </button>
           </div>
@@ -282,7 +282,7 @@ function DocCard({ doc: d, onOpen, onDelete, onEdit, deleting }: {
   const label = d.displayName || d.originalName
 
   return (
-    <div className="group relative bg-slate-800 border border-slate-700 hover:border-slate-500 rounded-xl overflow-hidden transition-all hover:shadow-lg hover:shadow-black/30 flex flex-col">
+    <div className="group relative bg-slate-900 border border-slate-600 hover:border-slate-500 rounded-xl overflow-hidden transition-all hover:shadow-lg hover:shadow-black/30 flex flex-col">
       {/* Thumbnail */}
       <button onClick={onOpen} className="relative w-full aspect-[4/3] flex items-center justify-center bg-slate-900 overflow-hidden">
         {isImage(d.type) ? (
@@ -429,7 +429,7 @@ export function DocumentsTab({ project }: { project: Project }) {
             <button key={c} onClick={() => setCatFilter(c)}
               className={clsx(
                 'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
-                catFilter === c ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700'
+                catFilter === c ? 'bg-blue-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-600'
               )}>
               {c} {c === 'All' ? `(${documents.length})` : `(${documents.filter(d => d.category === c).length})`}
             </button>
@@ -446,7 +446,7 @@ export function DocumentsTab({ project }: { project: Project }) {
 
       {/* ── Active uploads ── */}
       {uploads.filter(u => !u.done).map((u, i) => (
-        <div key={i} className="bg-slate-800 border border-slate-700 rounded-xl p-3">
+        <div key={i} className="bg-slate-900 border border-slate-600 rounded-xl p-3">
           <div className="flex items-center justify-between mb-1.5">
             <div className="flex items-center gap-2 min-w-0">
               <DocTypeIcon type={u.file.type} size={14} />
@@ -469,7 +469,7 @@ export function DocumentsTab({ project }: { project: Project }) {
       {loading ? (
         <div className="flex justify-center py-12"><Loader2 size={20} className="animate-spin text-slate-400" /></div>
       ) : documents.length === 0 ? (
-        <div className="text-center py-20 text-slate-400 bg-slate-800 border border-slate-700 rounded-xl">
+        <div className="text-center py-20 text-slate-400 bg-slate-900 border border-slate-600 rounded-xl">
           <FolderOpen size={36} className="mx-auto mb-3 opacity-40" />
           <p className="text-sm">No documents yet.</p>
           <p className="text-xs mt-1 mb-4">Upload drawings, contracts, photos, or any project files.</p>

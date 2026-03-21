@@ -76,16 +76,16 @@ function MilestoneRow({
       <div className="border border-blue-600/40 rounded-xl bg-slate-900/60 p-4 space-y-3 mb-2">
         <div className="grid grid-cols-2 gap-2">
           <input value={form.name} onChange={f('name')} placeholder="Milestone name *" autoFocus
-            className="col-span-2 bg-slate-800 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
+            className="col-span-2 bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
           <div>
             <label className="text-xs text-slate-400 mb-1 block">Target Date</label>
             <input type="date" value={form.targetDate} onChange={f('targetDate')}
-              className="w-full bg-slate-800 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500" />
+              className="w-full bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500" />
           </div>
           <div>
             <label className="text-xs text-slate-400 mb-1 block">Actual Date</label>
             <input type="date" value={form.actualDate} onChange={f('actualDate')}
-              className="w-full bg-slate-800 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500" />
+              className="w-full bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500" />
           </div>
         </div>
 
@@ -98,7 +98,7 @@ function MilestoneRow({
                   ? s === 'complete' ? 'bg-emerald-900/60 text-emerald-300 border-emerald-700'
                     : s === 'delayed' ? 'bg-red-900/60 text-red-300 border-red-700'
                     : 'bg-slate-700 text-slate-300 border-slate-500'
-                  : 'bg-slate-800 text-slate-400 border-slate-700'
+                  : 'bg-slate-900 text-slate-400 border-slate-600'
               )}>
               {STATUS_CONFIG[s].label}
             </button>
@@ -106,7 +106,7 @@ function MilestoneRow({
         </div>
 
         <textarea value={form.notes} onChange={f('notes')} placeholder="Notes (optional)" rows={2}
-          className="w-full bg-slate-800 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 resize-none placeholder-slate-500" />
+          className="w-full bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 resize-none placeholder-slate-500" />
 
         <div className="flex gap-2">
           <button onClick={save} disabled={saving || !form.name.trim()}
@@ -122,7 +122,7 @@ function MilestoneRow({
   return (
     <div className={clsx(
       'flex items-start gap-3 px-4 py-3 rounded-xl border mb-2 group transition-colors',
-      overdue ? 'bg-red-950/10 border-red-800/30' : 'bg-slate-800 border-slate-700 hover:border-slate-600'
+      overdue ? 'bg-red-950/10 border-red-800/30' : 'bg-slate-900 border-slate-600 hover:border-slate-600'
     )}>
       {/* Status toggle button */}
       <button
@@ -221,7 +221,7 @@ function AddMilestoneForm({
   }
 
   return (
-    <div className="bg-slate-800 border border-blue-600 rounded-xl p-4 space-y-3 mb-2">
+    <div className="bg-slate-900 border border-blue-600 rounded-xl p-4 space-y-3 mb-2">
       <h3 className="text-sm font-semibold text-slate-100">Add Milestone</h3>
       <input value={form.name} onChange={f('name')} placeholder="Milestone name *" autoFocus
         onKeyDown={e => { if (e.key === 'Escape') onCancel() }}
@@ -272,9 +272,9 @@ export function MilestoneTimeline({ project }: { project: Project }) {
   const pct = milestones.length > 0 ? Math.round((completedCount / milestones.length) * 100) : 0
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
+    <div className="bg-slate-900 border border-slate-600 rounded-xl overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-600">
         <div className="flex items-center gap-3">
           <p className="text-slate-100 font-semibold text-sm">Milestones</p>
           {milestones.length > 0 && (

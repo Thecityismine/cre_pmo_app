@@ -11,7 +11,7 @@ export function Topbar({ onAIOpen }: { onAIOpen?: () => void }) {
   const { overdueCount } = usePortfolioTasks()
 
   return (
-    <header className="topbar bg-slate-900 border-b border-slate-700 shrink-0"><div className="h-14 flex items-center justify-between px-4 md:px-6">
+    <header className="topbar bg-slate-900 border-b border-slate-600 shrink-0"><div className="h-14 flex items-center justify-between px-4 md:px-6">
 
       {/* Mobile: search overlay toggle / Desktop: inline search */}
       {searchOpen ? (
@@ -22,7 +22,7 @@ export function Topbar({ onAIOpen }: { onAIOpen?: () => void }) {
               autoFocus
               type="text"
               placeholder="Search projects..."
-              className="w-full bg-slate-800 text-slate-200 placeholder-slate-500 text-sm rounded-lg pl-9 pr-4 py-2 border border-slate-700 focus:outline-none focus:border-blue-500"
+              className="w-full bg-slate-900 text-slate-200 placeholder-slate-500 text-sm rounded-lg pl-9 pr-4 py-2 border border-slate-600 focus:outline-none focus:border-blue-500"
             />
           </div>
           <button onClick={() => setSearchOpen(false)} className="text-slate-400 p-1">
@@ -40,7 +40,7 @@ export function Topbar({ onAIOpen }: { onAIOpen?: () => void }) {
             <input
               type="text"
               placeholder="Search projects..."
-              className="bg-slate-800 text-slate-200 placeholder-slate-500 text-sm rounded-lg pl-9 pr-4 py-2 w-48 lg:w-64 border border-slate-700 focus:outline-none focus:border-blue-500"
+              className="bg-slate-900 text-slate-200 placeholder-slate-500 text-sm rounded-lg pl-9 pr-4 py-2 w-48 lg:w-64 border border-slate-600 focus:outline-none focus:border-blue-500"
             />
           </div>
 
@@ -58,7 +58,7 @@ export function Topbar({ onAIOpen }: { onAIOpen?: () => void }) {
               <Search size={18} />
             </button>
 
-            <button className="relative p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors" title={overdueCount > 0 ? `${overdueCount} overdue task${overdueCount > 1 ? 's' : ''}` : 'No overdue tasks'}>
+            <button className="relative p-2 text-slate-400 hover:text-slate-200 hover:bg-slate-900 rounded-lg transition-colors" title={overdueCount > 0 ? `${overdueCount} overdue task${overdueCount > 1 ? 's' : ''}` : 'No overdue tasks'}>
               <Bell size={18} />
               {overdueCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-red-500 rounded-full flex items-center justify-center px-0.5">
@@ -67,7 +67,7 @@ export function Topbar({ onAIOpen }: { onAIOpen?: () => void }) {
               )}
             </button>
 
-            <Link to="/settings" className="flex items-center gap-2 pl-2 md:pl-3 border-l border-slate-700 hover:opacity-80 transition-opacity">
+            <Link to="/settings" className="flex items-center gap-2 pl-2 md:pl-3 border-l border-slate-600 hover:opacity-80 transition-opacity">
               <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center shrink-0">
                 {user?.photoURL ? (
                   <img src={user.photoURL} alt={user.displayName ?? ''} className="w-8 h-8 rounded-full" />

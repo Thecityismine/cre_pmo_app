@@ -53,7 +53,7 @@ function KPI({ icon: Icon, label, value, sub, color }: {
   icon: React.ElementType; label: string; value: string; sub?: string; color: string
 }) {
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
+    <div className="bg-slate-900 border border-slate-600 rounded-xl p-4">
       <div className="flex items-start justify-between">
         <div className="min-w-0">
           <p className="text-slate-400 text-xs uppercase tracking-wide font-medium">{label}</p>
@@ -408,7 +408,7 @@ Format your response exactly like this:
         <button
           onClick={handleExportAnalytics}
           disabled={exporting || active.length === 0}
-          className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-700 hover:border-slate-600 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40 shrink-0"
+          className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-600 hover:border-slate-600 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40 shrink-0"
         >
           <Download size={12} /> {exporting ? 'Exporting…' : 'Export PDF'}
         </button>
@@ -457,7 +457,7 @@ Format your response exactly like this:
                 <button
                   key={p.id}
                   onClick={() => navigate(`/projects/${p.id}`)}
-                  className="w-full flex items-center gap-3 text-left px-3 py-2 bg-slate-800/60 rounded-lg hover:bg-slate-800 transition-colors"
+                  className="w-full flex items-center gap-3 text-left px-3 py-2 bg-slate-900/60 rounded-lg hover:bg-slate-900 transition-colors"
                 >
                   <span className={clsx(
                     'w-2 h-2 rounded-full shrink-0',
@@ -474,8 +474,8 @@ Format your response exactly like this:
       )}
 
       {/* Portfolio Health Matrix */}
-      <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-700 flex items-center justify-between">
+      <div className="bg-slate-900 border border-slate-600 rounded-xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-600 flex items-center justify-between">
           <div>
             <h2 className="text-slate-100 font-semibold">Portfolio Health Matrix</h2>
             <p className="text-xs text-slate-400 mt-0.5">Project × Health × Budget — sorted worst to best</p>
@@ -490,7 +490,7 @@ Format your response exactly like this:
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-slate-400 text-xs uppercase tracking-wide border-b border-slate-700 bg-slate-800/60">
+                  <tr className="text-slate-400 text-xs uppercase tracking-wide border-b border-slate-600 bg-slate-900/60">
                     <th className="text-left px-5 py-2.5">Project</th>
                     <th className="text-left px-4 py-2.5">Stage</th>
                     <th className="text-center px-4 py-2.5">Health</th>
@@ -520,7 +520,7 @@ Format your response exactly like this:
                         <tr
                           key={p.id}
                           onClick={() => navigate(`/projects/${p.id}`)}
-                          className="border-t border-slate-700/60 hover:bg-slate-700/30 cursor-pointer transition-colors"
+                          className="border-t border-slate-600/60 hover:bg-slate-700/30 cursor-pointer transition-colors"
                         >
                           <td className="px-5 py-2.5">
                             <div className="flex items-center gap-2">
@@ -599,7 +599,7 @@ Format your response exactly like this:
       </div>
 
       {/* Budget by Project */}
-      <div className="bg-slate-800 border border-slate-700 rounded-xl p-5">
+      <div className="bg-slate-900 border border-slate-600 rounded-xl p-5">
         <div className="flex items-baseline justify-between mb-4">
           <h2 className="text-slate-100 font-semibold">Budget by Project</h2>
           <div className="flex gap-4">
@@ -651,7 +651,7 @@ Format your response exactly like this:
 
       {/* Stage + Profile breakdown */}
       <div className="grid md:grid-cols-2 gap-4">
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-5">
+        <div className="bg-slate-900 border border-slate-600 rounded-xl p-5">
           <h2 className="text-slate-100 font-semibold mb-4">Projects by Stage</h2>
           <div className="space-y-3">
             {Object.entries(byStatus).map(([status, count]) => (
@@ -670,7 +670,7 @@ Format your response exactly like this:
           </div>
         </div>
 
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-5">
+        <div className="bg-slate-900 border border-slate-600 rounded-xl p-5">
           <h2 className="text-slate-100 font-semibold mb-4">Projects by Profile</h2>
           <div className="space-y-4">
             {Object.entries(byProfile).map(([profile, data]) => (
@@ -696,7 +696,7 @@ Format your response exactly like this:
       </div>
 
       {/* Portfolio Budget Summary */}
-      <div className="bg-slate-800 border border-slate-700 rounded-xl p-5">
+      <div className="bg-slate-900 border border-slate-600 rounded-xl p-5">
         <h2 className="text-slate-100 font-semibold mb-4">Portfolio Budget Summary</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <SummaryItem label="Approved Budget" value={fmtM(totalBudget)} sub="Combined active" />
@@ -712,7 +712,7 @@ Format your response exactly like this:
       </div>
 
       {/* ── 5.1 Auto Weekly Report ── */}
-      <div className="bg-slate-800 border border-slate-700 rounded-xl p-5">
+      <div className="bg-slate-900 border border-slate-600 rounded-xl p-5">
         <div className="flex items-center justify-between mb-3 flex-wrap gap-3">
           <div className="flex items-center gap-2">
             <Sparkles size={16} className="text-blue-400" />
@@ -726,13 +726,13 @@ Format your response exactly like this:
               <>
                 <button
                   onClick={copyReport}
-                  className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-700 hover:border-slate-600 px-2.5 py-1.5 rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-600 hover:border-slate-600 px-2.5 py-1.5 rounded-lg transition-colors"
                 >
                   {reportCopied ? <><Check size={11} /> Copied</> : <><ClipboardCopy size={11} /> Copy</>}
                 </button>
                 <button
                   onClick={exportReportPdf}
-                  className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-700 hover:border-slate-600 px-2.5 py-1.5 rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-600 hover:border-slate-600 px-2.5 py-1.5 rounded-lg transition-colors"
                 >
                   <FileDown size={11} /> PDF
                 </button>
@@ -759,7 +759,7 @@ Format your response exactly like this:
           <div className="bg-slate-900/60 rounded-lg p-4 space-y-1 max-h-[600px] overflow-y-auto">
             {weeklyReport.split('\n').map((line, i) => {
               if (line.startsWith('## ')) {
-                return <p key={i} className="text-slate-100 font-semibold text-sm mt-4 first:mt-0 border-b border-slate-700/50 pb-1">{line.slice(3)}</p>
+                return <p key={i} className="text-slate-100 font-semibold text-sm mt-4 first:mt-0 border-b border-slate-600/50 pb-1">{line.slice(3)}</p>
               } else if (line.startsWith('**') && line.endsWith('**')) {
                 return <p key={i} className="text-xs text-slate-400 font-medium -mt-1">{line.replace(/\*\*/g, '')}</p>
               } else if (line.startsWith('- ')) {
@@ -786,7 +786,7 @@ Format your response exactly like this:
             )}
           </div>
         ) : (
-          <div className="bg-slate-900/40 border border-slate-700/50 rounded-lg p-4 text-center text-slate-400">
+          <div className="bg-slate-900/40 border border-slate-600/50 rounded-lg p-4 text-center text-slate-400">
             <Sparkles size={24} className="mx-auto mb-2 opacity-30" />
             <p className="text-sm">Click "Generate Weekly Report" to create a full portfolio status report powered by AI.</p>
             <p className="text-xs mt-1 text-slate-400">Report covers: Executive Summary · Project Status · Risks · Milestones · Priority Actions</p>

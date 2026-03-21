@@ -61,7 +61,7 @@ function StatCard({ label, value, sub, icon: Icon, accent = false }: {
   label: string; value: string; sub?: string; icon: React.ElementType; accent?: boolean
 }) {
   return (
-    <div className={clsx('rounded-xl p-4 border', accent ? 'bg-blue-900/30 border-blue-700' : 'bg-slate-800 border-slate-700')}>
+    <div className={clsx('rounded-xl p-4 border', accent ? 'bg-blue-900/30 border-blue-700' : 'bg-slate-900 border-slate-600')}>
       <div className="flex items-center gap-2 mb-2">
         <Icon size={14} className={accent ? 'text-blue-400' : 'text-slate-400'} />
         <span className="text-xs text-slate-400 uppercase tracking-wide font-medium">{label}</span>
@@ -105,7 +105,7 @@ function TaskRow({ task }: { task: Task }) {
     && new Date(task.dueDate) <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
 
   return (
-    <div className={clsx('border-b border-slate-700/50 last:border-0', isOverdue && 'bg-red-950/20')}>
+    <div className={clsx('border-b border-slate-600/50 last:border-0', isOverdue && 'bg-red-950/20')}>
       <div className="flex items-center gap-3 px-4 py-3">
         {/* Checkbox */}
         <button
@@ -155,7 +155,7 @@ function TaskRow({ task }: { task: Task }) {
       {/* Inline notes expand */}
       {expanded && task.notes && (
         <div className="px-12 pb-3">
-          <p className="text-xs text-slate-400 bg-slate-900/60 rounded-lg px-3 py-2 border border-slate-700 whitespace-pre-wrap">
+          <p className="text-xs text-slate-400 bg-slate-900/60 rounded-lg px-3 py-2 border border-slate-600 whitespace-pre-wrap">
             {task.notes}
           </p>
         </div>
@@ -170,7 +170,7 @@ function TaskGroup({ category, tasks }: { category: string; tasks: Task[] }) {
   const pct = Math.round((done / tasks.length) * 100)
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden mb-3">
+    <div className="bg-slate-900 border border-slate-600 rounded-xl overflow-hidden mb-3">
       <button
         onClick={() => setCollapsed(!collapsed)}
         className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-750 transition-colors"
@@ -188,7 +188,7 @@ function TaskGroup({ category, tasks }: { category: string; tasks: Task[] }) {
         </div>
       </button>
       {!collapsed && (
-        <div className="border-t border-slate-700">
+        <div className="border-t border-slate-600">
           {tasks.map(t => <TaskRow key={t.id} task={t} />)}
         </div>
       )}
@@ -228,7 +228,7 @@ function HealthScorecard({ project, taskCompletionPct, raidItems, milestones }: 
   const ringBg   = h.total >= 80 ? 'border-emerald-500' : h.total >= 60 ? 'border-amber-500' : 'border-red-500'
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
+    <div className="bg-slate-900 border border-slate-600 rounded-xl p-4">
       <div className="flex items-center gap-4">
         {/* Score ring */}
         <div className={clsx('shrink-0 w-16 h-16 rounded-full border-4 flex flex-col items-center justify-center', ringBg)}>
@@ -432,7 +432,7 @@ export function ProjectDetailPage() {
       <div className="flex items-start gap-3">
         <button
           onClick={() => navigate(-1)}
-          className="mt-1 p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors shrink-0"
+          className="mt-1 p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-900 rounded-lg transition-colors shrink-0"
         >
           <ArrowLeft size={18} />
         </button>
@@ -449,14 +449,14 @@ export function ProjectDetailPage() {
                   overdueRfis,
                   taskCompletionPct: totalPct,
                 })}
-                className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-600 px-3 py-1.5 rounded-lg transition-colors"
+                className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 bg-slate-900 hover:bg-slate-700 border border-slate-600 px-3 py-1.5 rounded-lg transition-colors"
                 title="Export PDF report"
               >
                 <FileDown size={13} /> <span className="hidden sm:inline">Export</span>
               </button>
               <button
                 onClick={() => setShowEdit(true)}
-                className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-600 px-3 py-1.5 rounded-lg transition-colors"
+                className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 bg-slate-900 hover:bg-slate-700 border border-slate-600 px-3 py-1.5 rounded-lg transition-colors"
               >
                 <Pencil size={13} /> Edit
               </button>
@@ -470,7 +470,7 @@ export function ProjectDetailPage() {
       </div>
 
       {/* Stage gate progress */}
-      <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
+      <div className="bg-slate-900 border border-slate-600 rounded-xl p-4">
         <p className="text-xs text-slate-400 uppercase tracking-wide font-medium mb-3">Project Stage</p>
         <div className="flex items-center gap-0">
           {STAGES.map((stage, i) => (
@@ -524,7 +524,7 @@ export function ProjectDetailPage() {
 
       {/* Budget bar */}
       {project.totalBudget > 0 && (
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
+        <div className="bg-slate-900 border border-slate-600 rounded-xl p-4">
           <div className="flex justify-between text-xs text-slate-400 mb-2">
             <span>Budget Spent</span>
             <span>{fmt(project.actualCost)} / {fmt(project.totalBudget)}</span>
@@ -540,7 +540,7 @@ export function ProjectDetailPage() {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-slate-800/50 p-1 rounded-xl border border-slate-700 overflow-x-auto scrollbar-none">
+      <div className="flex gap-1 bg-slate-900/50 p-1 rounded-xl border border-slate-600 overflow-x-auto scrollbar-none">
         {tabs.map(t => (
           <button
             key={t.id}
@@ -619,8 +619,8 @@ export function ProjectDetailPage() {
           )
 
           return (
-            <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
+            <div className="bg-slate-900 border border-slate-600 rounded-xl overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-slate-600">
                 <div className="flex items-center gap-2">
                   <AlertCircle size={15} className="text-red-400" />
                   <p className="text-sm font-semibold text-slate-100">Attention Required</p>
@@ -705,7 +705,7 @@ export function ProjectDetailPage() {
           return (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {tiles.map(t => (
-                <div key={t.label} className="bg-slate-800 border border-slate-700 rounded-xl p-3">
+                <div key={t.label} className="bg-slate-900 border border-slate-600 rounded-xl p-3">
                   <p className="text-xs text-slate-400 mb-1">{t.label}</p>
                   <p className={clsx('text-lg font-bold tabular-nums', t.color)}>{t.value}</p>
                   {t.sub && <p className="text-xs text-slate-400 mt-0.5">{t.sub}</p>}
@@ -732,7 +732,7 @@ export function ProjectDetailPage() {
             return (
               <button
                 onClick={() => setTab('raid')}
-                className="w-full flex items-center gap-3 bg-slate-800 border border-slate-700 rounded-xl p-4 hover:border-slate-600 transition-colors text-left"
+                className="w-full flex items-center gap-3 bg-slate-900 border border-slate-600 rounded-xl p-4 hover:border-slate-600 transition-colors text-left"
               >
                 <ShieldAlert size={16} className="text-slate-400 shrink-0" />
                 <div>
@@ -746,7 +746,7 @@ export function ProjectDetailPage() {
           return (
             <button
               onClick={() => setTab('raid')}
-              className="w-full bg-slate-800 border border-slate-700 rounded-xl p-4 hover:border-slate-600 transition-colors text-left"
+              className="w-full bg-slate-900 border border-slate-600 rounded-xl p-4 hover:border-slate-600 transition-colors text-left"
             >
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -793,7 +793,7 @@ export function ProjectDetailPage() {
 
               {/* Mini list: top 3 high-priority items */}
               {highCount > 0 && (
-                <div className="mt-3 space-y-1.5 border-t border-slate-700/50 pt-3">
+                <div className="mt-3 space-y-1.5 border-t border-slate-600/50 pt-3">
                   {openRaid.filter(i => i.priority === 'high').slice(0, 3).map(i => (
                     <div key={i.id} className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
@@ -852,7 +852,7 @@ export function ProjectDetailPage() {
           const today = new Date()
           if (dated.length === 0) {
             return (
-              <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 flex items-center gap-3">
+              <div className="bg-slate-900 border border-slate-600 rounded-xl p-4 flex items-center gap-3">
                 <Calendar size={16} className="text-slate-400 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-slate-400">No milestone dates set.</p>
@@ -868,8 +868,8 @@ export function ProjectDetailPage() {
             )
           }
           return (
-            <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
-              <div className="px-4 py-3 border-b border-slate-700">
+            <div className="bg-slate-900 border border-slate-600 rounded-xl overflow-hidden">
+              <div className="px-4 py-3 border-b border-slate-600">
                 <p className="text-sm font-semibold text-slate-100">Milestone Timeline</p>
               </div>
               <div className="overflow-x-auto">
@@ -905,7 +905,7 @@ export function ProjectDetailPage() {
         })()}
 
         {/* AI Insights */}
-        <div className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-4">
+        <div className="bg-slate-900/60 border border-slate-600/50 rounded-xl p-4">
           <AIInsightsPanel
             input={{
               project,
@@ -970,8 +970,8 @@ export function ProjectDetailPage() {
           if (entries.length === 0) return null
 
           return (
-            <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-700">
+            <div className="bg-slate-900 border border-slate-600 rounded-xl overflow-hidden">
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-600">
                 <Clock size={14} className="text-slate-400" />
                 <p className="text-sm font-semibold text-slate-200">Recent Activity</p>
               </div>
@@ -1002,7 +1002,7 @@ export function ProjectDetailPage() {
 
         {/* Project info + Schedule */}
         <div className="grid md:grid-cols-2 gap-4">
-          <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 space-y-3">
+          <div className="bg-slate-900 border border-slate-600 rounded-xl p-4 space-y-3">
             <p className="text-slate-400 text-xs uppercase tracking-wide font-medium">Project Info</p>
             <InfoRow label="Project Number" value={project.projectNumber || '—'} />
             <InfoRow label="Client" value={project.clientName || '—'} />
@@ -1011,7 +1011,7 @@ export function ProjectDetailPage() {
             <InfoRow label="Profile" value={project.profile === 'S' ? 'Standard' : project.profile === 'L' ? 'Light' : 'Enhanced'} />
             <InfoRow label="MER Required" value={project.hasMER ? 'Yes' : 'No'} />
           </div>
-          <div className="bg-slate-800 border border-slate-700 rounded-xl p-4 space-y-3">
+          <div className="bg-slate-900 border border-slate-600 rounded-xl p-4 space-y-3">
             <p className="text-slate-400 text-xs uppercase tracking-wide font-medium">Schedule</p>
             <InfoRow label="Start Date" value={project.startDate || '—'} />
             <InfoRow label="Target Completion" value={project.targetCompletionDate || '—'} />
@@ -1027,8 +1027,8 @@ export function ProjectDetailPage() {
 
         {/* Recent Documents */}
         {recentDocs.length > 0 && (
-          <div className="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
+          <div className="bg-slate-900 border border-slate-600 rounded-xl overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-600">
               <p className="text-sm font-semibold text-slate-200">Recent Documents</p>
               <button onClick={() => setTab('docs')} className="text-xs text-blue-400 hover:text-blue-300">
                 View all →
@@ -1062,7 +1062,7 @@ export function ProjectDetailPage() {
             <select
               value={disciplineFilter}
               onChange={e => setDisciplineFilter(e.target.value)}
-              className="flex-1 min-w-[130px] bg-slate-800 border border-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+              className="flex-1 min-w-[130px] bg-slate-900 border border-slate-600 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
             >
               <option value="all">All Teams</option>
               {disciplines.map(d => (
@@ -1072,7 +1072,7 @@ export function ProjectDetailPage() {
             <select
               value={subdivisionFilter}
               onChange={e => setSubdivisionFilter(e.target.value)}
-              className="flex-1 min-w-[130px] bg-slate-800 border border-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+              className="flex-1 min-w-[130px] bg-slate-900 border border-slate-600 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
             >
               <option value="all">All Subdivisions</option>
               {subdivisions.map(s => (
@@ -1099,7 +1099,7 @@ export function ProjectDetailPage() {
             </div>
           ) : tasks.length === 0 ? (
             /* ── Empty state: no tasks yet ── */
-            <div className="bg-slate-800 border border-slate-700 rounded-xl p-8 text-center space-y-4">
+            <div className="bg-slate-900 border border-slate-600 rounded-xl p-8 text-center space-y-4">
               <div className="w-14 h-14 rounded-full bg-blue-900/40 border border-blue-700/40 flex items-center justify-center mx-auto">
                 <ClipboardList size={26} className="text-blue-400" />
               </div>
@@ -1169,7 +1169,7 @@ export function ProjectDetailPage() {
       )}
 
       {tab === 'team' && (
-        <div className="bg-slate-800 border border-slate-700 rounded-xl p-4">
+        <div className="bg-slate-900 border border-slate-600 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-4">
             <Users size={16} className="text-slate-400" />
             <p className="text-slate-400 text-xs uppercase tracking-wide font-medium">
