@@ -83,7 +83,7 @@ const STATUS_CFG = {
   complete:    { label: 'Complete',    color: 'text-emerald-300', bg: 'bg-emerald-900/40 border-emerald-700/40', dot: 'bg-emerald-500', bar: 'bg-emerald-500' },
   'in-progress': { label: 'In Progress', color: 'text-blue-300',    bg: 'bg-blue-900/40 border-blue-700/40',    dot: 'bg-blue-500',    bar: 'bg-blue-500'    },
   behind:      { label: 'Behind',      color: 'text-red-300',     bg: 'bg-red-900/40 border-red-700/40',      dot: 'bg-red-500',     bar: 'bg-red-500'     },
-  upcoming:    { label: 'Upcoming',    color: 'text-slate-400',   bg: 'bg-slate-900/50 border-slate-600/40',  dot: 'bg-slate-500',   bar: 'bg-slate-600'   },
+  upcoming:    { label: 'Upcoming',    color: 'text-slate-400',   bg: 'bg-slate-900/50 border-slate-800/40',  dot: 'bg-slate-500',   bar: 'bg-slate-600'   },
 }
 
 // ─── Critical Path Method (CPM) ───────────────────────────────────────────────
@@ -225,12 +225,12 @@ function GanttView({ items, milestones, criticalIds }: GanttProps) {
   const milestonesWithDates = milestones.filter(m => m.targetDate)
 
   return (
-    <div className="bg-slate-900/40 border border-slate-600/50 rounded-xl overflow-hidden">
+    <div className="bg-slate-900/40 border border-slate-800/50 rounded-xl overflow-hidden">
       <div className="flex" style={{ minWidth: 640 }}>
         {/* Label column */}
-        <div className="shrink-0 border-r border-slate-600/50" style={{ width: LABEL_W }}>
+        <div className="shrink-0 border-r border-slate-800/50" style={{ width: LABEL_W }}>
           {/* Header */}
-          <div className="h-8 flex items-center px-3 border-b border-slate-600/50 bg-slate-900/60">
+          <div className="h-8 flex items-center px-3 border-b border-slate-800/50 bg-slate-900/60">
             <span className="text-xs text-slate-400 font-medium">Activity</span>
           </div>
           {items.map(item => {
@@ -240,7 +240,7 @@ function GanttView({ items, milestones, criticalIds }: GanttProps) {
             const hasPreds = (item.predecessors?.length ?? 0) > 0
             return (
               <div key={item.id}
-                className="flex items-center gap-1.5 px-3 border-b border-slate-600/30"
+                className="flex items-center gap-1.5 px-3 border-b border-slate-800/30"
                 style={{ height: ROW_H }}>
                 <span className={clsx('w-1.5 h-1.5 rounded-full shrink-0', cfg.dot)} />
                 <span className={clsx(
@@ -257,12 +257,12 @@ function GanttView({ items, milestones, criticalIds }: GanttProps) {
           {/* Milestone rows */}
           {milestonesWithDates.length > 0 && (
             <>
-              <div className="h-6 flex items-center px-3 border-b border-slate-600/50 bg-slate-900/40">
+              <div className="h-6 flex items-center px-3 border-b border-slate-800/50 bg-slate-900/40">
                 <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wide">Milestones</span>
               </div>
               {milestonesWithDates.map(m => (
                 <div key={m.id}
-                  className="flex items-center gap-1.5 px-3 border-b border-slate-600/30"
+                  className="flex items-center gap-1.5 px-3 border-b border-slate-800/30"
                   style={{ height: ROW_H - 8 }}>
                   <span className={clsx(
                     'w-2 h-2 rotate-45 shrink-0',
@@ -279,10 +279,10 @@ function GanttView({ items, milestones, criticalIds }: GanttProps) {
         <div className="flex-1 overflow-x-auto">
           <div style={{ minWidth: 460, position: 'relative' }}>
             {/* Month headers */}
-            <div className="h-8 border-b border-slate-600/50 bg-slate-900/60 relative select-none">
+            <div className="h-8 border-b border-slate-800/50 bg-slate-900/60 relative select-none">
               {months.map((m, i) => (
                 <div key={i}
-                  className="absolute top-0 h-full flex items-center border-l border-slate-600/40 pl-1"
+                  className="absolute top-0 h-full flex items-center border-l border-slate-800/40 pl-1"
                   style={{ left: `${m.leftPct}%` }}>
                   <span className="text-[10px] text-slate-400 whitespace-nowrap">{m.label}</span>
                 </div>
@@ -329,7 +329,7 @@ function GanttView({ items, milestones, criticalIds }: GanttProps) {
 
               return (
                 <div key={item.id}
-                  className="relative border-b border-slate-600/30"
+                  className="relative border-b border-slate-800/30"
                   style={{ height: ROW_H }}>
                   {/* Grid lines */}
                   {months.map((m, i) => (
@@ -390,12 +390,12 @@ function GanttView({ items, milestones, criticalIds }: GanttProps) {
             {/* Milestone rows */}
             {milestonesWithDates.length > 0 && (
               <>
-                <div style={{ height: 24 }} className="border-b border-slate-600/50 bg-slate-900/20" />
+                <div style={{ height: 24 }} className="border-b border-slate-800/50 bg-slate-900/20" />
                 {milestonesWithDates.map(m => {
                   const mp = pct(m.targetDate)
                   return (
                     <div key={m.id}
-                      className="relative border-b border-slate-600/30"
+                      className="relative border-b border-slate-800/30"
                       style={{ height: ROW_H - 8 }}>
                       {months.map((mo, i) => (
                         <div key={i}
@@ -425,7 +425,7 @@ function GanttView({ items, milestones, criticalIds }: GanttProps) {
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-4 px-4 py-2 border-t border-slate-600/50 bg-slate-900/30 flex-wrap">
+      <div className="flex items-center gap-4 px-4 py-2 border-t border-slate-800/50 bg-slate-900/30 flex-wrap">
         <span className="text-[10px] text-slate-400 font-medium">Legend:</span>
         {Object.entries(STATUS_CFG).map(([k, v]) => (
           <span key={k} className="flex items-center gap-1">
@@ -499,35 +499,35 @@ function ScheduleForm({
   const availablePreds = allItems.filter(i => i.id !== editingId)
 
   return (
-    <div className="bg-slate-900/70 border border-slate-600 rounded-xl p-4 space-y-3">
+    <div className="bg-slate-900/70 border border-slate-800 rounded-xl p-4 space-y-3">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="sm:col-span-2">
           <label className="block text-xs text-slate-400 mb-1">Activity Name *</label>
           <input value={f.name} onChange={e => set('name', e.target.value)}
             placeholder="e.g. Construction Documents"
-            className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500" />
+            className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500" />
         </div>
 
         <div>
           <label className="block text-xs text-slate-400 mb-1">Actual Start</label>
           <input type="date" value={f.startDate} onChange={e => set('startDate', e.target.value)}
-            className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500" />
+            className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500" />
         </div>
         <div>
           <label className="block text-xs text-slate-400 mb-1">Actual End</label>
           <input type="date" value={f.endDate} onChange={e => set('endDate', e.target.value)}
-            className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500" />
+            className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500" />
         </div>
 
         <div>
           <label className="block text-xs text-slate-400 mb-1">Baseline Start</label>
           <input type="date" value={f.baselineStart} onChange={e => set('baselineStart', e.target.value)}
-            className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500" />
+            className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500" />
         </div>
         <div>
           <label className="block text-xs text-slate-400 mb-1">Baseline End</label>
           <input type="date" value={f.baselineEnd} onChange={e => set('baselineEnd', e.target.value)}
-            className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500" />
+            className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500" />
         </div>
 
         <div>
@@ -542,7 +542,7 @@ function ScheduleForm({
         <div>
           <label className="block text-xs text-slate-400 mb-1">Sort Order</label>
           <input type="number" value={f.sortOrder} onChange={e => set('sortOrder', Number(e.target.value))}
-            className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500" />
+            className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500" />
         </div>
 
         <div className="sm:col-span-2 flex items-center gap-2">
@@ -567,7 +567,7 @@ function ScheduleForm({
                     'text-xs px-2 py-0.5 rounded border transition-colors',
                     f.predecessors.includes(item.id)
                       ? 'bg-blue-900/60 border-blue-600 text-blue-200'
-                      : 'bg-slate-900 border-slate-600 text-slate-400 hover:border-slate-500 hover:text-slate-200',
+                      : 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-500 hover:text-slate-200',
                   )}
                 >
                   {item.name}
@@ -586,13 +586,13 @@ function ScheduleForm({
           <label className="block text-xs text-slate-400 mb-1">Notes</label>
           <input value={f.notes} onChange={e => set('notes', e.target.value)}
             placeholder="Optional notes"
-            className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500" />
+            className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500" />
         </div>
       </div>
 
       <div className="flex justify-end gap-2 pt-1">
         <button onClick={onCancel}
-          className="px-3 py-1.5 rounded-lg text-sm text-slate-400 hover:text-slate-200 border border-slate-600 hover:border-slate-600 transition-colors">
+          className="px-3 py-1.5 rounded-lg text-sm text-slate-400 hover:text-slate-200 border border-slate-800 hover:border-slate-800 transition-colors">
           Cancel
         </button>
         <button onClick={() => { if (f.name.trim()) onSave(f) }}
@@ -736,7 +736,7 @@ function ScheduleRow({
               ? 'bg-red-900/40 text-red-300 border-red-700/50'
               : endVariance < 0
                 ? 'bg-emerald-900/40 text-emerald-300 border-emerald-700/50'
-                : 'bg-slate-900 text-slate-400 border-slate-600'
+                : 'bg-slate-900 text-slate-400 border-slate-800'
           )}>
             {endVariance > 0 ? `+${endVariance}d` : endVariance < 0 ? `${endVariance}d` : 'On time'}
           </div>
@@ -767,7 +767,7 @@ function ScheduleRow({
 
       {/* Expanded detail */}
       {expanded && (
-        <div className="px-4 pb-3 border-t border-slate-600/50 mt-1 pt-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+        <div className="px-4 pb-3 border-t border-slate-800/50 mt-1 pt-3 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
           <div>
             <p className="text-slate-400 mb-0.5">Start Variance</p>
             <p className={clsx('font-medium', startVariance === null ? 'text-slate-400' : startVariance > 0 ? 'text-red-300' : startVariance < 0 ? 'text-emerald-300' : 'text-slate-300')}>
@@ -803,7 +803,7 @@ function ScheduleRow({
                       'text-xs px-2 py-0.5 rounded border',
                       ps === 'behind' ? 'bg-red-900/40 border-red-700/40 text-red-300'
                       : ps === 'complete' ? 'bg-emerald-900/40 border-emerald-700/40 text-emerald-300'
-                      : 'bg-slate-900 border-slate-600 text-slate-400',
+                      : 'bg-slate-900 border-slate-800 text-slate-400',
                     )}>
                       {p.name}
                       {ps === 'behind' && ' ⚠ behind'}
@@ -819,7 +819,7 @@ function ScheduleRow({
               <p className="text-slate-400 mb-0.5">Successors (depend on this)</p>
               <div className="flex flex-wrap gap-1.5">
                 {successors.map(s => (
-                  <span key={s.id} className="text-xs px-2 py-0.5 rounded border bg-slate-900 border-slate-600 text-slate-400">
+                  <span key={s.id} className="text-xs px-2 py-0.5 rounded border bg-slate-900 border-slate-800 text-slate-400">
                     {s.name}
                   </span>
                 ))}
@@ -887,26 +887,26 @@ export function ScheduleTab({ project }: { project: Project }) {
     <div className="space-y-4">
       {/* KPI Bar */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-slate-900/60 border border-slate-600/50 rounded-xl p-3 text-center">
+        <div className="bg-slate-900/60 border border-slate-800/50 rounded-xl p-3 text-center">
           <p className="text-xs text-slate-400 mb-1">Schedule Performance</p>
           <p className={clsx('text-2xl font-bold', spiColor)}>
             {spi !== null ? spi.toFixed(2) : '—'}
           </p>
           <p className={clsx('text-xs mt-0.5', spiColor)}>{spiLabel}</p>
         </div>
-        <div className="bg-slate-900/60 border border-slate-600/50 rounded-xl p-3 text-center">
+        <div className="bg-slate-900/60 border border-slate-800/50 rounded-xl p-3 text-center">
           <p className="text-xs text-slate-400 mb-1">Overall Progress</p>
           <p className="text-2xl font-bold text-blue-300">{overallPct}%</p>
           <p className="text-xs text-slate-400 mt-0.5">{items.length} activities</p>
         </div>
-        <div className="bg-slate-900/60 border border-slate-600/50 rounded-xl p-3 text-center">
+        <div className="bg-slate-900/60 border border-slate-800/50 rounded-xl p-3 text-center">
           <p className="text-xs text-slate-400 mb-1">Behind Schedule</p>
           <p className={clsx('text-2xl font-bold', behindCount > 0 ? 'text-red-400' : 'text-emerald-400')}>
             {behindCount}
           </p>
           <p className="text-xs text-slate-400 mt-0.5">activities overdue</p>
         </div>
-        <div className="bg-slate-900/60 border border-slate-600/50 rounded-xl p-3 text-center">
+        <div className="bg-slate-900/60 border border-slate-800/50 rounded-xl p-3 text-center">
           <p className="text-xs text-slate-400 mb-1">Critical Path Items</p>
           <p className="text-2xl font-bold text-red-400">
             {criticalIds.size}
@@ -942,7 +942,7 @@ export function ScheduleTab({ project }: { project: Project }) {
       {/* Toolbar */}
       <div className="flex items-center gap-2 flex-wrap">
         {/* View toggle */}
-        <div className="flex items-center bg-slate-900 border border-slate-600 rounded-lg p-0.5 shrink-0">
+        <div className="flex items-center bg-slate-900 border border-slate-800 rounded-lg p-0.5 shrink-0">
           <button
             onClick={() => setViewMode('list')}
             className={clsx(
@@ -970,7 +970,7 @@ export function ScheduleTab({ project }: { project: Project }) {
                   'px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors',
                   filter === s
                     ? 'bg-blue-600 text-white border-blue-500'
-                    : 'bg-slate-900 text-slate-400 border-slate-600 hover:text-slate-200'
+                    : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200'
                 )}>
                 {s === 'all' ? 'All' : STATUS_CFG[s].label}
                 {s !== 'all' && (
@@ -986,7 +986,7 @@ export function ScheduleTab({ project }: { project: Project }) {
         <div className="flex items-center gap-2 flex-wrap ml-auto">
           {items.length === 0 && (
             <button onClick={seedDefaults}
-              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-600 hover:border-slate-600 px-3 py-1.5 rounded-lg transition-colors">
+              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-800 hover:border-slate-800 px-3 py-1.5 rounded-lg transition-colors">
               <BarChart2 size={12} /> Seed defaults
             </button>
           )}
@@ -995,7 +995,7 @@ export function ScheduleTab({ project }: { project: Project }) {
               onClick={lockBaseline}
               disabled={lockingBaseline}
               title="Copy current start/end dates to baseline for all items"
-              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-600 hover:border-slate-600 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-800 hover:border-slate-800 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
             >
               <Lock size={12} /> {lockingBaseline ? 'Locking…' : 'Lock Baseline'}
             </button>
@@ -1003,7 +1003,7 @@ export function ScheduleTab({ project }: { project: Project }) {
           {items.length > 0 && (
             <button
               onClick={() => exportScheduleCsv(items, project.projectName || 'Project')}
-              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-600 hover:border-slate-600 px-3 py-1.5 rounded-lg transition-colors"
+              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-800 hover:border-slate-800 px-3 py-1.5 rounded-lg transition-colors"
             >
               <Download size={12} /> Export CSV
             </button>

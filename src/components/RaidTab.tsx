@@ -120,7 +120,7 @@ function LinkedItemsPicker({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-600 hover:border-slate-500 rounded-lg px-2.5 py-1.5 transition-colors"
+        className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-800 hover:border-slate-500 rounded-lg px-2.5 py-1.5 transition-colors"
       >
         <Link2 size={11} />
         Link items
@@ -131,9 +131,9 @@ function LinkedItemsPicker({
       </button>
 
       {open && (
-        <div className="mt-2 bg-slate-900/80 border border-slate-600 rounded-xl overflow-hidden">
+        <div className="mt-2 bg-slate-900/80 border border-slate-800 rounded-xl overflow-hidden">
           {/* Tabs */}
-          <div className="flex border-b border-slate-600">
+          <div className="flex border-b border-slate-800">
             {TABS.map(t => (
               <button
                 key={t.id}
@@ -176,7 +176,7 @@ function LinkedItemsPicker({
                   >
                     <span className={clsx(
                       'w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0',
-                      selected ? 'bg-blue-600 border-blue-500' : 'border-slate-600',
+                      selected ? 'bg-blue-600 border-blue-500' : 'border-slate-800',
                     )}>
                       {selected && <Check size={9} className="text-white" />}
                     </span>
@@ -234,17 +234,17 @@ function ImpactChips({ item }: { item: RaidItem }) {
   return (
     <div className="flex items-center gap-2 flex-wrap mt-1.5">
       {!!item.costImpact && (
-        <span className="flex items-center gap-1 text-[10px] bg-slate-900 border border-slate-600 rounded px-1.5 py-0.5 text-amber-300">
+        <span className="flex items-center gap-1 text-[10px] bg-slate-900 border border-slate-800 rounded px-1.5 py-0.5 text-amber-300">
           <DollarSign size={9} /> {fmt$(item.costImpact)}
         </span>
       )}
       {!!item.scheduleImpact && (
-        <span className="flex items-center gap-1 text-[10px] bg-slate-900 border border-slate-600 rounded px-1.5 py-0.5 text-blue-300">
+        <span className="flex items-center gap-1 text-[10px] bg-slate-900 border border-slate-800 rounded px-1.5 py-0.5 text-blue-300">
           <Clock3 size={9} /> {item.scheduleImpact}d
         </span>
       )}
       {item.scopeImpact && (
-        <span className="flex items-center gap-1 text-[10px] bg-slate-900 border border-slate-600 rounded px-1.5 py-0.5 text-slate-400">
+        <span className="flex items-center gap-1 text-[10px] bg-slate-900 border border-slate-800 rounded px-1.5 py-0.5 text-slate-400">
           <Layers size={9} /> Scope
         </span>
       )}
@@ -352,7 +352,7 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
               onClick={() => setType(t)}
               className={clsx(
                 'px-3 py-1 rounded-lg text-xs font-medium border transition-colors',
-                type === t ? TYPE_CONFIG[t].bg + ' ' + TYPE_CONFIG[t].color : 'bg-slate-900 text-slate-400 border-slate-600'
+                type === t ? TYPE_CONFIG[t].bg + ' ' + TYPE_CONFIG[t].color : 'bg-slate-900 text-slate-400 border-slate-800'
               )}
             >
               {TYPE_CONFIG[t].label}
@@ -365,7 +365,7 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
               onClick={() => setPriority(p)}
               className={clsx(
                 'flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium border transition-colors',
-                priority === p ? 'bg-slate-700 text-slate-200 border-slate-500' : 'bg-slate-900 text-slate-400 border-slate-600'
+                priority === p ? 'bg-slate-700 text-slate-200 border-slate-500' : 'bg-slate-900 text-slate-400 border-slate-800'
               )}
             >
               <span className={clsx('w-1.5 h-1.5 rounded-full', PRIORITY_CONFIG[p].dot)} />
@@ -379,7 +379,7 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
           value={title}
           onChange={e => setTitle(e.target.value)}
           placeholder="Title *"
-          className="w-full bg-slate-900/60 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500"
+          className="w-full bg-slate-900/60 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500"
         />
 
         <div className="grid grid-cols-2 gap-2">
@@ -387,13 +387,13 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
             value={owner}
             onChange={e => setOwner(e.target.value)}
             placeholder="Owner / Responsible"
-            className="bg-slate-900/60 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500"
+            className="bg-slate-900/60 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500"
           />
           <input
             type="date"
             value={dueDate}
             onChange={e => setDueDate(e.target.value)}
-            className="bg-slate-900/60 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500"
+            className="bg-slate-900/60 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500"
           />
         </div>
 
@@ -406,7 +406,7 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
               value={costImpact}
               onChange={e => setCostImpact(e.target.value)}
               placeholder="Cost impact"
-              className="w-full bg-slate-900/60 text-slate-300 text-sm rounded-lg pl-5 pr-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500"
+              className="w-full bg-slate-900/60 text-slate-300 text-sm rounded-lg pl-5 pr-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500"
             />
           </div>
           <div className="relative">
@@ -415,7 +415,7 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
               value={scheduleImpact}
               onChange={e => setScheduleImpact(e.target.value)}
               placeholder="Days impact"
-              className="w-full bg-slate-900/60 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500"
+              className="w-full bg-slate-900/60 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500"
             />
             <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px]">days</span>
           </div>
@@ -423,7 +423,7 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
             value={scopeImpact}
             onChange={e => setScopeImpact(e.target.value)}
             placeholder="Scope impact"
-            className="bg-slate-900/60 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500"
+            className="bg-slate-900/60 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500"
           />
         </div>
 
@@ -432,7 +432,7 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
           onChange={e => setDescription(e.target.value)}
           placeholder="Description / notes..."
           rows={2}
-          className="w-full bg-slate-900/60 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 resize-none"
+          className="w-full bg-slate-900/60 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 resize-none"
         />
 
         {/* Status */}
@@ -543,7 +543,7 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
 
       {/* Expanded section */}
       {expanded && (
-        <div className="px-4 pb-4 border-t border-slate-600/40 space-y-3 pt-3">
+        <div className="px-4 pb-4 border-t border-slate-800/40 space-y-3 pt-3">
           {item.description && (
             <p className="text-sm text-slate-400 leading-relaxed">{item.description}</p>
           )}
@@ -562,7 +562,7 @@ Respond with exactly 3 bullet points. Each bullet: one action verb, one sentence
 
           {/* AI Mitigation */}
           {hasClaudeKey() && (item.status === 'open' || item.status === 'in-progress') && (
-            <div className="border-t border-slate-600/40 pt-3">
+            <div className="border-t border-slate-800/40 pt-3">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-1.5">
                   <Sparkles size={12} className="text-violet-400" />
@@ -653,7 +653,7 @@ function AddRaidForm({
               onClick={() => setType(t)}
               className={clsx(
                 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors flex-1 justify-center',
-                type === t ? cfg.bg + ' ' + cfg.color : 'bg-slate-700 text-slate-400 border-slate-600 hover:text-slate-200'
+                type === t ? cfg.bg + ' ' + cfg.color : 'bg-slate-700 text-slate-400 border-slate-800 hover:text-slate-200'
               )}
             >
               <cfg.Icon size={12} /> {cfg.label}
@@ -668,7 +668,7 @@ function AddRaidForm({
         onChange={e => setTitle(e.target.value)}
         onKeyDown={e => { if (e.key === 'Escape') onCancel() }}
         placeholder="Title *"
-        className="w-full bg-slate-700 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500"
+        className="w-full bg-slate-700 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500"
       />
 
       <div className="grid grid-cols-2 gap-2">
@@ -676,13 +676,13 @@ function AddRaidForm({
           value={owner}
           onChange={e => setOwner(e.target.value)}
           placeholder="Owner / Responsible"
-          className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500"
+          className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500"
         />
         <input
           type="date"
           value={dueDate}
           onChange={e => setDueDate(e.target.value)}
-          className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500"
+          className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500"
         />
       </div>
 
@@ -695,7 +695,7 @@ function AddRaidForm({
             value={costImpact}
             onChange={e => setCostImpact(e.target.value)}
             placeholder="Cost impact"
-            className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg pl-5 pr-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500"
+            className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg pl-5 pr-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500"
           />
         </div>
         <div className="relative">
@@ -704,7 +704,7 @@ function AddRaidForm({
             value={scheduleImpact}
             onChange={e => setScheduleImpact(e.target.value)}
             placeholder="Days impact"
-            className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500"
+            className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500"
           />
           <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px]">days</span>
         </div>
@@ -712,7 +712,7 @@ function AddRaidForm({
           value={scopeImpact}
           onChange={e => setScopeImpact(e.target.value)}
           placeholder="Scope impact"
-          className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500"
+          className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500"
         />
       </div>
 
@@ -721,7 +721,7 @@ function AddRaidForm({
         onChange={e => setDescription(e.target.value)}
         placeholder="Description / mitigation / notes... (optional)"
         rows={2}
-        className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 resize-none placeholder-slate-500"
+        className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 resize-none placeholder-slate-500"
       />
 
       {/* Linked items */}
@@ -742,7 +742,7 @@ function AddRaidForm({
             onClick={() => setPriority(p)}
             className={clsx(
               'flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs border transition-colors',
-              priority === p ? 'bg-slate-700 text-slate-200 border-slate-500' : 'text-slate-400 border-slate-600 hover:text-slate-300'
+              priority === p ? 'bg-slate-700 text-slate-200 border-slate-500' : 'text-slate-400 border-slate-800 hover:text-slate-300'
             )}
           >
             <span className={clsx('w-1.5 h-1.5 rounded-full', PRIORITY_CONFIG[p].dot)} />
@@ -818,7 +818,7 @@ export function RaidTab({ project, setTab }: { project: Project; setTab?: (tab: 
               onClick={() => setTypeFilter(typeFilter === t ? 'all' : t)}
               className={clsx(
                 'rounded-xl p-3 text-center border transition-colors',
-                typeFilter === t ? cfg.bg : 'bg-slate-900 border-slate-600 hover:border-slate-600'
+                typeFilter === t ? cfg.bg : 'bg-slate-900 border-slate-800 hover:border-slate-800'
               )}
             >
               <cfg.Icon size={16} className={clsx('mx-auto mb-1', cfg.color)} />
@@ -858,7 +858,7 @@ export function RaidTab({ project, setTab }: { project: Project; setTab?: (tab: 
         <select
           value={statusFilter}
           onChange={e => setStatusFilter(e.target.value as RaidStatus | 'all')}
-          className="bg-slate-900 border border-slate-600 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+          className="bg-slate-900 border border-slate-800 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
         >
           <option value="open">Open Items</option>
           <option value="all">All Statuses</option>
@@ -869,7 +869,7 @@ export function RaidTab({ project, setTab }: { project: Project; setTab?: (tab: 
 
         <button
           onClick={() => exportToCSV(items, project.projectName)}
-          className="flex items-center gap-1.5 text-slate-400 hover:text-slate-200 bg-slate-900 hover:bg-slate-700 border border-slate-600 text-sm px-3 py-2 rounded-lg transition-colors"
+          className="flex items-center gap-1.5 text-slate-400 hover:text-slate-200 bg-slate-900 hover:bg-slate-700 border border-slate-800 text-sm px-3 py-2 rounded-lg transition-colors"
           title="Export to CSV"
         >
           <Download size={13} /> <span className="hidden sm:inline">CSV</span>

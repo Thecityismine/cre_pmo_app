@@ -137,9 +137,9 @@ export function NewProjectModal({ onClose }: Props) {
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
       {/* Sheet */}
-      <div className="relative z-10 w-full sm:max-w-2xl bg-slate-900 border border-slate-600 rounded-t-2xl sm:rounded-2xl max-h-[92vh] flex flex-col">
+      <div className="relative z-10 w-full sm:max-w-2xl bg-slate-900 border border-slate-800 rounded-t-2xl sm:rounded-2xl max-h-[92vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-600 shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 shrink-0">
           <h2 className="text-slate-100 font-semibold text-lg">New Project</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-200 p-1 rounded-lg hover:bg-slate-900">
             <X size={20} />
@@ -243,8 +243,8 @@ export function NewProjectModal({ onClose }: Props) {
         </form>
 
         {/* Footer — outside scroll area so Save is always visible */}
-        <div className="px-6 py-4 border-t border-slate-600 flex gap-3 shrink-0">
-          <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-lg border border-slate-600 text-slate-300 text-sm hover:bg-slate-900 transition-colors">
+        <div className="px-6 py-4 border-t border-slate-800 flex gap-3 shrink-0">
+          <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-lg border border-slate-800 text-slate-300 text-sm hover:bg-slate-900 transition-colors">
             Cancel
           </button>
           <button
@@ -271,5 +271,5 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 function input() {
-  return clsx('w-full bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2.5 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500')
+  return clsx('w-full bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2.5 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500')
 }

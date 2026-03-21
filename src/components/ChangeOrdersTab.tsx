@@ -103,34 +103,34 @@ function CORow({
         {/* Title + amount */}
         <div className="grid grid-cols-3 gap-2">
           <input value={form.title} onChange={f('title')} placeholder="Title *" autoFocus
-            className="col-span-2 bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
+            className="col-span-2 bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
           <input value={form.amount} onChange={f('amount')} placeholder="Amount" type="number"
-            className="bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
+            className="bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
         </div>
 
         {/* Description */}
         <textarea value={form.description} onChange={f('description')} placeholder="Description (optional)" rows={2}
-          className="w-full bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 resize-none placeholder-slate-500" />
+          className="w-full bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 resize-none placeholder-slate-500" />
 
         {/* Meta row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           <input value={form.requestedBy} onChange={f('requestedBy')} placeholder="Requested by"
-            className="bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
+            className="bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
           <select value={form.category} onChange={f('category')}
-            className="bg-slate-900 border border-slate-600 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
+            className="bg-slate-900 border border-slate-800 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
             <option value="">Category</option>
             {BUDGET_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
           <input type="date" value={form.date} onChange={f('date')} placeholder="Date submitted"
-            className="bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500" />
+            className="bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500" />
           <select value={form.status} onChange={f('status')}
-            className="bg-slate-900 border border-slate-600 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
+            className="bg-slate-900 border border-slate-800 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
             {CO_STATUSES.map(s => <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>)}
           </select>
         </div>
 
         <input value={form.notes} onChange={f('notes')} placeholder="Notes (optional)"
-          className="w-full bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
+          className="w-full bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
 
         <div className="flex gap-2">
           <button onClick={save} disabled={saving || !form.title.trim()}
@@ -144,7 +144,7 @@ function CORow({
   }
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3 bg-slate-900 border border-slate-600 rounded-xl hover:border-slate-600 group transition-colors">
+    <div className="flex items-center gap-3 px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-800 group transition-colors">
       {/* CO number */}
       <span className="text-xs font-mono text-slate-400 shrink-0 w-10">CO#{co.number}</span>
 
@@ -228,24 +228,24 @@ function AddCOForm({
       <div className="grid grid-cols-3 gap-2">
         <input value={form.title} onChange={f('title')} placeholder="Title *" autoFocus
           onKeyDown={e => { if (e.key === 'Escape') onCancel() }}
-          className="col-span-2 bg-slate-700 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
+          className="col-span-2 bg-slate-700 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
         <input value={form.amount} onChange={f('amount')} placeholder="Amount ($)" type="number"
-          className="bg-slate-700 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
+          className="bg-slate-700 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
       </div>
 
       <textarea value={form.description} onChange={f('description')} placeholder="Description (optional)" rows={2}
-        className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 resize-none placeholder-slate-500" />
+        className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 resize-none placeholder-slate-500" />
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
         <input value={form.requestedBy} onChange={f('requestedBy')} placeholder="Requested by"
-          className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
+          className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
         <select value={form.category} onChange={f('category')}
-          className="bg-slate-700 border border-slate-600 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
+          className="bg-slate-700 border border-slate-800 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
           <option value="">Budget Category</option>
           {BUDGET_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
         <input type="date" value={form.date} onChange={f('date')}
-          className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500" />
+          className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500" />
       </div>
 
       <div className="flex gap-2 pt-1">
@@ -275,7 +275,7 @@ export function ChangeOrdersTab({ project }: { project: Project }) {
     <div className="space-y-4">
       {/* Summary cards */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="bg-slate-900 border border-slate-600 rounded-xl p-4">
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-1">
             <Check size={14} className="text-emerald-400" />
             <span className="text-xs text-slate-400 uppercase tracking-wide">Approved</span>
@@ -288,7 +288,7 @@ export function ChangeOrdersTab({ project }: { project: Project }) {
           </p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-600 rounded-xl p-4">
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-1">
             <Clock size={14} className="text-amber-400" />
             <span className="text-xs text-slate-400 uppercase tracking-wide">Pending</span>
@@ -301,7 +301,7 @@ export function ChangeOrdersTab({ project }: { project: Project }) {
           </p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-600 rounded-xl p-4">
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-1">
             {approvedTotal > 0 ? <TrendingUp size={14} className="text-red-400" /> : <TrendingDown size={14} className="text-emerald-400" />}
             <span className="text-xs text-slate-400 uppercase tracking-wide">Budget Impact</span>
@@ -341,7 +341,7 @@ export function ChangeOrdersTab({ project }: { project: Project }) {
 
       {/* Toolbar */}
       <div className="flex items-center gap-2">
-        <div className="flex gap-1 bg-slate-900 border border-slate-600 rounded-lg p-1">
+        <div className="flex gap-1 bg-slate-900 border border-slate-800 rounded-lg p-1">
           {(['all', ...CO_STATUSES] as const).map(s => (
             <button
               key={s}
@@ -363,7 +363,7 @@ export function ChangeOrdersTab({ project }: { project: Project }) {
         {changeOrders.length > 0 && (
           <button
             onClick={() => exportCOsCsv(changeOrders, project.projectName || 'Project')}
-            className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-600 hover:border-slate-600 px-3 py-1.5 rounded-lg transition-colors"
+            className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-800 hover:border-slate-800 px-3 py-1.5 rounded-lg transition-colors"
           >
             <Download size={12} /> Export CSV
           </button>
@@ -409,7 +409,7 @@ export function ChangeOrdersTab({ project }: { project: Project }) {
 
       {/* Budget base note */}
       {changeOrders.length > 0 && project.totalBudget > 0 && (
-        <div className="bg-slate-900/50 border border-slate-600 rounded-xl p-3 flex items-center justify-between text-xs text-slate-400">
+        <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-3 flex items-center justify-between text-xs text-slate-400">
           <span>Original Budget: <span className="text-slate-300 font-medium">{fmt(project.totalBudget)}</span></span>
           <span>After Approved COs: <span className={clsx('font-medium', approvedTotal > 0 ? 'text-red-400' : 'text-emerald-400')}>
             {fmt(project.totalBudget + approvedTotal)}

@@ -145,10 +145,10 @@ export function EditProjectModal({ project, onClose }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative z-10 w-full sm:max-w-2xl bg-slate-900 border border-slate-600 rounded-t-2xl sm:rounded-2xl max-h-[92vh] flex flex-col">
+      <div className="relative z-10 w-full sm:max-w-2xl bg-slate-900 border border-slate-800 rounded-t-2xl sm:rounded-2xl max-h-[92vh] flex flex-col">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-600 shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 shrink-0">
           <div>
             <h2 className="text-slate-100 font-semibold text-lg">Edit Project</h2>
             <p className="text-slate-400 text-xs mt-0.5 truncate max-w-xs">{project.projectName}</p>
@@ -222,7 +222,7 @@ export function EditProjectModal({ project, onClose }: Props) {
             </div>
 
             {/* Budget section */}
-            <div className="border-t border-slate-600 pt-4">
+            <div className="border-t border-slate-800 pt-4">
               <p className="text-slate-400 text-xs uppercase tracking-wide font-medium mb-3">Budget</p>
               <div className="grid grid-cols-2 gap-4">
                 <Field label="Approved Budget ($)">
@@ -241,7 +241,7 @@ export function EditProjectModal({ project, onClose }: Props) {
             </div>
 
             {/* Schedule section */}
-            <div className="border-t border-slate-600 pt-4">
+            <div className="border-t border-slate-800 pt-4">
               <p className="text-slate-400 text-xs uppercase tracking-wide font-medium mb-3">Schedule</p>
               <div className="grid grid-cols-2 gap-4">
                 <Field label="Start Date">
@@ -254,7 +254,7 @@ export function EditProjectModal({ project, onClose }: Props) {
             </div>
 
             {/* Flags */}
-            <div className="border-t border-slate-600 pt-4 space-y-3">
+            <div className="border-t border-slate-800 pt-4 space-y-3">
               <label className="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" checked={form.hasMER} onChange={e => set('hasMER', e.target.checked)} className="w-4 h-4 rounded accent-blue-500" />
                 <span className="text-slate-300 text-sm">MER (Mission-Critical Equipment Room) required</span>
@@ -322,8 +322,8 @@ export function EditProjectModal({ project, onClose }: Props) {
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-4 border-t border-slate-600 flex gap-3 bg-slate-900 sticky bottom-0">
-            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-lg border border-slate-600 text-slate-300 text-sm hover:bg-slate-900 transition-colors">
+          <div className="px-6 py-4 border-t border-slate-800 flex gap-3 bg-slate-900 sticky bottom-0">
+            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-lg border border-slate-800 text-slate-300 text-sm hover:bg-slate-900 transition-colors">
               Cancel
             </button>
             <button type="submit" disabled={saving} className="flex-1 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors disabled:opacity-50">
@@ -346,5 +346,5 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 function inp() {
-  return clsx('w-full bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2.5 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500')
+  return clsx('w-full bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2.5 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500')
 }

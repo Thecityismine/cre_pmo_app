@@ -75,10 +75,10 @@ function AddTaskForm({ onSave, onCancel, milestones = [] }: {
     }
   }
 
-  const inp = 'w-full bg-slate-900 text-slate-100 text-xs rounded-lg px-2.5 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-600'
+  const inp = 'w-full bg-slate-900 text-slate-100 text-xs rounded-lg px-2.5 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-600'
 
   return (
-    <form onSubmit={handleSave} className="bg-slate-900/60 border border-slate-600 rounded-xl p-4 space-y-3">
+    <form onSubmit={handleSave} className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 space-y-3">
       <p className="text-xs font-semibold text-slate-300 uppercase tracking-wide">New Task</p>
 
       <input
@@ -132,7 +132,7 @@ function AddTaskForm({ onSave, onCancel, milestones = [] }: {
           <Check size={12} /> {saving ? 'Saving…' : 'Add Task'}
         </button>
         <button type="button" onClick={onCancel}
-          className="border border-slate-600 text-slate-400 text-xs px-4 py-2 rounded-lg hover:bg-slate-900 transition-colors">
+          className="border border-slate-800 text-slate-400 text-xs px-4 py-2 rounded-lg hover:bg-slate-900 transition-colors">
           Cancel
         </button>
       </div>
@@ -160,7 +160,7 @@ function TaskRow({ task, onComplete, onDelete, milestoneName }: {
   }
 
   return (
-    <div className={clsx('border-b border-slate-600/50 last:border-0', overdue && 'bg-red-950/10')}>
+    <div className={clsx('border-b border-slate-800/50 last:border-0', overdue && 'bg-red-950/10')}>
       <div className="flex items-center gap-3 px-4 py-3 hover:bg-slate-900/30 transition-colors group">
         {/* Checkbox */}
         <button
@@ -170,7 +170,7 @@ function TaskRow({ task, onComplete, onDelete, milestoneName }: {
             'shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all',
             task.status === 'completed'
               ? 'bg-emerald-600 border-emerald-600'
-              : 'border-slate-600 hover:border-blue-500'
+              : 'border-slate-800 hover:border-blue-500'
           )}
         >
           {completing
@@ -333,7 +333,7 @@ export function TasksTab({ project, showAddForm: externalShowForm, onFormClose, 
           { label: 'Due This Week', value: dueSoon.length,   color: dueSoon.length > 0 ? 'text-amber-300' : 'text-slate-100', icon: Clock },
           { label: 'Completed',     value: completed.length, color: 'text-emerald-400',  icon: CheckSquare },
         ].map(({ label, value, color, icon: Icon }) => (
-          <div key={label} className="bg-slate-900 border border-slate-600 rounded-xl p-3 flex items-center gap-3">
+          <div key={label} className="bg-slate-900 border border-slate-800 rounded-xl p-3 flex items-center gap-3">
             <Icon size={18} className={clsx('shrink-0', color)} />
             <div>
               <p className={clsx('text-xl font-bold tabular-nums', color)}>{value}</p>
@@ -350,7 +350,7 @@ export function TasksTab({ project, showAddForm: externalShowForm, onFormClose, 
             <button key={f.id} onClick={() => setFilter(f.id)}
               className={clsx(
                 'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5',
-                filter === f.id ? 'bg-blue-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-600'
+                filter === f.id ? 'bg-blue-600 text-white' : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
               )}>
               {f.label}
               {f.count != null && f.count > 0 && (
@@ -386,7 +386,7 @@ export function TasksTab({ project, showAddForm: externalShowForm, onFormClose, 
       )}
 
       {/* ── Open Tasks ── */}
-      <div className="bg-slate-900 border border-slate-600 rounded-xl overflow-hidden">
+      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
         {visibleOpen.length === 0 ? (
           <div className="py-12 text-center">
             <CheckSquare size={32} className="mx-auto text-slate-400 mb-3" />
@@ -422,7 +422,7 @@ export function TasksTab({ project, showAddForm: externalShowForm, onFormClose, 
           </button>
 
           {showArchive && (
-            <div className="bg-slate-900/50 border border-slate-600/50 rounded-xl overflow-hidden opacity-70">
+            <div className="bg-slate-900/50 border border-slate-800/50 rounded-xl overflow-hidden opacity-70">
               {completed.map(task => (
                 <TaskRow
                   key={task.id}

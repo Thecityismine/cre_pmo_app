@@ -62,7 +62,7 @@ function TaskRow({
 
   if (editing) {
     return (
-      <div className="border-b border-slate-600/50 last:border-0 bg-slate-900/60 px-4 py-3 space-y-3">
+      <div className="border-b border-slate-800/50 last:border-0 bg-slate-900/60 px-4 py-3 space-y-3">
         {/* Title */}
         <input
           autoFocus
@@ -89,7 +89,7 @@ function TaskRow({
               <select
                 value={team}
                 onChange={e => setTeam(e.target.value)}
-                className="flex-1 bg-slate-700 border border-slate-600 text-slate-300 text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500"
+                className="flex-1 bg-slate-700 border border-slate-800 text-slate-300 text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500"
               >
                 <option value="">Select Team</option>
                 {allTeams.map(t => <option key={t} value={t}>{t}</option>)}
@@ -118,7 +118,7 @@ function TaskRow({
               <select
                 value={category}
                 onChange={e => setCategory(e.target.value)}
-                className="flex-1 bg-slate-700 border border-slate-600 text-slate-300 text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500"
+                className="flex-1 bg-slate-700 border border-slate-800 text-slate-300 text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:border-blue-500"
               >
                 <option value="">Select Subdivision</option>
                 {allSubs.map(s => <option key={s} value={s}>{s}</option>)}
@@ -140,7 +140,7 @@ function TaskRow({
           onChange={e => setNotes(e.target.value)}
           placeholder="Notes (optional)"
           rows={2}
-          className="w-full bg-slate-700 text-slate-300 text-xs rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 resize-none"
+          className="w-full bg-slate-700 text-slate-300 text-xs rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 resize-none"
         />
 
         {/* Actions */}
@@ -161,7 +161,7 @@ function TaskRow({
   }
 
   return (
-    <div className="border-b border-slate-600/50 last:border-0">
+    <div className="border-b border-slate-800/50 last:border-0">
       <div className="flex items-center gap-2 px-4 py-2.5 hover:bg-slate-900/50 group">
         <span className="flex-1 text-slate-200 text-sm">{task.title}</span>
 
@@ -211,7 +211,7 @@ function CategoryGroup({
   const [collapsed, setCollapsed] = useState(true)
 
   return (
-    <div className="bg-slate-900 border border-slate-600 rounded-xl overflow-hidden mb-3">
+    <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden mb-3">
       <button
         onClick={() => setCollapsed(!collapsed)}
         className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-900/80 transition-colors"
@@ -224,7 +224,7 @@ function CategoryGroup({
       </button>
 
       {!collapsed && (
-        <div className="border-t border-slate-600">
+        <div className="border-t border-slate-800">
           {tasks.map(t => (
             <TaskRow key={t.id} task={t} teams={teams} subdivisions={subdivisions} onDelete={onDelete} />
           ))}
@@ -329,7 +329,7 @@ function AddTaskPanel({
           onChange={e => setTitle(e.target.value)}
           onKeyDown={e => { if (e.key === 'Escape') onDone() }}
           placeholder="Task Name *"
-          className="bg-slate-700 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500"
+          className="bg-slate-700 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500"
         />
         <div className="flex gap-1">
           {addingTeam ? (
@@ -344,7 +344,7 @@ function AddTaskPanel({
             <select
               value={team}
               onChange={e => setTeam(e.target.value)}
-              className="flex-1 bg-slate-700 border border-slate-600 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+              className="flex-1 bg-slate-700 border border-slate-800 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
             >
               <option value="">Select Team</option>
               {teams.map(t => <option key={t} value={t}>{t}</option>)}
@@ -375,7 +375,7 @@ function AddTaskPanel({
             <select
               value={category}
               onChange={e => setCategory(e.target.value)}
-              className="flex-1 bg-slate-700 border border-slate-600 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+              className="flex-1 bg-slate-700 border border-slate-800 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
             >
               <option value="">Select Subdivision *</option>
               {subdivisions.map(s => <option key={s} value={s}>{s}</option>)}
@@ -393,7 +393,7 @@ function AddTaskPanel({
           value={notes}
           onChange={e => setNotes(e.target.value)}
           placeholder="Notes (optional)"
-          className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500"
+          className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500"
         />
       </div>
 
@@ -483,14 +483,14 @@ export function ChecklistPage() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search tasks, categories, or teams..."
-            className="w-full bg-slate-900 text-slate-200 placeholder-slate-500 text-sm rounded-xl pl-9 pr-4 py-2.5 border border-slate-600 focus:outline-none focus:border-blue-500"
+            className="w-full bg-slate-900 text-slate-200 placeholder-slate-500 text-sm rounded-xl pl-9 pr-4 py-2.5 border border-slate-800 focus:outline-none focus:border-blue-500"
           />
         </div>
         <div className="flex gap-2">
           <select
             value={teamFilter}
             onChange={e => setTeamFilter(e.target.value)}
-            className="flex-1 bg-slate-900 border border-slate-600 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+            className="flex-1 bg-slate-900 border border-slate-800 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
           >
             <option value="all">All Teams</option>
             {teams.map(t => <option key={t} value={t}>{t}</option>)}
@@ -498,7 +498,7 @@ export function ChecklistPage() {
           <select
             value={subdivisionFilter}
             onChange={e => setSubdivisionFilter(e.target.value)}
-            className="flex-1 bg-slate-900 border border-slate-600 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+            className="flex-1 bg-slate-900 border border-slate-800 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
           >
             <option value="all">All Subdivisions</option>
             {subdivisions.map(s => <option key={s} value={s}>{s}</option>)}
@@ -513,7 +513,7 @@ export function ChecklistPage() {
           { label: 'Categories', value: subdivisions.length },
           { label: 'Seeded to New Projects', value: '✓ All' },
         ].map(s => (
-          <div key={s.label} className="bg-slate-900 border border-slate-600 rounded-xl p-3 text-center">
+          <div key={s.label} className="bg-slate-900 border border-slate-800 rounded-xl p-3 text-center">
             <p className="text-xl font-bold text-slate-100">{s.value}</p>
             <p className="text-xs text-slate-400 mt-0.5">{s.label}</p>
           </div>

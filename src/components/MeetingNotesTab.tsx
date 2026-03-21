@@ -66,7 +66,7 @@ function ListEditor({
           onChange={e => setDraft(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); add() } }}
           placeholder={`Add ${label.toLowerCase()}…`}
-          className="flex-1 bg-slate-900 text-slate-300 text-xs rounded px-2 py-1.5 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-600"
+          className="flex-1 bg-slate-900 text-slate-300 text-xs rounded px-2 py-1.5 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-600"
         />
         <button
           type="button"
@@ -129,13 +129,13 @@ function AddNoteForm({
           value={title}
           onChange={e => setTitle(e.target.value)}
           placeholder="Meeting title *"
-          className="bg-slate-700 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500"
+          className="bg-slate-700 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500"
         />
         <input
           value={createdBy}
           onChange={e => setCreatedBy(e.target.value)}
           placeholder="Recorded by (optional)"
-          className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500"
+          className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500"
         />
       </div>
 
@@ -145,7 +145,7 @@ function AddNoteForm({
         onChange={e => setRawText(e.target.value)}
         placeholder="Meeting notes / summary…"
         rows={3}
-        className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 resize-none placeholder-slate-500"
+        className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 resize-none placeholder-slate-500"
       />
 
       {/* Structured lists */}
@@ -202,7 +202,7 @@ function NoteCard({
   const hasStructured = note.actionItems?.length || note.decisions?.length || note.risks?.length
 
   return (
-    <div className="bg-slate-900 border border-slate-600 rounded-xl overflow-hidden">
+    <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
       {/* Header */}
       <button
         onClick={() => setExpanded(!expanded)}
@@ -243,7 +243,7 @@ function NoteCard({
 
       {/* Expanded body */}
       {expanded && (
-        <div className="border-t border-slate-600/50 px-4 py-4 space-y-4">
+        <div className="border-t border-slate-800/50 px-4 py-4 space-y-4">
           {/* Raw notes */}
           {note.rawText && (
             <div>
@@ -324,15 +324,15 @@ export function MeetingNotesTab({ project }: { project: Project }) {
     <div className="space-y-4">
       {/* Summary bar */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="bg-slate-900 border border-slate-600 rounded-xl p-3 text-center">
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 text-center">
           <p className="text-xl font-bold text-slate-100">{notes.length}</p>
           <p className="text-xs text-slate-400 mt-0.5">Meetings</p>
         </div>
-        <div className="bg-slate-900 border border-slate-600 rounded-xl p-3 text-center">
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 text-center">
           <p className="text-xl font-bold text-blue-400">{totalActions}</p>
           <p className="text-xs text-slate-400 mt-0.5">Action Items</p>
         </div>
-        <div className="bg-slate-900 border border-slate-600 rounded-xl p-3 text-center">
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 text-center">
           <p className={clsx('text-xl font-bold', totalRisks > 0 ? 'text-amber-400' : 'text-slate-100')}>{totalRisks}</p>
           <p className="text-xs text-slate-400 mt-0.5">Risks Raised</p>
         </div>
@@ -359,7 +359,7 @@ export function MeetingNotesTab({ project }: { project: Project }) {
           <div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full" />
         </div>
       ) : notes.length === 0 ? (
-        <div className="bg-slate-900 border border-slate-600 rounded-xl p-8 text-center space-y-3">
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center space-y-3">
           <div className="w-12 h-12 rounded-full bg-slate-700 flex items-center justify-center mx-auto">
             <FileText size={22} className="text-slate-400" />
           </div>

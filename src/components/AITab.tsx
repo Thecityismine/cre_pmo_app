@@ -94,14 +94,14 @@ Meeting Notes:
 `
 
 const STAGE_COLORS: Record<string, string> = {
-  'Pre-Project':  'bg-slate-700 border-slate-600',
+  'Pre-Project':  'bg-slate-700 border-slate-800',
   'Initiate':     'bg-purple-900/60 border-purple-700',
   'Planning':     'bg-blue-900/60 border-blue-700',
   'Design':       'bg-cyan-900/60 border-cyan-700',
   'Construction': 'bg-amber-900/60 border-amber-700',
   'Handover':     'bg-orange-900/60 border-orange-700',
   'Closeout':     'bg-emerald-900/60 border-emerald-700',
-  'Closed':       'bg-slate-900 border-slate-600',
+  'Closed':       'bg-slate-900 border-slate-800',
 }
 
 const STAGE_DOT: Record<string, string> = {
@@ -124,7 +124,7 @@ function NoteCard({ note, onDelete }: { note: MeetingNote; onDelete: () => void 
   })
 
   return (
-    <div className="bg-slate-900 border border-slate-600 rounded-xl overflow-hidden">
+    <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
       <button
         className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-750 transition-colors"
         onClick={() => setExpanded(!expanded)}
@@ -149,7 +149,7 @@ function NoteCard({ note, onDelete }: { note: MeetingNote; onDelete: () => void 
       </button>
 
       {expanded && (
-        <div className="border-t border-slate-600 p-4 space-y-4">
+        <div className="border-t border-slate-800 p-4 space-y-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <ClipboardList size={13} className="text-blue-400" />
@@ -738,7 +738,7 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
     <div className="space-y-4">
 
       {/* ── Project Brief ── */}
-      <div className="bg-slate-900 border border-slate-600 rounded-xl p-4">
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Sparkles size={15} className="text-blue-400" />
@@ -768,7 +768,7 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
       </div>
 
       {/* ── Schedule Generator ── */}
-      <div className="bg-slate-900 border border-slate-600 rounded-xl p-4">
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Calendar size={15} className="text-emerald-400" />
@@ -823,7 +823,7 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
                   key={i}
                   className={clsx(
                     'rounded-lg border p-3',
-                    STAGE_COLORS[m.stage] ?? 'bg-slate-900 border-slate-600'
+                    STAGE_COLORS[m.stage] ?? 'bg-slate-900 border-slate-800'
                   )}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -858,7 +858,7 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
                 'w-full flex items-center justify-center gap-2 text-sm py-2 rounded-lg transition-colors font-medium',
                 applied
                   ? 'bg-emerald-900/50 text-emerald-400 border border-emerald-700 cursor-default'
-                  : 'bg-slate-700 hover:bg-slate-600 text-slate-200 border border-slate-600'
+                  : 'bg-slate-700 hover:bg-slate-600 text-slate-200 border border-slate-800'
               )}
             >
               {applied
@@ -877,7 +877,7 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
       </div>
 
       {/* ── 4.1 AI Risk Scanner ── */}
-      <div className="bg-slate-900 border border-slate-600 rounded-xl p-4">
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <ShieldAlert size={15} className="text-red-400" />
@@ -912,7 +912,7 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
                 'rounded-lg border p-3',
                 risk.severity === 'high' ? 'bg-red-900/20 border-red-700/40' :
                 risk.severity === 'medium' ? 'bg-amber-900/20 border-amber-700/40' :
-                'bg-slate-900/60 border-slate-600/40'
+                'bg-slate-900/60 border-slate-800/40'
               )}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
@@ -935,7 +935,7 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
                       'shrink-0 flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border font-medium transition-colors',
                       promotedIds.has(idx)
                         ? 'bg-emerald-900/40 text-emerald-400 border-emerald-700/50 cursor-default'
-                        : 'bg-slate-700 text-slate-300 border-slate-600 hover:bg-slate-600 hover:text-white'
+                        : 'bg-slate-700 text-slate-300 border-slate-800 hover:bg-slate-600 hover:text-white'
                     )}
                   >
                     {promotedIds.has(idx) ? <><Check size={11} /> Added</> : '+ RAID'}
@@ -960,7 +960,7 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
       </div>
 
       {/* ── 4.2 AI Status Report ── */}
-      <div className="bg-slate-900 border border-slate-600 rounded-xl p-4">
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <BarChart3 size={15} className="text-purple-400" />
@@ -971,13 +971,13 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
               <>
                 <button
                   onClick={copyReport}
-                  className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-600 hover:border-slate-600 px-2.5 py-1.5 rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-800 hover:border-slate-800 px-2.5 py-1.5 rounded-lg transition-colors"
                 >
                   {reportCopied ? <><Check size={11} /> Copied</> : <><ClipboardCopy size={11} /> Copy</>}
                 </button>
                 <button
                   onClick={exportReportPdf}
-                  className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-600 hover:border-slate-600 px-2.5 py-1.5 rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-800 hover:border-slate-800 px-2.5 py-1.5 rounded-lg transition-colors"
                 >
                   <FileDown size={11} /> PDF
                 </button>
@@ -1006,7 +1006,7 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
                 'text-xs px-2.5 py-1 rounded-md border transition-colors',
                 meetingType === mt.id
                   ? 'bg-purple-900/70 border-purple-600 text-purple-200'
-                  : 'bg-slate-700/50 border-slate-600 text-slate-400 hover:text-slate-200 hover:border-slate-500',
+                  : 'bg-slate-700/50 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-500',
               )}
             >
               {mt.label}
@@ -1054,7 +1054,7 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
           {!showForm && (
             <button
               onClick={() => setShowForm(true)}
-              className="flex items-center gap-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-3 py-1.5 rounded-lg border border-slate-600 transition-colors"
+              className="flex items-center gap-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-3 py-1.5 rounded-lg border border-slate-800 transition-colors"
             >
               + Add Notes
             </button>
@@ -1063,7 +1063,7 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
 
         {/* New Note Form */}
         {showForm && (
-          <div className="bg-slate-900 border border-slate-600 rounded-xl p-4 mb-4 space-y-3">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 mb-4 space-y-3">
             <div className="flex items-center justify-between">
               <p className="text-slate-200 font-medium text-sm">New Meeting Notes</p>
               <button onClick={() => { setShowForm(false); setError('') }} className="text-slate-400 hover:text-slate-300">
@@ -1075,10 +1075,10 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Meeting title (e.g. Design Review – Week 12)"
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500"
+              className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500"
             />
 
-            <div className="flex gap-1 bg-slate-900 p-1 rounded-lg border border-slate-600">
+            <div className="flex gap-1 bg-slate-900 p-1 rounded-lg border border-slate-800">
               <button
                 onClick={() => setMode('text')}
                 className={clsx(
@@ -1105,7 +1105,7 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
                 onChange={(e) => setRawText(e.target.value)}
                 placeholder="Paste your meeting notes here..."
                 rows={6}
-                className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 resize-none"
+                className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 resize-none"
               />
             ) : (
               <div>
@@ -1117,7 +1117,7 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
                   onChange={(e) => setAudioFile(e.target.files?.[0] ?? null)}
                 />
                 {audioFile ? (
-                  <div className="flex items-center justify-between bg-slate-900 border border-slate-600 rounded-lg p-3">
+                  <div className="flex items-center justify-between bg-slate-900 border border-slate-800 rounded-lg p-3">
                     <div className="flex items-center gap-2">
                       <Mic size={14} className="text-blue-400" />
                       <span className="text-sm text-slate-200 truncate max-w-xs">{audioFile.name}</span>
@@ -1130,7 +1130,7 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
                 ) : (
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-full flex flex-col items-center gap-2 border-2 border-dashed border-slate-600 hover:border-blue-500 rounded-lg py-6 text-slate-400 hover:text-slate-200 transition-colors"
+                    className="w-full flex flex-col items-center gap-2 border-2 border-dashed border-slate-800 hover:border-blue-500 rounded-lg py-6 text-slate-400 hover:text-slate-200 transition-colors"
                   >
                     <Upload size={20} />
                     <span className="text-sm">Click to upload audio recording</span>
@@ -1163,7 +1163,7 @@ Return ONLY valid JSON in this exact structure (no markdown, no explanation):
         )}
 
         {notes.length === 0 && !showForm ? (
-          <div className="text-center py-12 text-slate-400 bg-slate-900 border border-slate-600 rounded-xl">
+          <div className="text-center py-12 text-slate-400 bg-slate-900 border border-slate-800 rounded-xl">
             <Mic size={32} className="mx-auto mb-3 opacity-40" />
             <p className="text-sm">No meeting notes yet.</p>
             <p className="text-xs mt-1">Add notes to extract action items and decisions with AI.</p>

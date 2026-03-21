@@ -19,7 +19,8 @@
       "Bash(firebase use:*)",
       "Bash(node -e \":*)",
       "Bash(firebase functions:secrets:set ANTHROPIC_API_KEY)",
-      "Bash(firebase deploy:*)"
+      "Bash(firebase deploy:*)",
+      "Bash(xargs sed:*)"
     ]
   }
 }

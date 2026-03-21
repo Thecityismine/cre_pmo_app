@@ -172,25 +172,25 @@ function RfiRow({
     return (
       <div className="border border-blue-600/40 rounded-xl bg-slate-900/60 p-4 space-y-3">
         <input value={form.subject} onChange={f('subject')} placeholder="Subject *" autoFocus
-          className="w-full bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
+          className="w-full bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
         <input value={form.specSection} onChange={f('specSection')} placeholder="Spec Section (e.g., 03 00 00 - Concrete)"
-          className="w-full bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
+          className="w-full bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
         <textarea value={form.question} onChange={f('question')} placeholder="Question / Request" rows={3}
-          className="w-full bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 resize-none placeholder-slate-500" />
+          className="w-full bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 resize-none placeholder-slate-500" />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           <input value={form.submittedBy} onChange={f('submittedBy')} placeholder="Submitted by"
-            className="bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
+            className="bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
           <input value={form.assignedTo} onChange={f('assignedTo')} placeholder="Assigned to (reviewer)"
-            className="bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
+            className="bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
           <input type="date" value={form.dueDate} onChange={f('dueDate')}
-            className="bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500" />
+            className="bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500" />
           <select value={form.status} onChange={f('status')}
-            className="bg-slate-900 border border-slate-600 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
+            className="bg-slate-900 border border-slate-800 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
             {RFI_STATUSES.map(s => <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>)}
           </select>
         </div>
         <textarea value={form.response} onChange={f('response')} placeholder="Response / Answer" rows={2}
-          className="w-full bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 resize-none placeholder-slate-500" />
+          className="w-full bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 resize-none placeholder-slate-500" />
         <div className="flex gap-2">
           <button onClick={save} disabled={saving || !form.subject.trim()}
             className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-lg disabled:opacity-50">
@@ -207,7 +207,7 @@ function RfiRow({
       'border rounded-xl overflow-hidden transition-colors',
       isOverdue ? 'border-red-800/50 bg-red-950/10'
       : isDueSoon ? 'border-amber-800/40 bg-amber-950/10'
-      : 'border-slate-600 bg-slate-900'
+      : 'border-slate-800 bg-slate-900'
     )}>
       <div className="flex items-center gap-3 px-4 py-3 group">
         <span className="text-xs font-mono text-slate-400 shrink-0 w-14">RFI-{String(rfi.number).padStart(3, '0')}</span>
@@ -260,7 +260,7 @@ function RfiRow({
       </div>
 
       {expanded && (
-        <div className="px-4 pb-4 border-t border-slate-600/50 pt-3 space-y-3">
+        <div className="px-4 pb-4 border-t border-slate-800/50 pt-3 space-y-3">
           {rfi.question && (
             <div>
               <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">Question</p>
@@ -326,21 +326,21 @@ function AddRfiForm({
 
       <input value={form.subject} onChange={f('subject')} placeholder="Subject *" autoFocus
         onKeyDown={e => { if (e.key === 'Escape') onCancel() }}
-        className="w-full bg-slate-700 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
+        className="w-full bg-slate-700 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
 
       <input value={form.specSection} onChange={f('specSection')} placeholder="Spec Section (optional)"
-        className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
+        className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
 
       <textarea value={form.question} onChange={f('question')} placeholder="Question / request details" rows={3}
-        className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 resize-none placeholder-slate-500" />
+        className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 resize-none placeholder-slate-500" />
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
         <input value={form.submittedBy} onChange={f('submittedBy')} placeholder="Submitted by"
-          className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
+          className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
         <input value={form.assignedTo} onChange={f('assignedTo')} placeholder="Assigned to (reviewer)"
-          className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
+          className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
         <input type="date" value={form.dueDate} onChange={f('dueDate')}
-          className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500" />
+          className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500" />
       </div>
 
       <div className="flex gap-2 pt-1">
@@ -420,19 +420,19 @@ export function RfiTab({ project }: { project: Project }) {
     <div className="space-y-4">
       {/* Summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="bg-slate-900 border border-slate-600 rounded-xl p-3 text-center">
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 text-center">
           <p className="text-xl font-bold text-slate-100">{rfis.length}</p>
           <p className="text-xs text-slate-400 mt-0.5">Total RFIs</p>
         </div>
-        <div className="bg-slate-900 border border-slate-600 rounded-xl p-3 text-center">
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 text-center">
           <p className={clsx('text-xl font-bold', openCount > 0 ? 'text-amber-400' : 'text-slate-100')}>{openCount}</p>
           <p className="text-xs text-slate-400 mt-0.5">Open</p>
         </div>
-        <div className="bg-slate-900 border border-slate-600 rounded-xl p-3 text-center">
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 text-center">
           <p className={clsx('text-xl font-bold', overdueCount > 0 ? 'text-red-400' : 'text-slate-100')}>{overdueCount}</p>
           <p className="text-xs text-slate-400 mt-0.5">Overdue</p>
         </div>
-        <div className="bg-slate-900 border border-slate-600 rounded-xl p-3 text-center">
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 text-center">
           <p className={clsx('text-xl font-bold', avgResp !== null ? 'text-blue-400' : 'text-slate-400')}>
             {avgResp !== null ? `${avgResp}d` : '—'}
           </p>
@@ -465,7 +465,7 @@ export function RfiTab({ project }: { project: Project }) {
 
       {/* Toolbar */}
       <div className="flex items-center gap-2 flex-wrap">
-        <div className="flex gap-1 bg-slate-900 border border-slate-600 rounded-lg p-1">
+        <div className="flex gap-1 bg-slate-900 border border-slate-800 rounded-lg p-1">
           {(['all', ...RFI_STATUSES] as const).map(s => (
             <button
               key={s}
@@ -489,7 +489,7 @@ export function RfiTab({ project }: { project: Project }) {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search RFIs…"
-            className="w-full bg-slate-900 text-slate-200 placeholder-slate-500 text-xs rounded-lg pl-8 pr-3 py-1.5 border border-slate-600 focus:outline-none focus:border-blue-500"
+            className="w-full bg-slate-900 text-slate-200 placeholder-slate-500 text-xs rounded-lg pl-8 pr-3 py-1.5 border border-slate-800 focus:outline-none focus:border-blue-500"
           />
         </div>
 
@@ -497,7 +497,7 @@ export function RfiTab({ project }: { project: Project }) {
         {rfis.length > 0 && (
           <button
             onClick={() => exportToCsv(rfis, project.projectName)}
-            className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 bg-slate-900 border border-slate-600 hover:border-slate-600 px-3 py-1.5 rounded-lg transition-colors"
+            className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 bg-slate-900 border border-slate-800 hover:border-slate-800 px-3 py-1.5 rounded-lg transition-colors"
           >
             <Download size={12} /> Export CSV
           </button>

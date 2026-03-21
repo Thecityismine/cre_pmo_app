@@ -96,7 +96,7 @@ export function LoginPage() {
         </div>
 
         {/* Card */}
-        <div className="bg-slate-900 border border-slate-600 rounded-2xl p-6 space-y-5">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-5">
           {error && (
             <div className="bg-red-900/40 border border-red-700 text-red-300 text-sm rounded-lg px-4 py-3">
               {error}
@@ -119,9 +119,9 @@ export function LoginPage() {
           </button>
 
           <div className="flex items-center gap-3">
-            <div className="flex-1 border-t border-slate-600" />
+            <div className="flex-1 border-t border-slate-800" />
             <span className="text-slate-400 text-xs">or</span>
-            <div className="flex-1 border-t border-slate-600" />
+            <div className="flex-1 border-t border-slate-800" />
           </div>
 
           {/* Email form */}
@@ -134,7 +134,7 @@ export function LoginPage() {
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   required
-                  className="w-full bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2.5 border border-slate-600 focus:outline-none focus:border-blue-500"
+                  className="w-full bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2.5 border border-slate-800 focus:outline-none focus:border-blue-500"
                   placeholder="Jorge Medina"
                 />
               </div>
@@ -146,7 +146,7 @@ export function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2.5 border border-slate-600 focus:outline-none focus:border-blue-500"
+                className="w-full bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2.5 border border-slate-800 focus:outline-none focus:border-blue-500"
                 placeholder="you@company.com"
               />
             </div>
@@ -158,7 +158,7 @@ export function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2.5 border border-slate-600 focus:outline-none focus:border-blue-500"
+                className="w-full bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2.5 border border-slate-800 focus:outline-none focus:border-blue-500"
                 placeholder="••••••••"
               />
             </div>

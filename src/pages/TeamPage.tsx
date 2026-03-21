@@ -68,7 +68,7 @@ function ContactCard({ contact, onDelete }: { contact: Contact; onDelete: (id: s
           <button onClick={save} disabled={saving} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 rounded-lg disabled:opacity-50">
             {saving ? 'Saving...' : 'Save'}
           </button>
-          <button onClick={() => setEditing(false)} className="flex-1 border border-slate-600 text-slate-300 text-sm py-2 rounded-lg hover:bg-slate-700">
+          <button onClick={() => setEditing(false)} className="flex-1 border border-slate-800 text-slate-300 text-sm py-2 rounded-lg hover:bg-slate-700">
             Cancel
           </button>
         </div>
@@ -77,7 +77,7 @@ function ContactCard({ contact, onDelete }: { contact: Contact; onDelete: (id: s
   }
 
   return (
-    <div className="bg-slate-900 border border-slate-600 rounded-xl p-4 hover:border-slate-600 transition-colors group">
+    <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-slate-800 transition-colors group">
       <div className="flex items-start gap-3">
         {/* Avatar */}
         <div className={clsx('w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0', avatarColors[colorIndex])}>
@@ -150,8 +150,8 @@ function AddContactModal({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative z-10 w-full sm:max-w-md bg-slate-900 border border-slate-600 rounded-t-2xl sm:rounded-2xl">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-600">
+      <div className="relative z-10 w-full sm:max-w-md bg-slate-900 border border-slate-800 rounded-t-2xl sm:rounded-2xl">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
           <h2 className="text-slate-100 font-semibold">Add Contact</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-200"><X size={18} /></button>
         </div>
@@ -187,7 +187,7 @@ function AddContactModal({ onClose }: { onClose: () => void }) {
             <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} className={clsx(inp(), 'resize-none')} />
           </div>
           <div className="flex gap-2 pt-1">
-            <button type="button" onClick={onClose} className="flex-1 border border-slate-600 text-slate-300 text-sm py-2.5 rounded-lg hover:bg-slate-900">Cancel</button>
+            <button type="button" onClick={onClose} className="flex-1 border border-slate-800 text-slate-300 text-sm py-2.5 rounded-lg hover:bg-slate-900">Cancel</button>
             <button type="submit" disabled={saving} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm py-2.5 rounded-lg disabled:opacity-50">
               {saving ? 'Adding...' : 'Add Contact'}
             </button>
@@ -245,7 +245,7 @@ export function TeamPage() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search name, company, email..."
-            className="w-full bg-slate-900 text-slate-200 placeholder-slate-500 text-sm rounded-xl pl-9 pr-4 py-2.5 border border-slate-600 focus:outline-none focus:border-blue-500"
+            className="w-full bg-slate-900 text-slate-200 placeholder-slate-500 text-sm rounded-xl pl-9 pr-4 py-2.5 border border-slate-800 focus:outline-none focus:border-blue-500"
           />
         </div>
         <div className="flex gap-1.5 flex-wrap">
@@ -255,7 +255,7 @@ export function TeamPage() {
               onClick={() => setRoleFilter(r)}
               className={clsx(
                 'px-3 py-1.5 rounded-lg text-xs font-medium transition-colors capitalize',
-                roleFilter === r ? 'bg-blue-600 text-white' : 'bg-slate-900 border border-slate-600 text-slate-400 hover:text-slate-200'
+                roleFilter === r ? 'bg-blue-600 text-white' : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200'
               )}
             >
               {r === 'all' ? `All (${contacts.length})` : ROLE_LABELS[r] ?? r}
@@ -270,7 +270,7 @@ export function TeamPage() {
           <div className="animate-spin w-7 h-7 border-2 border-blue-500 border-t-transparent rounded-full" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-16 text-slate-400 bg-slate-900 border border-slate-600 rounded-xl">
+        <div className="text-center py-16 text-slate-400 bg-slate-900 border border-slate-800 rounded-xl">
           <Users size={36} className="mx-auto mb-3 opacity-30" />
           <p>{search ? `No contacts matching "${search}"` : 'No contacts yet.'}</p>
         </div>
@@ -286,5 +286,5 @@ export function TeamPage() {
 }
 
 function inp() {
-  return clsx('w-full bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-600 focus:outline-none focus:border-blue-500 placeholder-slate-500')
+  return clsx('w-full bg-slate-900 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500')
 }
