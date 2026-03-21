@@ -398,6 +398,14 @@ export function ProjectDetailPage() {
     acc[cat].push(t)
     return acc
   }, {})
+  // Sort each category: incomplete first, complete last
+  Object.values(grouped).forEach(arr =>
+    arr.sort((a, b) => {
+      const aComplete = a.status === 'complete' ? 1 : 0
+      const bComplete = b.status === 'complete' ? 1 : 0
+      return aComplete - bComplete
+    })
+  )
 
   const totalDone = tasks.filter(t => t.status === 'complete').length
   const totalPct = tasks.length > 0 ? Math.round((totalDone / tasks.length) * 100) : 0
