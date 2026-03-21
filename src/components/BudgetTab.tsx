@@ -997,7 +997,7 @@ export function BudgetTab({ project }: { project: Project }) {
 
       {/* ── Financial summary footer ──────────────────────────────────────── */}
       {hasItems && (
-        <div className="bg-slate-900/70 border border-slate-800 rounded-xl px-4 py-3 flex flex-wrap gap-4 text-xs">
+        <div className="bg-slate-900/70 border border-slate-800 rounded-xl px-4 py-3 flex flex-wrap gap-4 text-sm">
           <div><span className="text-slate-400">Baseline: </span><span className="text-slate-200 font-medium">{fmt(baseBudget)}</span></div>
           <div>
             <span className="text-slate-400">+ Approved COs: </span>
