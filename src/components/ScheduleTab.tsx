@@ -509,17 +509,6 @@ function ScheduleForm({
         </div>
 
         <div>
-          <label className="block text-xs text-slate-400 mb-1">Actual Start</label>
-          <input type="date" value={f.startDate} onChange={e => set('startDate', e.target.value)}
-            className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500" />
-        </div>
-        <div>
-          <label className="block text-xs text-slate-400 mb-1">Actual End</label>
-          <input type="date" value={f.endDate} onChange={e => set('endDate', e.target.value)}
-            className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500" />
-        </div>
-
-        <div>
           <label className="block text-xs text-slate-400 mb-1">Baseline Start</label>
           <input type="date" value={f.baselineStart} onChange={e => set('baselineStart', e.target.value)}
             className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500" />
@@ -527,6 +516,17 @@ function ScheduleForm({
         <div>
           <label className="block text-xs text-slate-400 mb-1">Baseline End</label>
           <input type="date" value={f.baselineEnd} onChange={e => set('baselineEnd', e.target.value)}
+            className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500" />
+        </div>
+
+        <div>
+          <label className="block text-xs text-slate-400 mb-1">Actual Start</label>
+          <input type="date" value={f.startDate} onChange={e => set('startDate', e.target.value)}
+            className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500" />
+        </div>
+        <div>
+          <label className="block text-xs text-slate-400 mb-1">Actual End</label>
+          <input type="date" value={f.endDate} onChange={e => set('endDate', e.target.value)}
             className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-blue-500" />
         </div>
 
