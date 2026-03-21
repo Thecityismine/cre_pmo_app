@@ -1,10 +1,39 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useContacts } from '@/hooks/useContacts'
-import { collection, addDoc, doc, deleteDoc, updateDoc } from 'firebase/firestore'
+import { collection, addDoc, doc, deleteDoc, updateDoc, getDocs } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
-import { Plus, Search, Mail, Phone, Trash2, X, Pencil, Users } from 'lucide-react'
+import { Plus, Search, Mail, Phone, Trash2, X, Pencil, Users, AlertTriangle, Clock, CheckSquare } from 'lucide-react'
 import { clsx } from 'clsx'
 import type { Contact } from '@/hooks/useContacts'
+
+// ─── Internal roles (for summary bar split) ───────────────────────────────────
+const INTERNAL_ROLES = new Set(['project-manager', 'project-executive', 'owners-rep', 'facilities', 'accounting', 'legal'])
+
+// ─── Task accountability ──────────────────────────────────────────────────────
+interface TaskRow { assignedTo: string; status: string; dueDate: string; updatedAt: string }
+
+interface ContactStats { open: number; overdue: number; lastUpdated: string | null }
+
+function getContactStats(name: string, tasks: TaskRow[]): ContactStats {
+  const key = name.trim().toLowerCase()
+  const mine = tasks.filter(t => (t.assignedTo ?? '').trim().toLowerCase() === key)
+  const today = new Date(); today.setHours(0, 0, 0, 0)
+  const open    = mine.filter(t => t.status === 'open')
+  const overdue = open.filter(t => t.dueDate && new Date(t.dueDate) < today)
+  const lastUpdated = mine.length > 0
+    ? mine.map(t => t.updatedAt).filter(Boolean).sort().at(-1) ?? null
+    : null
+  return { open: open.length, overdue: overdue.length, lastUpdated }
+}
+
+function fmtLastActive(iso: string | null): string | null {
+  if (!iso) return null
+  const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000)
+  if (diff === 0) return 'Today'
+  if (diff === 1) return 'Yesterday'
+  if (diff < 7)  return `${diff}d ago`
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
 
 const ROLE_COLORS: Record<string, string> = {
   'project-manager':    'bg-blue-900 text-blue-300',
@@ -53,7 +82,7 @@ const ROLE_LABELS: Record<string, string> = {
 const ROLES = Object.keys(ROLE_LABELS)
 
 // ─── Contact Card ─────────────────────────────────────────────────────────────
-function ContactCard({ contact, onDelete }: { contact: Contact; onDelete: (id: string) => void }) {
+function ContactCard({ contact, onDelete, stats }: { contact: Contact; onDelete: (id: string) => void; stats: ContactStats }) {
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({ name: contact.name, company: contact.company, role: contact.role, responsibility: contact.responsibility ?? '', email: contact.email, phone: contact.phone, notes: contact.notes })
   const [saving, setSaving] = useState(false)
@@ -144,6 +173,28 @@ function ContactCard({ contact, onDelete }: { contact: Contact; onDelete: (id: s
               </a>
             )}
           </div>
+
+          {/* Accountability */}
+          {(stats.open > 0 || stats.lastUpdated) && (
+            <div className="mt-2 pt-2 border-t border-slate-800/60 flex items-center justify-between gap-2 flex-wrap">
+              {stats.open > 0 ? (
+                <span className="flex items-center gap-1.5 text-xs">
+                  <CheckSquare size={11} className="text-slate-400" />
+                  <span className="text-slate-300">{stats.open} task{stats.open > 1 ? 's' : ''}</span>
+                  {stats.overdue > 0 && (
+                    <span className="flex items-center gap-0.5 text-red-400 font-medium">
+                      <AlertTriangle size={10} /> {stats.overdue} overdue
+                    </span>
+                  )}
+                </span>
+              ) : <span />}
+              {stats.lastUpdated && (
+                <span className="flex items-center gap-1 text-[11px] text-slate-500">
+                  <Clock size={10} /> {fmtLastActive(stats.lastUpdated)}
+                </span>
+              )}
+            </div>
+          )}
 
           {contact.notes && (
             <p className="mt-2 text-xs text-slate-400 line-clamp-2">{contact.notes}</p>
@@ -236,6 +287,25 @@ export function TeamPage() {
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
   const [showAdd, setShowAdd] = useState(false)
+  const [allTasks, setAllTasks] = useState<TaskRow[]>([])
+
+  // One-time fetch of all project tasks (cross-project accountability)
+  useEffect(() => {
+    getDocs(collection(db, 'projectTasks')).then(snap => {
+      setAllTasks(snap.docs.map(d => d.data() as TaskRow))
+    }).catch(() => {})
+  }, [])
+
+  // Build stats map keyed by contact id
+  const statsMap = Object.fromEntries(
+    contacts.map(c => [c.id, getContactStats(c.name, allTasks)])
+  )
+
+  // ── Team summary bar ──
+  const activeContributors = contacts.filter(c => statsMap[c.id]?.open > 0).length
+  const overdueOwners      = contacts.filter(c => statsMap[c.id]?.overdue > 0).length
+  const internalCount      = contacts.filter(c => INTERNAL_ROLES.has(c.role)).length
+  const externalCount      = contacts.length - internalCount
 
   const filtered = contacts.filter(c => {
     const matchSearch = !search ||
@@ -268,6 +338,26 @@ export function TeamPage() {
           <Plus size={15} /> Add Contact
         </button>
       </div>
+
+      {/* Team summary bar */}
+      {contacts.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { label: 'Total Members',       value: contacts.length,    color: 'text-slate-100',  icon: Users },
+            { label: 'Active Contributors', value: activeContributors, color: 'text-emerald-400', icon: CheckSquare },
+            { label: 'Overdue Owners',      value: overdueOwners,      color: overdueOwners > 0 ? 'text-red-400' : 'text-slate-100', icon: AlertTriangle },
+            { label: `${internalCount} Internal / ${externalCount} External`, value: null, color: 'text-slate-400', icon: Users },
+          ].map(({ label, value, color, icon: Icon }) => (
+            <div key={label} className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 flex items-center gap-3">
+              <Icon size={16} className={clsx('shrink-0', color)} />
+              <div className="min-w-0">
+                {value !== null && <p className={clsx('text-xl font-bold tabular-nums leading-tight', color)}>{value}</p>}
+                <p className="text-xs text-slate-400 truncate">{label}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Search + filter */}
       <div className="flex flex-col sm:flex-row gap-3">
@@ -308,7 +398,9 @@ export function TeamPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-          {filtered.map(c => <ContactCard key={c.id} contact={c} onDelete={handleDelete} />)}
+          {filtered.map(c => (
+            <ContactCard key={c.id} contact={c} onDelete={handleDelete} stats={statsMap[c.id] ?? { open: 0, overdue: 0, lastUpdated: null }} />
+          ))}
         </div>
       )}
 
