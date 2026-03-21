@@ -3,6 +3,7 @@ import { clsx } from 'clsx'
 import { Plus, Trash2, ChevronDown, ChevronRight, Check, AlertTriangle, Zap, Bug, Lightbulb, Bot, Download, DollarSign, Clock3, Layers, Sparkles, Loader2, Link2, CheckSquare, FileText } from 'lucide-react'
 import { useRaidLog } from '@/hooks/useRaidLog'
 import type { RaidItem, RaidType, RaidStatus, RaidPriority, LinkedItem } from '@/hooks/useRaidLog'
+import { RiskTrajectoryChart } from './RiskTrajectoryChart'
 import type { Project } from '@/types'
 import { callClaude, hasClaudeKey } from '@/lib/claude'
 import { useProjectTasks } from '@/hooks/useProjectTasks'
@@ -852,6 +853,9 @@ export function RaidTab({ project, setTab }: { project: Project; setTab?: (tab: 
           )}
         </div>
       )}
+
+      {/* Risk trajectory chart */}
+      {items.length > 0 && <RiskTrajectoryChart items={items} />}
 
       {/* Toolbar */}
       <div className="flex items-center gap-2 flex-wrap">
