@@ -13,11 +13,13 @@ const STATUS_CONFIG: Record<MilestoneStatus, { label: string; dot: string; text:
   delayed:  { label: 'Delayed',  dot: 'bg-red-500 border-red-400',                 text: 'text-red-400', Icon: AlertTriangle },
 }
 
+const parseLocal = (d: string) => { const [y, mo, day] = d.split('-').map(Number); return new Date(y, mo - 1, day) }
+
 const fmtDate = (d: string) =>
-  d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'
+  d ? parseLocal(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'
 
 const isOverdue = (m: Milestone) =>
-  m.status === 'pending' && m.targetDate && new Date(m.targetDate) < new Date()
+  m.status === 'pending' && m.targetDate && parseLocal(m.targetDate) < new Date()
 
 // ─── Inline milestone row ─────────────────────────────────────────────────────
 
@@ -181,7 +183,7 @@ function MilestoneRow({
       </span>
 
       {/* Actions */}
-      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+      <div className="flex gap-1 shrink-0">
         <button onClick={() => setEditing(true)} className="text-xs text-slate-400 hover:text-blue-400 px-1">Edit</button>
         <button onClick={() => { if (confirm('Delete this milestone?')) onDelete(milestone.id) }}
           className="p-1 text-slate-400 hover:text-red-400">

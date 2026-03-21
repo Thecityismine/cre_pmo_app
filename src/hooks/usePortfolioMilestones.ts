@@ -19,17 +19,19 @@ export function usePortfolioMilestones(projectMap: Record<string, string>) {
       const today = new Date()
       const in30 = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000)
 
+      const parseLocal = (s: string) => { const [y, mo, day] = s.split('-').map(Number); return new Date(y, mo - 1, day) }
+
       const items = snap.docs
         .map(d => ({ id: d.id, ...d.data() } as Milestone))
         .filter(m => {
           if (!m.targetDate) return false
-          const d = new Date(m.targetDate)
+          const d = parseLocal(m.targetDate)
           return d >= today && d <= in30
         })
         .map(m => ({
           ...m,
           projectName: projectMap[m.projectId] ?? 'Unknown Project',
-          daysUntil: Math.ceil((new Date(m.targetDate).getTime() - today.getTime()) / (1000 * 60 * 60 * 24)),
+          daysUntil: Math.ceil((parseLocal(m.targetDate).getTime() - today.getTime()) / (1000 * 60 * 60 * 24)),
         }))
         .sort((a, b) => a.daysUntil - b.daysUntil)
 

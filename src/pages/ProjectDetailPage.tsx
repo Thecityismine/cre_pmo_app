@@ -865,11 +865,9 @@ export function ProjectDetailPage() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-slate-400">No milestone dates set.</p>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    Go to the{' '}
-                    <button onClick={() => setTab('schedule')} className="text-blue-400 hover:text-blue-300 underline">
-                      Schedule
-                    </button>
-                    {' '}tab to add target dates.
+                    Scroll down to the{' '}
+                    <span className="text-blue-400">Milestones</span>
+                    {' '}section below and click <strong className="text-slate-300">Edit</strong> on each milestone to set target dates.
                   </p>
                 </div>
               </div>
@@ -899,7 +897,7 @@ export function ProjectDetailPage() {
                         <div className="ml-2 pb-4">
                           <p className={clsx('text-xs font-medium leading-tight', textColor)}>{m.name}</p>
                           <p className="text-[10px] text-slate-400 mt-0.5">
-                            {new Date(m.targetDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            {(() => { const [y,mo,d] = m.targetDate.split('-').map(Number); return new Date(y, mo-1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) })()}
                           </p>
                         </div>
                         {idx < dated.slice(0, 8).length - 1 && <div className="flex-1 h-px bg-slate-700 mt-1.5 min-w-[16px]" />}
@@ -1215,7 +1213,7 @@ export function ProjectDetailPage() {
           showAddForm={fabTaskForm}
           onFormClose={() => setFabTaskForm(false)}
           milestones={milestones}
-          onMilestoneComplete={id => updateMilestone(id, { status: 'complete' })}
+          onMilestoneComplete={id => updateMilestone(id, { status: 'complete', actualDate: new Date().toISOString().split('T')[0] })}
         />
       )}
 
