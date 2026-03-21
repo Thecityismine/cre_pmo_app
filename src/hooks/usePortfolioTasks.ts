@@ -42,22 +42,24 @@ export function usePortfolioTasks() {
     return () => { unsub1(); unsub2() }
   }, [])
 
+  const parseLocal = (d: string) => { const [y, m, day] = d.split('-').map(Number); return new Date(y, m - 1, day) }
+
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   const in14 = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000)
 
   // Project tasks take priority on dashboard
-  const ptOverdue  = projectTasks.filter(t => t.dueDate && new Date(t.dueDate) < today)
+  const ptOverdue  = projectTasks.filter(t => t.dueDate && parseLocal(t.dueDate) < today)
   const ptUpcoming = projectTasks.filter(t => {
     if (!t.dueDate) return false
-    const d = new Date(t.dueDate)
+    const d = parseLocal(t.dueDate)
     return d >= today && d <= in14
   })
 
   // Checklist tasks for secondary reference
-  const clOverdue  = checklistTasks.filter(t => new Date(t.dueDate!) < today)
+  const clOverdue  = checklistTasks.filter(t => parseLocal(t.dueDate!) < today)
   const clUpcoming = checklistTasks.filter(t => {
-    const d = new Date(t.dueDate!)
+    const d = parseLocal(t.dueDate!)
     return d >= today && d <= in14
   })
 
