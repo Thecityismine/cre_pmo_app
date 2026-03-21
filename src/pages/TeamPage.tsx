@@ -2,7 +2,13 @@ import { useState, useEffect } from 'react'
 import { useContacts } from '@/hooks/useContacts'
 import { collection, addDoc, doc, deleteDoc, updateDoc, getDocs } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
-import { Plus, Search, Mail, Phone, Trash2, X, Pencil, Users, AlertTriangle, Clock, CheckSquare } from 'lucide-react'
+import {
+  Plus, Search, Mail, Phone, Trash2, X, Pencil, Users,
+  AlertTriangle, Clock, CheckSquare, Copy, Check,
+  HardHat, Compass, Zap, Building2, KeyRound, Shield,
+  Scale, Wrench, Monitor, Package, Briefcase, ShieldAlert,
+  DollarSign, Layers,
+} from 'lucide-react'
 import { clsx } from 'clsx'
 import type { Contact } from '@/hooks/useContacts'
 
@@ -81,6 +87,45 @@ const ROLE_LABELS: Record<string, string> = {
 
 const ROLES = Object.keys(ROLE_LABELS)
 
+const ROLE_ICONS: Record<string, React.ElementType> = {
+  'project-manager':    HardHat,
+  'project-executive':  Briefcase,
+  'owners-rep':         Shield,
+  'architect':          Compass,
+  'aor':                Compass,
+  'general-contractor': HardHat,
+  'mep-engineer':       Zap,
+  'structural':         Layers,
+  'civil':              Layers,
+  'it-vendor':          Monitor,
+  'av-vendor':          Monitor,
+  'security':           ShieldAlert,
+  'client-rep':         Building2,
+  'll-rep':             KeyRound,
+  'ff-and-e':           Package,
+  'legal':              Scale,
+  'accounting':         DollarSign,
+  'facilities':         Wrench,
+  'other':              Users,
+}
+
+// ─── Copy button ──────────────────────────────────────────────────────────────
+function CopyBtn({ text, className }: { text: string; className?: string }) {
+  const [copied, setCopied] = useState(false)
+  const copy = (e: React.MouseEvent) => {
+    e.preventDefault()
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    })
+  }
+  return (
+    <button onClick={copy} title="Copy" className={clsx('p-0.5 text-slate-500 hover:text-slate-300 transition-colors shrink-0', className)}>
+      {copied ? <Check size={10} className="text-emerald-400" /> : <Copy size={10} />}
+    </button>
+  )
+}
+
 // ─── Contact Card ─────────────────────────────────────────────────────────────
 function ContactCard({ contact, onDelete, stats }: { contact: Contact; onDelete: (id: string) => void; stats: ContactStats }) {
   const [editing, setEditing] = useState(false)
@@ -152,9 +197,11 @@ function ContactCard({ contact, onDelete, stats }: { contact: Contact; onDelete:
           </div>
 
           <div className="mt-2 flex items-center gap-2 flex-wrap">
-            <span className={clsx('text-xs px-2 py-0.5 rounded font-medium', ROLE_COLORS[contact.role] ?? ROLE_COLORS.other)}>
-              {ROLE_LABELS[contact.role] ?? contact.role}
-            </span>
+            {(() => { const Icon = ROLE_ICONS[contact.role] ?? Users; return (
+              <span className={clsx('flex items-center gap-1 text-xs px-2 py-0.5 rounded font-medium', ROLE_COLORS[contact.role] ?? ROLE_COLORS.other)}>
+                <Icon size={10} />{ROLE_LABELS[contact.role] ?? contact.role}
+              </span>
+            )})()}
             {contact.responsibility && (
               <span className="text-[11px] text-slate-400 italic truncate">{contact.responsibility}</span>
             )}
@@ -163,16 +210,46 @@ function ContactCard({ contact, onDelete, stats }: { contact: Contact; onDelete:
           {/* Contact details */}
           <div className="mt-2 space-y-1">
             {contact.email && (
-              <a href={`mailto:${contact.email}`} className="flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 truncate">
-                <Mail size={11} />{contact.email}
-              </a>
+              <div className="flex items-center gap-1">
+                <a href={`mailto:${contact.email}`} className="flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 truncate min-w-0">
+                  <Mail size={11} className="shrink-0" />{contact.email}
+                </a>
+                <CopyBtn text={contact.email} />
+              </div>
             )}
             {contact.phone && (
-              <a href={`tel:${contact.phone}`} className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200">
-                <Phone size={11} />{contact.phone}
-              </a>
+              <div className="flex items-center gap-1">
+                <a href={`tel:${contact.phone}`} className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200">
+                  <Phone size={11} className="shrink-0" />{contact.phone}
+                </a>
+                <CopyBtn text={contact.phone} />
+              </div>
             )}
           </div>
+
+          {/* Quick actions — visible on hover */}
+          {(contact.email || contact.phone) && (
+            <div className="mt-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              {contact.phone && (
+                <a href={`tel:${contact.phone}`}
+                  className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-emerald-400 bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded-md transition-colors"
+                  title="Call">
+                  <Phone size={10} /> Call
+                </a>
+              )}
+              {contact.email && (
+                <a href={`mailto:${contact.email}`}
+                  className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-blue-400 bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded-md transition-colors"
+                  title="Email">
+                  <Mail size={10} /> Email
+                </a>
+              )}
+              {contact.email && (
+                <CopyBtn text={contact.email}
+                  className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-slate-200 bg-slate-800 hover:bg-slate-700 !p-1 rounded-md" />
+              )}
+            </div>
+          )}
 
           {/* Accountability */}
           {(stats.open > 0 || stats.lastUpdated) && (
