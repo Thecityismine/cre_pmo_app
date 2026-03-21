@@ -35,9 +35,11 @@ function DailyBriefingWidget(props: BriefingProps) {
   const cached = typeof window !== 'undefined' ? localStorage.getItem(todayKey) : null
   const [bullets, setBullets] = useState<string[]>(cached ? JSON.parse(cached) : [])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const generate = async () => {
     setLoading(true)
+    setError(null)
     const critical = props.portfolioInsights.filter(i => i.severity === 'critical').length
     const warnings = props.portfolioInsights.filter(i => i.severity === 'warning').length
 
@@ -58,8 +60,8 @@ You are a CRE PM assistant. Generate exactly 3 action-oriented focus bullets for
         setBullets(parsed)
         localStorage.setItem(todayKey, JSON.stringify(parsed))
       }
-    } catch {
-      // silently fail — briefing is optional
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)
     }
@@ -102,6 +104,8 @@ You are a CRE PM assistant. Generate exactly 3 action-oriented focus bullets for
           <div className="animate-spin w-3.5 h-3.5 border-2 border-blue-500 border-t-transparent rounded-full" />
           Generating today's focus…
         </div>
+      ) : error ? (
+        <p className="text-sm text-red-400">{error}</p>
       ) : (
         <p className="text-sm text-slate-400 italic">
           {hasClaudeKey()
