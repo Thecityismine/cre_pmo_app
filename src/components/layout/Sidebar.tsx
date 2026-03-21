@@ -28,7 +28,7 @@ export function Sidebar() {
     // Hidden on mobile (bottom nav takes over), icon-only on tablet, full on desktop
     <aside
       className={clsx(
-        'hidden md:flex flex-col h-screen bg-slate-950 border-r border-blue-900/40 transition-all duration-200 shrink-0',
+        'hidden md:flex flex-col h-screen bg-slate-950 transition-all duration-200 shrink-0',
         collapsed ? 'w-16' : 'lg:w-56 md:w-16'
       )}
     >

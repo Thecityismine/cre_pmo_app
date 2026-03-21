@@ -31,9 +31,6 @@ export function Topbar({ onAIOpen }: { onAIOpen?: () => void }) {
         </div>
       ) : (
         <>
-          {/* Desktop logo */}
-          <img src="/App-Logo.png" alt="ProjeX" className="hidden md:block h-8 w-auto object-contain mr-4"  />
-
           {/* Desktop search */}
           <div className="relative hidden md:block">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
