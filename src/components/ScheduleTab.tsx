@@ -958,8 +958,8 @@ export function ScheduleTab({ project }: { project: Project }) {
         </div>
       )}
 
-      {/* Toolbar */}
-      <div className="flex items-center gap-2 flex-wrap">
+      {/* Toolbar — row 1: view toggle + actions */}
+      <div className="flex items-center gap-2">
         {/* View toggle */}
         <div className="flex items-center bg-slate-900 border border-slate-800 rounded-lg p-0.5 shrink-0">
           <button
@@ -980,32 +980,10 @@ export function ScheduleTab({ project }: { project: Project }) {
           </button>
         </div>
 
-        {/* Filters (only in list mode) */}
-        {viewMode === 'list' && (
-          <div className="flex items-center gap-1.5 flex-wrap flex-1">
-            {(['all', 'in-progress', 'behind', 'upcoming', 'complete'] as const).map(s => (
-              <button key={s} onClick={() => setFilter(s)}
-                className={clsx(
-                  'px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors',
-                  filter === s
-                    ? 'bg-blue-600 text-white border-blue-500'
-                    : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200'
-                )}>
-                {s === 'all' ? 'All' : STATUS_CFG[s].label}
-                {s !== 'all' && (
-                  <span className="ml-1 opacity-60">
-                    {items.filter(i => itemStatus(i) === s).length}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        )}
-
-        <div className="flex items-center gap-2 flex-wrap ml-auto">
+        <div className="flex items-center gap-2 ml-auto">
           {items.length === 0 && (
             <button onClick={seedDefaults}
-              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-800 hover:border-slate-800 px-3 py-1.5 rounded-lg transition-colors">
+              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-800 px-3 py-1.5 rounded-lg transition-colors">
               <BarChart2 size={12} /> Seed defaults
             </button>
           )}
@@ -1014,7 +992,7 @@ export function ScheduleTab({ project }: { project: Project }) {
               onClick={lockBaseline}
               disabled={lockingBaseline}
               title="Copy current start/end dates to baseline for all items"
-              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-800 hover:border-slate-800 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+              className="hidden sm:flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-800 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
             >
               <Lock size={12} /> {lockingBaseline ? 'Locking…' : 'Lock Baseline'}
             </button>
@@ -1022,7 +1000,7 @@ export function ScheduleTab({ project }: { project: Project }) {
           {items.length > 0 && (
             <button
               onClick={() => exportScheduleCsv(items, project.projectName || 'Project')}
-              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-800 hover:border-slate-800 px-3 py-1.5 rounded-lg transition-colors"
+              className="hidden sm:flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-800 px-3 py-1.5 rounded-lg transition-colors"
             >
               <Download size={12} /> Export CSV
             </button>
@@ -1033,6 +1011,41 @@ export function ScheduleTab({ project }: { project: Project }) {
           </button>
         </div>
       </div>
+
+      {/* Toolbar — row 2: status filters (scrollable on mobile) */}
+      {viewMode === 'list' && (
+        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pb-0.5">
+          {(['all', 'in-progress', 'behind', 'upcoming', 'complete'] as const).map(s => (
+            <button key={s} onClick={() => setFilter(s)}
+              className={clsx(
+                'shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors',
+                filter === s
+                  ? 'bg-blue-600 text-white border-blue-500'
+                  : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200'
+              )}>
+              {s === 'all' ? 'All' : STATUS_CFG[s].label}
+              {s !== 'all' && (
+                <span className="ml-1 opacity-60">
+                  {items.filter(i => itemStatus(i) === s).length}
+                </span>
+              )}
+            </button>
+          ))}
+          {/* Action buttons visible only on mobile in row 2 */}
+          {items.length > 0 && (
+            <button onClick={lockBaseline} disabled={lockingBaseline}
+              className="sm:hidden shrink-0 flex items-center gap-1 text-xs text-slate-400 border border-slate-800 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 ml-auto">
+              <Lock size={12} /> Baseline
+            </button>
+          )}
+          {items.length > 0 && (
+            <button onClick={() => exportScheduleCsv(items, project.projectName || 'Project')}
+              className="sm:hidden shrink-0 flex items-center gap-1 text-xs text-slate-400 border border-slate-800 px-3 py-1.5 rounded-lg transition-colors">
+              <Download size={12} /> CSV
+            </button>
+          )}
+        </div>
+      )}
 
       {showAdd && (
         <ScheduleForm onSave={handleAdd} onCancel={() => setShowAdd(false)} allItems={items} />
