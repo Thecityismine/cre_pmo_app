@@ -28,12 +28,12 @@ export function Sidebar() {
     // Hidden on mobile (bottom nav takes over), icon-only on tablet, full on desktop
     <aside
       className={clsx(
-        'hidden md:flex flex-col h-screen bg-slate-900 border-r border-slate-600 transition-all duration-200 shrink-0',
+        'hidden md:flex flex-col h-screen bg-slate-950 border-r border-blue-900/40 transition-all duration-200 shrink-0',
         collapsed ? 'w-16' : 'lg:w-56 md:w-16'
       )}
     >
       {/* Logo */}
-      <div className="flex items-center justify-center px-4 py-4 border-b border-slate-600 overflow-hidden">
+      <div className="flex items-center justify-center px-4 py-4 border-b border-blue-900/40 overflow-hidden">
         <img
           src="/App-Logo.png"
           alt="ProjeX"
@@ -71,7 +71,7 @@ export function Sidebar() {
       {/* Collapse toggle — desktop only */}
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="hidden lg:flex items-center justify-center p-3 border-t border-slate-600 text-slate-400 hover:text-slate-200 hover:bg-slate-900 transition-colors"
+        className="hidden lg:flex items-center justify-center p-3 border-t border-blue-900/40 text-slate-400 hover:text-slate-200 hover:bg-slate-900/50 transition-colors"
       >
         {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
       </button>

@@ -11,7 +11,7 @@ export function Topbar({ onAIOpen }: { onAIOpen?: () => void }) {
   const { overdueCount } = usePortfolioTasks()
 
   return (
-    <header className="topbar bg-slate-900 border-b border-slate-600 shrink-0"><div className="h-14 flex items-center justify-between px-4 md:px-6">
+    <header className="topbar bg-slate-950 shrink-0 border-b border-blue-900/40"><div className="h-14 flex items-center justify-between px-4 md:px-6">
 
       {/* Mobile: search overlay toggle / Desktop: inline search */}
       {searchOpen ? (
