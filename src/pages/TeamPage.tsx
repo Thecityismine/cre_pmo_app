@@ -472,25 +472,29 @@ export function TeamPage() {
 
       {/* ── Filter bar ── */}
       <div className="space-y-2">
-        {/* Row 1: search + company */}
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search name, company, role, responsibility..."
-              className="w-full bg-slate-900 text-slate-200 placeholder-slate-500 text-sm rounded-xl pl-9 pr-4 py-2.5 border border-slate-800 focus:outline-none focus:border-blue-500"
-            />
-          </div>
+
+        {/* Row 1: search */}
+        <div className="relative">
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search name, company, role, responsibility..."
+            className="w-full bg-slate-900 text-slate-200 placeholder-slate-500 text-sm rounded-xl pl-9 pr-4 py-2.5 border border-slate-800 focus:outline-none focus:border-blue-500"
+          />
+        </div>
+
+        {/* Row 2: controls — company, toggles, group by, clear */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Company dropdown */}
           {companyOptions.length > 2 && (
-            <div className="relative shrink-0">
+            <div className="relative">
               <select
                 value={companyFilter}
                 onChange={e => setCompanyFilter(e.target.value)}
                 className={clsx(
-                  'appearance-none bg-slate-900 text-slate-300 text-sm rounded-xl pl-3 pr-8 py-2.5 border focus:outline-none focus:border-blue-500 transition-colors',
-                  companyFilter !== 'all' ? 'border-blue-500 text-blue-300' : 'border-slate-800'
+                  'appearance-none bg-slate-900 text-xs rounded-lg pl-2.5 pr-7 py-1.5 border focus:outline-none focus:border-blue-500 transition-colors',
+                  companyFilter !== 'all' ? 'border-blue-500 text-blue-300' : 'border-slate-800 text-slate-300'
                 )}
               >
                 <option value="all">All Companies</option>
@@ -498,37 +502,15 @@ export function TeamPage() {
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>
-              <ChevronDown size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              <ChevronDown size={11} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             </div>
           )}
-        </div>
-
-        {/* Row 2: role pills + toggles + group by */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Role pills */}
-          <div className="flex gap-1 flex-wrap flex-1 min-w-0">
-            {roleOptions.map(r => (
-              <button
-                key={r}
-                onClick={() => setRoleFilter(r)}
-                className={clsx(
-                  'px-2.5 py-1 rounded-lg text-xs font-medium transition-colors whitespace-nowrap',
-                  roleFilter === r ? 'bg-blue-600 text-white' : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200'
-                )}
-              >
-                {r === 'all' ? `All (${contacts.length})` : ROLE_LABELS[r] ?? r}
-              </button>
-            ))}
-          </div>
-
-          {/* Divider */}
-          <div className="w-px h-5 bg-slate-700 shrink-0" />
 
           {/* Quick toggles */}
           <button
             onClick={() => setOverdueOnly(v => !v)}
             className={clsx(
-              'flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors whitespace-nowrap shrink-0',
+              'flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap',
               overdueOnly ? 'bg-red-900/60 text-red-300 border border-red-700/50' : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200'
             )}
           >
@@ -537,24 +519,23 @@ export function TeamPage() {
           <button
             onClick={() => setHasTasksOnly(v => !v)}
             className={clsx(
-              'flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors whitespace-nowrap shrink-0',
+              'flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap',
               hasTasksOnly ? 'bg-blue-900/60 text-blue-300 border border-blue-700/50' : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200'
             )}
           >
             <CheckSquare size={10} /> Has Tasks
           </button>
 
-          {/* Divider */}
-          <div className="w-px h-5 bg-slate-700 shrink-0" />
+          <div className="flex-1" />
 
           {/* Group by */}
-          <div className="flex items-center bg-slate-900 border border-slate-800 rounded-lg p-0.5 shrink-0">
+          <div className="flex items-center bg-slate-900 border border-slate-800 rounded-lg p-0.5">
             {(['none', 'role', 'company'] as GroupBy[]).map(g => (
               <button
                 key={g}
                 onClick={() => setGroupBy(g)}
                 className={clsx(
-                  'px-2.5 py-1 rounded-md text-xs font-medium transition-colors capitalize',
+                  'px-2.5 py-1 rounded-md text-xs font-medium transition-colors',
                   groupBy === g ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
                 )}
               >
@@ -567,12 +548,29 @@ export function TeamPage() {
           {activeFilterCount > 0 && (
             <button
               onClick={() => { setRoleFilter('all'); setCompanyFilter('all'); setOverdueOnly(false); setHasTasksOnly(false) }}
-              className="text-xs text-slate-500 hover:text-slate-300 transition-colors shrink-0"
+              className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
             >
               Clear ({activeFilterCount})
             </button>
           )}
         </div>
+
+        {/* Row 3: role pills — horizontally scrollable */}
+        <div className="flex gap-1.5 overflow-x-auto scrollbar-none pb-0.5">
+          {roleOptions.map(r => (
+            <button
+              key={r}
+              onClick={() => setRoleFilter(r)}
+              className={clsx(
+                'px-2.5 py-1 rounded-lg text-xs font-medium transition-colors whitespace-nowrap shrink-0',
+                roleFilter === r ? 'bg-blue-600 text-white' : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200'
+              )}
+            >
+              {r === 'all' ? `All (${contacts.length})` : ROLE_LABELS[r] ?? r}
+            </button>
+          ))}
+        </div>
+
       </div>
 
       {/* ── Contact grid (flat or grouped) ── */}
