@@ -839,7 +839,7 @@ export function BudgetTab({ project }: { project: Project }) {
     )
   }
 
-  const hasItems = ext.length > 0
+  const hasItems = ext.length > 0 || Object.keys(categoryBudgets).length > 0 || (project.totalBudget ?? 0) > 0
 
   return (
     <div className="space-y-4">
