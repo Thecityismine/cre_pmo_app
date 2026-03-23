@@ -423,7 +423,9 @@ export function ChecklistPage() {
   const [showAddTask, setShowAddTask] = useState(false)
 
   const teams = Array.from(new Set(tasks.map(t => t.assignedTeam).filter(Boolean)))
-  const subdivisions = Array.from(new Set(tasks.map(t => t.category).filter(Boolean)))
+  const teamSet = new Set(teams)
+  // Subdivisions are categories that are NOT team names
+  const subdivisions = Array.from(new Set(tasks.map(t => t.category).filter(c => c && !teamSet.has(c))))
 
   const filtered = tasks.filter(t => {
     const q = search.toLowerCase()
@@ -437,9 +439,9 @@ export function ChecklistPage() {
   })
 
   const grouped = filtered.reduce<Record<string, MasterTask[]>>((acc, t) => {
-    const cat = t.category || 'General'
-    if (!acc[cat]) acc[cat] = []
-    acc[cat].push(t)
+    const team = t.assignedTeam || 'General'
+    if (!acc[team]) acc[team] = []
+    acc[team].push(t)
     return acc
   }, {})
 

@@ -389,20 +389,22 @@ export function ProjectDetailPage() {
   const budgetUsed = project.totalBudget > 0 ? (project.actualCost / project.totalBudget) * 100 : 0
   const budgetVariance = project.totalBudget - project.forecastCost
 
-  // Discipline options from actual task data
+  // Discipline options from actual task data (teams)
   const disciplines = Array.from(new Set(tasks.map(t => t.assignedTo).filter(Boolean))) as string[]
-  const subdivisions = Array.from(new Set(tasks.map(t => t.category).filter(Boolean))) as string[]
+  const teamSet = new Set(disciplines)
+  // Subdivisions are categories that are NOT team names
+  const subdivisions = Array.from(new Set(tasks.map(t => t.category).filter(c => c && !teamSet.has(c)))) as string[]
 
-  // Group tasks by category
+  // Group tasks by team (assignedTo)
   const filteredTasks = tasks.filter(t => {
     const matchDiscipline = disciplineFilter === 'all' || t.assignedTo === disciplineFilter
     const matchSubdivision = subdivisionFilter === 'all' || t.category === subdivisionFilter
     return matchDiscipline && matchSubdivision
   })
   const grouped = filteredTasks.reduce<Record<string, Task[]>>((acc, t) => {
-    const cat = t.category || 'General'
-    if (!acc[cat]) acc[cat] = []
-    acc[cat].push(t)
+    const team = t.assignedTo || 'Unassigned'
+    if (!acc[team]) acc[team] = []
+    acc[team].push(t)
     return acc
   }, {})
   // Sort each category: incomplete first, complete last
