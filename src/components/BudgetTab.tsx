@@ -174,11 +174,6 @@ function LineItemRow({ item, onDelete }: {
     const ctc      = Number(form.costToComplete) || 0
     // forecast = contract + CTC if CTC is set, otherwise just contract amount
     const forecast = ctc > 0 ? contract + ctc : contract
-    // Variance trend: compare new forecast to the previously stored forecast
-    const prevForecast = item.forecastAmount
-    const delta = forecast - prevForecast
-    const forecastTrend: 'up' | 'down' | 'flat' =
-      Math.abs(delta) < 1 ? 'flat' : delta > 0 ? 'up' : 'down'
     await updateDoc(doc(db, 'budgetItems', item.id), {
       description:      form.description,
       vendorName:       form.vendorName,
@@ -190,8 +185,9 @@ function LineItemRow({ item, onDelete }: {
       costToComplete:   ctc > 0 ? ctc : null,
       variance:         contract - forecast,
       notes:            form.notes,
-      forecastTrend,
-      forecastPrev:     prevForecast,
+      // Clear trend badge — intentional fee revisions should not flag as a variance change
+      forecastTrend:    'flat',
+      forecastPrev:     null,
       updatedAt:        new Date().toISOString(),
     })
     setSaving(false)
