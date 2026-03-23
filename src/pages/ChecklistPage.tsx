@@ -321,30 +321,33 @@ function AddTaskPanel({
     <div className="bg-slate-900 border border-blue-600 rounded-xl px-5 py-4 space-y-3">
       <h3 className="text-sm font-semibold text-slate-100">Add New Task</h3>
 
-      {/* Title + Team row */}
-      <div className="grid grid-cols-2 gap-3">
-        <input
-          autoFocus
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Escape') onDone() }}
-          placeholder="Task Name *"
-          className="bg-slate-700 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500"
-        />
-        <div className="flex gap-1">
+      {/* Task Name — full width */}
+      <input
+        autoFocus
+        value={title}
+        onChange={e => setTitle(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Escape') onDone() }}
+        placeholder="Task Name *"
+        className="w-full bg-slate-700 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500"
+      />
+
+      {/* Team + Subdivision row */}
+      <div className="grid grid-cols-2 gap-2">
+        {/* Team */}
+        <div className="flex gap-1 min-w-0">
           {addingTeam ? (
             <input
               autoFocus
               value={newTeam}
               onChange={e => setNewTeam(e.target.value)}
               placeholder="New team name"
-              className="flex-1 bg-slate-700 text-slate-200 text-sm rounded-lg px-3 py-2 border border-blue-400 focus:outline-none placeholder-slate-500"
+              className="flex-1 min-w-0 bg-slate-700 text-slate-200 text-sm rounded-lg px-2 py-2 border border-blue-400 focus:outline-none placeholder-slate-500"
             />
           ) : (
             <select
               value={team}
               onChange={e => setTeam(e.target.value)}
-              className="flex-1 bg-slate-700 border border-slate-800 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+              className="flex-1 min-w-0 bg-slate-700 border border-slate-800 text-slate-300 text-sm rounded-lg px-2 py-2 focus:outline-none focus:border-blue-500"
             >
               <option value="">Select Team</option>
               {teams.map(t => <option key={t} value={t}>{t}</option>)}
@@ -353,29 +356,27 @@ function AddTaskPanel({
           <button
             onClick={() => setAddingTeam(!addingTeam)}
             title={addingTeam ? 'Use existing' : 'New team'}
-            className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white rounded-lg w-9 flex items-center justify-center text-sm"
+            className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white rounded-lg w-8 flex items-center justify-center text-sm"
           >
-            {addingTeam ? '←' : <Plus size={14} />}
+            {addingTeam ? '←' : <Plus size={13} />}
           </button>
         </div>
-      </div>
 
-      {/* Subdivision + Notes row */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="flex gap-1">
+        {/* Subdivision */}
+        <div className="flex gap-1 min-w-0">
           {addingSub ? (
             <input
               autoFocus
               value={newSub}
               onChange={e => setNewSub(e.target.value)}
               placeholder="New subdivision"
-              className="flex-1 bg-slate-700 text-slate-200 text-sm rounded-lg px-3 py-2 border border-blue-400 focus:outline-none placeholder-slate-500"
+              className="flex-1 min-w-0 bg-slate-700 text-slate-200 text-sm rounded-lg px-2 py-2 border border-blue-400 focus:outline-none placeholder-slate-500"
             />
           ) : (
             <select
               value={category}
               onChange={e => setCategory(e.target.value)}
-              className="flex-1 bg-slate-700 border border-slate-800 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
+              className="flex-1 min-w-0 bg-slate-700 border border-slate-800 text-slate-300 text-sm rounded-lg px-2 py-2 focus:outline-none focus:border-blue-500"
             >
               <option value="">Select Subdivision *</option>
               {subdivisions.map(s => <option key={s} value={s}>{s}</option>)}
@@ -384,18 +385,20 @@ function AddTaskPanel({
           <button
             onClick={() => setAddingSub(!addingSub)}
             title={addingSub ? 'Use existing' : 'New subdivision'}
-            className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white rounded-lg w-9 flex items-center justify-center text-sm"
+            className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white rounded-lg w-8 flex items-center justify-center text-sm"
           >
-            {addingSub ? '←' : <Plus size={14} />}
+            {addingSub ? '←' : <Plus size={13} />}
           </button>
         </div>
-        <input
-          value={notes}
-          onChange={e => setNotes(e.target.value)}
-          placeholder="Notes (optional)"
-          className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500"
-        />
       </div>
+
+      {/* Notes — full width */}
+      <input
+        value={notes}
+        onChange={e => setNotes(e.target.value)}
+        placeholder="Notes (optional)"
+        className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500"
+      />
 
       {/* Actions */}
       <div className="flex items-center gap-2 pt-1">
@@ -423,9 +426,7 @@ export function ChecklistPage() {
   const [showAddTask, setShowAddTask] = useState(false)
 
   const teams = Array.from(new Set(tasks.map(t => t.assignedTeam).filter(Boolean)))
-  const teamSet = new Set(teams)
-  // Subdivisions are categories that are NOT team names
-  const subdivisions = Array.from(new Set(tasks.map(t => t.category).filter(c => c && !teamSet.has(c))))
+  const subdivisions = Array.from(new Set(tasks.map(t => t.category).filter(Boolean)))
 
   const filtered = tasks.filter(t => {
     const q = search.toLowerCase()

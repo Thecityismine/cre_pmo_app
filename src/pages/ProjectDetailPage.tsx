@@ -391,9 +391,7 @@ export function ProjectDetailPage() {
 
   // Discipline options from actual task data (teams)
   const disciplines = Array.from(new Set(tasks.map(t => t.assignedTo).filter(Boolean))) as string[]
-  const teamSet = new Set(disciplines)
-  // Subdivisions are categories that are NOT team names
-  const subdivisions = Array.from(new Set(tasks.map(t => t.category).filter(c => c && !teamSet.has(c)))) as string[]
+  const subdivisions = Array.from(new Set(tasks.map(t => t.category).filter(Boolean))) as string[]
 
   // Group tasks by team (assignedTo)
   const filteredTasks = tasks.filter(t => {
