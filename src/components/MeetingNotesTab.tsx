@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { clsx } from 'clsx'
 import {
   Plus, Trash2, ChevronDown, ChevronRight,
-  CheckSquare, Lightbulb, AlertTriangle, FileText, X,
+  CheckSquare, Lightbulb, AlertTriangle, FileText, X, Pencil, Check,
 } from 'lucide-react'
 import { useMeetingNotes } from '@/hooks/useMeetingNotes'
 import type { Project } from '@/types'
@@ -194,18 +194,55 @@ function AddNoteForm({
 function NoteCard({
   note,
   onDelete,
+  onUpdate,
 }: {
   note: ReturnType<typeof useMeetingNotes>['notes'][0]
   onDelete: (id: string) => void
+  onUpdate: (id: string, data: Parameters<ReturnType<typeof useMeetingNotes>['updateNote']>[1]) => Promise<void>
 }) {
   const [expanded, setExpanded] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [title, setTitle] = useState(note.title)
+  const [createdBy, setCreatedBy] = useState(note.createdBy ?? '')
+  const [rawText, setRawText] = useState(note.rawText ?? '')
+  const [actionItems, setActionItems] = useState<string[]>(note.actionItems ?? [])
+  const [decisions, setDecisions] = useState<string[]>(note.decisions ?? [])
+  const [risks, setRisks] = useState<string[]>(note.risks ?? [])
+  const [saving, setSaving] = useState(false)
+
   const hasStructured = note.actionItems?.length || note.decisions?.length || note.risks?.length
+
+  const startEdit = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setTitle(note.title)
+    setCreatedBy(note.createdBy ?? '')
+    setRawText(note.rawText ?? '')
+    setActionItems(note.actionItems ?? [])
+    setDecisions(note.decisions ?? [])
+    setRisks(note.risks ?? [])
+    setEditing(true)
+    setExpanded(true)
+  }
+
+  const save = async () => {
+    if (!title.trim()) return
+    setSaving(true)
+    await onUpdate(note.id, { title: title.trim(), createdBy: createdBy.trim(), rawText: rawText.trim(), actionItems, decisions, risks })
+    setSaving(false)
+    setEditing(false)
+  }
+
+  const cancel = () => {
+    setEditing(false)
+  }
+
+  const inp = 'w-full bg-slate-700 text-slate-200 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500'
 
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
       {/* Header */}
       <button
-        onClick={() => setExpanded(!expanded)}
+        onClick={() => !editing && setExpanded(!expanded)}
         className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-700/30 transition-colors text-left"
       >
         {expanded
@@ -233,78 +270,111 @@ function NoteCard({
           </div>
         </div>
 
-        <button
-          onClick={e => { e.stopPropagation(); if (confirm('Delete this meeting note?')) onDelete(note.id) }}
-          className="p-1.5 text-slate-400 hover:text-red-400 transition-colors shrink-0"
-        >
-          <Trash2 size={13} />
-        </button>
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            onClick={startEdit}
+            className="p-1.5 text-slate-400 hover:text-blue-400 transition-colors"
+            title="Edit note"
+          >
+            <Pencil size={13} />
+          </button>
+          <button
+            onClick={e => { e.stopPropagation(); if (confirm('Delete this meeting note?')) onDelete(note.id) }}
+            className="p-1.5 text-slate-400 hover:text-red-400 transition-colors"
+          >
+            <Trash2 size={13} />
+          </button>
+        </div>
       </button>
 
       {/* Expanded body */}
       {expanded && (
         <div className="border-t border-slate-800/50 px-4 py-4 space-y-4">
-          {/* Raw notes */}
-          {note.rawText && (
-            <div>
-              <p className="text-xs text-slate-400 uppercase tracking-wide mb-1.5">Notes</p>
-              <p className="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">{note.rawText}</p>
-            </div>
+          {editing ? (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <input autoFocus value={title} onChange={e => setTitle(e.target.value)} placeholder="Meeting title *" className={inp} />
+                <input value={createdBy} onChange={e => setCreatedBy(e.target.value)} placeholder="Recorded by (optional)" className={inp} />
+              </div>
+              <textarea
+                value={rawText}
+                onChange={e => setRawText(e.target.value)}
+                placeholder="Meeting notes / summary…"
+                rows={3}
+                className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 resize-none placeholder-slate-500"
+              />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-900/40 rounded-lg p-3">
+                <ListEditor label="Action Items" icon={CheckSquare} color="text-blue-400" items={actionItems} onChange={setActionItems} />
+                <ListEditor label="Decisions" icon={Lightbulb} color="text-emerald-400" items={decisions} onChange={setDecisions} />
+                <ListEditor label="Risks" icon={AlertTriangle} color="text-amber-400" items={risks} onChange={setRisks} />
+              </div>
+              <div className="flex gap-2">
+                <button onClick={save} disabled={saving || !title.trim()}
+                  className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-40 transition-colors">
+                  <Check size={13} /> {saving ? 'Saving…' : 'Save Changes'}
+                </button>
+                <button onClick={cancel} className="text-sm text-slate-400 hover:text-slate-300 px-3 py-2">Cancel</button>
+              </div>
+            </>
+          ) : (
+            <>
+              {note.rawText && (
+                <div>
+                  <p className="text-xs text-slate-400 uppercase tracking-wide mb-1.5">Notes</p>
+                  <p className="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">{note.rawText}</p>
+                </div>
+              )}
+              {hasStructured ? (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {note.actionItems?.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-1.5 text-blue-400 mb-2">
+                        <CheckSquare size={12} />
+                        <span className="text-xs font-semibold uppercase tracking-wide">Action Items</span>
+                      </div>
+                      <ul className="space-y-1">
+                        {note.actionItems.map((item, i) => (
+                          <li key={i} className="text-xs text-slate-300 flex items-start gap-1.5">
+                            <span className="text-blue-400 shrink-0 mt-0.5">•</span>{item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {note.decisions?.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-1.5 text-emerald-400 mb-2">
+                        <Lightbulb size={12} />
+                        <span className="text-xs font-semibold uppercase tracking-wide">Decisions</span>
+                      </div>
+                      <ul className="space-y-1">
+                        {note.decisions.map((item, i) => (
+                          <li key={i} className="text-xs text-slate-300 flex items-start gap-1.5">
+                            <span className="text-emerald-400 shrink-0 mt-0.5">•</span>{item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {note.risks?.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-1.5 text-amber-400 mb-2">
+                        <AlertTriangle size={12} />
+                        <span className="text-xs font-semibold uppercase tracking-wide">Risks Raised</span>
+                      </div>
+                      <ul className="space-y-1">
+                        {note.risks.map((item, i) => (
+                          <li key={i} className="text-xs text-slate-300 flex items-start gap-1.5">
+                            <span className="text-amber-400 shrink-0 mt-0.5">•</span>{item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ) : null}
+            </>
           )}
-
-          {/* Structured sections */}
-          {hasStructured ? (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {note.actionItems?.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-1.5 text-blue-400 mb-2">
-                    <CheckSquare size={12} />
-                    <span className="text-xs font-semibold uppercase tracking-wide">Action Items</span>
-                  </div>
-                  <ul className="space-y-1">
-                    {note.actionItems.map((item, i) => (
-                      <li key={i} className="text-xs text-slate-300 flex items-start gap-1.5">
-                        <span className="text-blue-400 shrink-0 mt-0.5">•</span>
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {note.decisions?.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-1.5 text-emerald-400 mb-2">
-                    <Lightbulb size={12} />
-                    <span className="text-xs font-semibold uppercase tracking-wide">Decisions</span>
-                  </div>
-                  <ul className="space-y-1">
-                    {note.decisions.map((item, i) => (
-                      <li key={i} className="text-xs text-slate-300 flex items-start gap-1.5">
-                        <span className="text-emerald-400 shrink-0 mt-0.5">•</span>
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {note.risks?.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-1.5 text-amber-400 mb-2">
-                    <AlertTriangle size={12} />
-                    <span className="text-xs font-semibold uppercase tracking-wide">Risks Raised</span>
-                  </div>
-                  <ul className="space-y-1">
-                    {note.risks.map((item, i) => (
-                      <li key={i} className="text-xs text-slate-300 flex items-start gap-1.5">
-                        <span className="text-amber-400 shrink-0 mt-0.5">•</span>
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          ) : null}
         </div>
       )}
     </div>
@@ -314,7 +384,7 @@ function NoteCard({
 // ─── Main tab ─────────────────────────────────────────────────────────────────
 
 export function MeetingNotesTab({ project }: { project: Project }) {
-  const { notes, loading, addNote, deleteNote } = useMeetingNotes(project.id)
+  const { notes, loading, addNote, deleteNote, updateNote } = useMeetingNotes(project.id)
   const [showAdd, setShowAdd] = useState(false)
 
   const totalActions = notes.reduce((s, n) => s + (n.actionItems?.length || 0), 0)
@@ -371,7 +441,7 @@ export function MeetingNotesTab({ project }: { project: Project }) {
       ) : (
         <div className="space-y-2">
           {notes.map(note => (
-            <NoteCard key={note.id} note={note} onDelete={deleteNote} />
+            <NoteCard key={note.id} note={note} onDelete={deleteNote} onUpdate={updateNote} />
           ))}
         </div>
       )}

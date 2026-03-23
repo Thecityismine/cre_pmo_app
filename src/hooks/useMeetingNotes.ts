@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   collection, onSnapshot, query, where,
-  addDoc, deleteDoc, doc,
+  addDoc, deleteDoc, doc, updateDoc,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
@@ -46,5 +46,9 @@ export function useMeetingNotes(projectId: string | undefined) {
     await deleteDoc(doc(db, 'meetingNotes', id))
   }
 
-  return { notes, loading, addNote, deleteNote }
+  const updateNote = async (id: string, data: Partial<Omit<MeetingNote, 'id' | 'projectId' | 'createdAt'>>) => {
+    await updateDoc(doc(db, 'meetingNotes', id), { ...data, updatedAt: new Date().toISOString() })
+  }
+
+  return { notes, loading, addNote, deleteNote, updateNote }
 }
