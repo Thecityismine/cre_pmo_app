@@ -161,25 +161,37 @@ function HealthBar({ project, taskPct }: { project: Project; taskPct?: number })
 
 // ─── Stat card ────────────────────────────────────────────────────────────────
 
-function StatCard({ label, value, sub, icon: Icon, color, onClick }: {
+function StatCard({ label, value, sub, icon: Icon, color, valueColor, onClick }: {
   label: string; value: string | number; sub?: string
-  icon: React.ElementType; color: string; onClick?: () => void
+  icon: React.ElementType; color: string; valueColor?: string; onClick?: () => void
 }) {
   return (
     <div
       onClick={onClick}
-      className={clsx('bg-slate-900 border border-slate-800 rounded-xl p-5 transition-all duration-200', onClick && 'cursor-pointer hover:border-slate-700 hover:shadow-lg hover:shadow-black/20')}
+      className={clsx('relative bg-slate-900 border border-slate-800 rounded-xl p-5 overflow-hidden transition-all duration-200', onClick && 'cursor-pointer hover:border-slate-700 hover:shadow-lg hover:shadow-black/20')}
     >
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-600/50 to-transparent" />
       <div className="flex items-start justify-between">
         <div className="min-w-0">
           <p className="text-slate-400 text-xs font-medium uppercase tracking-wide">{label}</p>
-          <p className="text-2xl font-bold text-slate-100 mt-1">{value}</p>
+          <p className={clsx('text-2xl font-bold mt-1', valueColor ?? 'text-slate-100')}>{value}</p>
           {sub && <p className="text-slate-400 text-sm mt-1">{sub}</p>}
         </div>
         <div className={clsx('p-2.5 rounded-lg shrink-0', color)}>
           <Icon size={20} className="text-white" />
         </div>
       </div>
+    </div>
+  )
+}
+
+// ─── Section divider ──────────────────────────────────────────────────────────
+
+function SectionLabel({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3 -mb-2">
+      <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest shrink-0">{label}</p>
+      <div className="flex-1 h-px bg-slate-800" />
     </div>
   )
 }
@@ -215,7 +227,7 @@ function BudgetSummaryBars({ projects }: { projects: Project[] }) {
               </div>
               <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
                 <div
-                  className={clsx('h-full rounded-full transition-all duration-700', over ? 'bg-red-500' : pct > 85 ? 'bg-amber-500' : 'bg-emerald-500')}
+                  className={clsx('h-full rounded-full transition-all duration-700 bar-fill', over ? 'bg-red-500' : pct > 85 ? 'bg-amber-500' : 'bg-emerald-500')}
                   style={{ width: `${pct}%` }}
                 />
               </div>
@@ -521,6 +533,7 @@ export function DashboardPage() {
       />
 
       {/* KPI row */}
+      <SectionLabel label="Portfolio Summary" />
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
         <StatCard
           label="Active Projects"
@@ -528,6 +541,7 @@ export function DashboardPage() {
           sub={`${projects.length} total`}
           icon={FolderOpen}
           color="bg-blue-600"
+          valueColor="text-blue-300"
           onClick={() => navigate('/projects')}
         />
         <StatCard
@@ -547,6 +561,7 @@ export function DashboardPage() {
             : 'No active projects'}
           icon={Activity}
           color={avgHealth === null ? 'bg-slate-600' : avgHealth >= 80 ? 'bg-emerald-600' : avgHealth >= 60 ? 'bg-amber-600' : 'bg-red-600'}
+          valueColor={avgHealth === null ? undefined : avgHealth >= 80 ? 'text-emerald-400' : avgHealth >= 60 ? 'text-amber-400' : 'text-red-400'}
         />
         <StatCard
           label="Overdue Tasks"
@@ -554,12 +569,13 @@ export function DashboardPage() {
           sub={upcoming.length > 0 ? `${upcoming.length} due in 14 days` : 'None upcoming'}
           icon={Clock}
           color={overdue.length > 0 ? 'bg-amber-600' : 'bg-slate-600'}
+          valueColor={overdue.length > 0 ? 'text-amber-400' : undefined}
         />
       </div>
 
       {/* Portfolio Burn Rate */}
       {totalBudget > 0 && (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <DollarSign size={14} className="text-slate-400" />
@@ -694,6 +710,7 @@ export function DashboardPage() {
       })()}
 
       {/* Attention Required */}
+      <SectionLabel label="Alerts & Decisions" />
       <AttentionRequiredPanel
         projects={active}
         taskStats={taskStats}
@@ -711,7 +728,8 @@ export function DashboardPage() {
       />
 
       {/* Two-column: milestones + tasks */}
-      <div className="grid md:grid-cols-2 gap-4">
+      <SectionLabel label="Schedule & Tasks" />
+      <div className="grid md:grid-cols-2 gap-3">
 
         {/* Next 30-Day Milestones */}
         <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">

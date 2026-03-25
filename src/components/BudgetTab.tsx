@@ -742,7 +742,7 @@ function ContingencyTracker({ items, coApproved }: { items: ExtBudgetItem[]; coA
       </div>
       <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
         <div
-          className={clsx('h-full rounded-full transition-all duration-700', drawdownPct >= 100 ? 'bg-red-500' : drawdownPct >= 75 ? 'bg-amber-500' : 'bg-slate-500')}
+          className={clsx('h-full rounded-full transition-all duration-700 bar-fill', drawdownPct >= 100 ? 'bg-red-500' : drawdownPct >= 75 ? 'bg-amber-500' : 'bg-slate-500')}
           style={{ width: `${drawdownPct}%` }}
         />
       </div>

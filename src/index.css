@@ -40,3 +40,20 @@ main.app-main {
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
+
+/* Progress bar fill-from-zero animation */
+@keyframes fillBar {
+  from { width: 0 !important; }
+}
+.bar-fill {
+  animation: fillBar 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Scrollbar-hide utility (alias) */
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
