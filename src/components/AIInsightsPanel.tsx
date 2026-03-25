@@ -1,8 +1,17 @@
 import { useState, useRef, useEffect } from 'react'
 import { clsx } from 'clsx'
-import { AlertTriangle, Info, Sparkles, X, ChevronDown, ChevronRight, RefreshCw } from 'lucide-react'
+import { AlertTriangle, Info, Sparkles, X, ChevronDown, ChevronRight, RefreshCw, ArrowRight } from 'lucide-react'
 import { useAIInsights } from '@/hooks/useAIInsights'
 import { generateInsights, type InsightInput } from '@/lib/insightEngine'
+import type { InsightType } from '@/hooks/useAIInsights'
+
+const INSIGHT_TAB_MAP: Record<InsightType, { label: string; tab: string }> = {
+  budget:    { label: 'View Budget',    tab: 'budget' },
+  schedule:  { label: 'View Schedule',  tab: 'schedule' },
+  risk:      { label: 'View RAID',      tab: 'raid' },
+  task:      { label: 'View Checklist', tab: 'checklist' },
+  milestone: { label: 'View Schedule',  tab: 'schedule' },
+}
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
@@ -35,13 +44,16 @@ const SEVERITY_CFG = {
 function InsightCard({
   insight,
   onDismiss,
+  onNavigate,
 }: {
   insight: ReturnType<typeof useAIInsights>['insights'][number]
   onDismiss: () => void
+  onNavigate?: (tab: string) => void
 }) {
   const [expanded, setExpanded] = useState(false)
   const cfg = SEVERITY_CFG[insight.severity]
   const Icon = cfg.icon
+  const ctaInfo = INSIGHT_TAB_MAP[insight.type as InsightType]
 
   return (
     <div className={clsx('rounded-xl border px-3 py-2.5', cfg.bg, cfg.border)}>
@@ -69,7 +81,22 @@ function InsightCard({
             </button>
           </div>
           {expanded && (
-            <p className="text-xs text-slate-400 mt-1 leading-relaxed">{insight.body}</p>
+            <div className="mt-1.5 space-y-2">
+              <p className="text-xs text-slate-400 leading-relaxed">{insight.body}</p>
+              {onNavigate && ctaInfo && (
+                <button
+                  onClick={() => onNavigate(ctaInfo.tab)}
+                  className={clsx(
+                    'inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-lg transition-colors',
+                    insight.severity === 'critical' ? 'bg-red-800/40 text-red-300 hover:bg-red-800/60'
+                    : insight.severity === 'warning' ? 'bg-amber-800/40 text-amber-300 hover:bg-amber-800/60'
+                    : 'bg-blue-800/40 text-blue-300 hover:bg-blue-800/60'
+                  )}
+                >
+                  {ctaInfo.label} <ArrowRight size={11} />
+                </button>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -83,10 +110,12 @@ export function AIInsightsPanel({
   input,
   maxShow = 5,
   compact = false,
+  onNavigate,
 }: {
   input: InsightInput
   maxShow?: number
   compact?: boolean
+  onNavigate?: (tab: string) => void
 }) {
   const { insights, loading, dismiss, addInsight, deleteInsight } = useAIInsights(input.project.id)
   const [refreshing, setRefreshing] = useState(false)
@@ -176,7 +205,7 @@ export function AIInsightsPanel({
         <>
           <div className={clsx('space-y-1.5', compact && 'space-y-1')}>
             {visible.map(i => (
-              <InsightCard key={i.id} insight={i} onDismiss={() => dismiss(i.id)} />
+              <InsightCard key={i.id} insight={i} onDismiss={() => dismiss(i.id)} onNavigate={onNavigate} />
             ))}
           </div>
           {hiddenCount > 0 && !showAll && (

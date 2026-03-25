@@ -8,7 +8,7 @@ import {
   ArrowLeft, MapPin, DollarSign, Users, CheckSquare,
   Calendar, TrendingUp, ChevronDown, ChevronRight, Pencil, FileDown,
   AlertCircle, Clock, ClipboardList, Plus, X,
-  ClipboardCheck, FileText, BookOpen, ShieldAlert,
+  ClipboardCheck, FileText, BookOpen, ShieldAlert, Activity,
 } from 'lucide-react'
 import { doc, updateDoc, collection, writeBatch } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
@@ -490,6 +490,48 @@ export function ProjectDetailPage() {
             <MapPin size={13} />
             <span>{[project.address, project.city, project.state].filter(Boolean).join(', ')}</span>
           </div>
+
+          {/* Project vitals strip */}
+          {(() => {
+            const h = computeHealth(project, { taskCompletionPct: totalPct, raidItems })
+            const healthColor = h.total >= 80
+              ? 'text-emerald-400 bg-emerald-900/30 border-emerald-700/40'
+              : h.total >= 60 ? 'text-amber-400 bg-amber-900/30 border-amber-700/40'
+              : 'text-red-400 bg-red-900/30 border-red-700/40'
+            const variance = project.totalBudget - project.forecastCost
+            const over = project.totalBudget > 0 && variance < 0
+            const fmtShort = (n: number) =>
+              Math.abs(n) >= 1_000_000 ? `$${(Math.abs(n) / 1_000_000).toFixed(1)}M`
+              : Math.abs(n) >= 1_000 ? `$${(Math.abs(n) / 1_000).toFixed(0)}K`
+              : fmt(Math.abs(n))
+            return (
+              <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
+                <span className={clsx('inline-flex items-center gap-1 px-2.5 py-1 rounded-full border text-xs font-semibold', healthColor)}>
+                  <Activity size={11} /> Health {h.total}/100
+                </span>
+                {project.totalBudget > 0 && (
+                  <span className={clsx('inline-flex items-center gap-1 px-2.5 py-1 rounded-full border text-xs font-medium',
+                    over ? 'text-red-400 bg-red-900/30 border-red-700/40' : 'text-emerald-400 bg-emerald-900/30 border-emerald-700/40'
+                  )}>
+                    <DollarSign size={11} /> {fmtShort(variance)} {over ? 'over' : 'under'}
+                  </span>
+                )}
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-slate-700/40 bg-slate-800/40 text-xs font-medium text-slate-300">
+                  <CheckSquare size={11} /> {totalPct}% checklist
+                </span>
+                {overdueTaskCount > 0 && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-amber-700/40 bg-amber-900/30 text-xs font-medium text-amber-400">
+                    <Clock size={11} /> {overdueTaskCount} overdue
+                  </span>
+                )}
+                {openRfis > 0 && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-slate-700/40 bg-slate-800/40 text-xs font-medium text-slate-400">
+                    <FileText size={11} /> {openRfis} RFI{openRfis > 1 ? 's' : ''}
+                  </span>
+                )}
+              </div>
+            )
+          })()}
         </div>
       </div>
 
@@ -943,6 +985,7 @@ export function ProjectDetailPage() {
               openPunchCount: openPunch,
             }}
             maxShow={4}
+            onNavigate={t => setTab(t as Tab)}
           />
         </div>
 
