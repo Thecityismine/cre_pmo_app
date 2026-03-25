@@ -8,6 +8,7 @@ import { ProjectsPage } from '@/pages/ProjectsPage'
 import { ProjectDetailPage } from '@/pages/ProjectDetailPage'
 import { AnalyticsPage } from '@/pages/AnalyticsPage'
 import { ChecklistPage } from '@/pages/ChecklistPage'
+import { TasksPage } from '@/pages/TasksPage'
 import { TeamPage } from '@/pages/TeamPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 
@@ -69,6 +70,7 @@ export default function App() {
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="team" element={<TeamPage />} />
             <Route path="checklist" element={<ChecklistPage />} />
+            <Route path="tasks" element={<TasksPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Routes>

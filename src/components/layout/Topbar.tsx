@@ -1,7 +1,7 @@
-import { Bell, Search, User, X, AlertTriangle, Clock, ChevronRight } from 'lucide-react'
+import { Bell, Search, User, X, AlertTriangle, Clock, ChevronRight, CheckSquare } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { useState, useRef, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { AIChatButton } from '@/components/AIChatDrawer'
 import { usePortfolioTasks } from '@/hooks/usePortfolioTasks'
 import { useProjects } from '@/hooks/useProjects'
@@ -81,6 +81,17 @@ export function Topbar({ onAIOpen }: { onAIOpen?: () => void }) {
               <Search size={18} />
             </button>
 
+            {/* Master Checklist shortcut */}
+            <NavLink
+              to="/checklist"
+              className={({ isActive }) =>
+                `p-2 rounded-lg transition-colors ${isActive ? 'text-blue-400 bg-blue-500/10' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'}`
+              }
+              title="Master Checklist"
+            >
+              <CheckSquare size={18} />
+            </NavLink>
+
             {/* Bell with notification dropdown */}
             <div className="relative" ref={notifRef}>
               <button
@@ -127,7 +138,7 @@ export function Topbar({ onAIOpen }: { onAIOpen?: () => void }) {
                               <button
                                 key={t.id}
                                 onClick={() => {
-                                  navigate(`/projects/${t.projectId}?tab=tasks`)
+                                  navigate('/tasks')
                                   setNotifOpen(false)
                                 }}
                                 className="w-full text-left px-4 py-3 border-b border-slate-800/60 hover:bg-slate-800/50 transition-colors group"
@@ -159,7 +170,7 @@ export function Topbar({ onAIOpen }: { onAIOpen?: () => void }) {
                               <button
                                 key={t.id}
                                 onClick={() => {
-                                  navigate(`/projects/${t.projectId}?tab=tasks`)
+                                  navigate('/tasks')
                                   setNotifOpen(false)
                                 }}
                                 className="w-full text-left px-4 py-3 border-b border-slate-800/60 hover:bg-slate-800/50 transition-colors group"

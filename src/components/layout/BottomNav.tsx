@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, FolderKanban, BarChart3, Users, CheckSquare } from 'lucide-react'
+import { LayoutDashboard, FolderKanban, BarChart3, Users, ListTodo } from 'lucide-react'
 import { clsx } from 'clsx'
 
 const navItems = [
@@ -7,7 +7,7 @@ const navItems = [
   { to: '/projects', label: 'Projects', icon: FolderKanban },
   { to: '/analytics', label: 'Analytics', icon: BarChart3 },
   { to: '/team', label: 'Team', icon: Users },
-  { to: '/checklist', label: 'Checklist', icon: CheckSquare },
+  { to: '/tasks', label: 'Tasks', icon: ListTodo },
 ]
 
 export function BottomNav() {
