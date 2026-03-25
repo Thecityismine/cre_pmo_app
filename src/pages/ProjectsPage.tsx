@@ -182,6 +182,24 @@ function ProjectCard({ project, taskStat, insightSeverity, onClick }: { project:
           </span>
         )}
       </div>
+
+      {/* Data completeness warnings */}
+      {(() => {
+        const missing: string[] = []
+        if (project.totalBudget === 0) missing.push('No budget')
+        if (!project.projectManager) missing.push('No PM')
+        if (!project.targetCompletionDate) missing.push('No target date')
+        if (missing.length === 0) return null
+        return (
+          <div className="flex flex-wrap gap-1 mt-2.5 pt-2.5 border-t border-slate-800/50">
+            {missing.map(m => (
+              <span key={m} className="text-[10px] px-1.5 py-0.5 rounded-md bg-slate-800 text-slate-500 border border-slate-700/50">
+                {m}
+              </span>
+            ))}
+          </div>
+        )
+      })()}
     </div>
   )
 }

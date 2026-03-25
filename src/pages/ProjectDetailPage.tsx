@@ -8,7 +8,7 @@ import {
   ArrowLeft, MapPin, DollarSign, Users, CheckSquare,
   Calendar, TrendingUp, ChevronDown, ChevronRight, Pencil, FileDown,
   AlertCircle, Clock, ClipboardList, Plus, X,
-  ClipboardCheck, FileText, BookOpen, ShieldAlert, Activity,
+  ClipboardCheck, FileText, BookOpen, ShieldAlert, Activity, Check,
 } from 'lucide-react'
 import { doc, updateDoc, collection, writeBatch } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
@@ -627,6 +627,53 @@ export function ProjectDetailPage() {
       {tab === 'overview' && (
         <div className="space-y-4">
 
+        {/* ── Project Setup Completeness ────────────────────────────────── */}
+        {(() => {
+          const checks = [
+            { label: 'Budget',    done: project.totalBudget > 0,          tab: 'budget' as Tab },
+            { label: 'PM',        done: !!project.projectManager,          tab: null },
+            { label: 'Target Date', done: !!project.targetCompletionDate,  tab: null },
+            { label: 'Team',      done: team.length > 0,                   tab: 'team' as Tab },
+            { label: 'Schedule',  done: scheduleItems.length > 0,          tab: 'schedule' as Tab },
+            { label: 'Checklist', done: tasks.length > 0,                  tab: 'checklist' as Tab },
+          ]
+          const completedCount = checks.filter(c => c.done).length
+          if (completedCount === checks.length) return null
+          return (
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Project Setup</p>
+                <span className={clsx('text-xs font-medium', completedCount < 4 ? 'text-amber-400' : 'text-slate-400')}>
+                  {completedCount}/{checks.length} configured
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-1.5">
+                {checks.map(c => (
+                  <button
+                    key={c.label}
+                    onClick={c.tab ? () => setTab(c.tab!) : undefined}
+                    disabled={!c.tab || c.done}
+                    className={clsx(
+                      'flex items-center gap-1.5 text-xs rounded-lg px-2 py-1.5 text-left transition-colors',
+                      c.done
+                        ? 'text-emerald-400 bg-emerald-900/20 cursor-default'
+                        : c.tab
+                          ? 'text-slate-400 bg-slate-800/60 hover:bg-slate-700/60 hover:text-slate-200'
+                          : 'text-slate-500 bg-slate-800/40 cursor-default'
+                    )}
+                  >
+                    {c.done
+                      ? <Check size={11} className="shrink-0" />
+                      : <span className="w-2.5 h-2.5 rounded-full border border-slate-600 shrink-0 flex-shrink-0" />
+                    }
+                    <span className="truncate">{c.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )
+        })()}
+
         {/* ── War Room: Attention Required ─────────────────────────────── */}
         {(() => {
           const today = new Date(); today.setHours(0, 0, 0, 0)
@@ -967,6 +1014,49 @@ export function ProjectDetailPage() {
                 </div>
               </div>
             </div>
+          )
+        })()}
+
+        {/* ── Schedule Activities Summary ───────────────────────────────── */}
+        {scheduleItems.length > 0 && (() => {
+          const withDates = scheduleItems.filter(i => i.startDate || i.endDate)
+          const completed = scheduleItems.filter(i => i.percentComplete === 100)
+          const inProgress = scheduleItems.filter(i => i.percentComplete > 0 && i.percentComplete < 100)
+          const overdue = scheduleItems.filter(i =>
+            i.percentComplete < 100 && i.endDate &&
+            (() => { const [y,mo,d] = i.endDate!.split('-').map(Number); return new Date(y,mo-1,d) < new Date() })()
+          )
+          const avgPct = scheduleItems.length > 0
+            ? Math.round(scheduleItems.reduce((s, i) => s + (i.percentComplete ?? 0), 0) / scheduleItems.length)
+            : 0
+          return (
+            <button
+              onClick={() => setTab('schedule')}
+              className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-slate-700 transition-colors text-left"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Calendar size={14} className="text-blue-400" />
+                  <span className="text-sm font-semibold text-slate-100">Schedule Progress</span>
+                  <span className="text-xs text-slate-400">{scheduleItems.length} activities</span>
+                </div>
+                <span className="text-xs text-blue-400">View Schedule →</span>
+              </div>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-500 rounded-full transition-all duration-700 bar-fill" style={{ width: `${avgPct}%` }} />
+                </div>
+                <span className="text-xs text-slate-300 font-medium tabular-nums w-10 text-right">{avgPct}%</span>
+              </div>
+              <div className="flex items-center gap-4 text-xs text-slate-400">
+                {completed.length > 0 && <span className="text-emerald-400">{completed.length} complete</span>}
+                {inProgress.length > 0 && <span className="text-blue-400">{inProgress.length} in progress</span>}
+                {overdue.length > 0 && <span className="text-red-400">{overdue.length} overdue</span>}
+                {withDates.length < scheduleItems.length && (
+                  <span className="text-slate-500">{scheduleItems.length - withDates.length} undated</span>
+                )}
+              </div>
+            </button>
           )
         })()}
 
