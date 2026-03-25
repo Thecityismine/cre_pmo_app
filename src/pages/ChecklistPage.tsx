@@ -36,14 +36,28 @@ function TaskRow({
     setSaving(true)
     const finalTeam = addingTeam && newTeam.trim() ? newTeam.trim() : team
     const finalCat = addingSub && newSub.trim() ? newSub.trim() : category
+    const now = new Date().toISOString()
+
+    // Update master task
     await updateDoc(doc(db, 'masterTasks', task.id), {
       title: title.trim(),
       assignedTeam: finalTeam,
       category: finalCat,
       phase: finalCat,
       notes: notes.trim(),
-      updatedAt: new Date().toISOString(),
+      updatedAt: now,
     })
+
+    // Propagate notes to all seeded project tasks with the same masterTaskId
+    const seededSnap = await getDocs(query(collection(db, 'tasks'), where('masterTaskId', '==', task.id)))
+    if (!seededSnap.empty) {
+      const batch = writeBatch(db)
+      seededSnap.docs.forEach(d => {
+        batch.update(d.ref, { notes: notes.trim(), updatedAt: now })
+      })
+      await batch.commit()
+    }
+
     setSaving(false)
     setEditing(false)
     setAddingTeam(false)
