@@ -49,7 +49,7 @@ function TaskRow({
   }
 
   return (
-    <div className="flex items-start gap-3 px-4 py-3 border-b border-slate-800/60 last:border-0">
+    <div className="flex items-start gap-3 px-4 py-4 border-b border-slate-800/60 last:border-0">
       <button
         onClick={handleComplete}
         disabled={completing}
@@ -112,7 +112,7 @@ function RecurringGroup({
       {/* Group header */}
       <button
         onClick={() => setExpanded(e => !e)}
-        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-800/30 transition-colors"
+        className="w-full flex items-center gap-3 px-4 py-4 text-left hover:bg-slate-800/30 transition-colors"
       >
         <RefreshCw size={16} className="text-purple-400 shrink-0" />
         <div className="flex-1 min-w-0">
@@ -237,39 +237,48 @@ export function TasksPage() {
   return (
     <div className="min-h-screen bg-slate-950 pb-24">
       {/* Page header */}
-      <div className="px-4 pt-5 pb-4">
+      <div className="px-4 pt-6 pb-5">
         <h1 className="text-xl font-bold text-slate-100">Tasks</h1>
         <p className="text-sm text-slate-400 mt-0.5">{projects.length} active project{projects.length !== 1 ? 's' : ''}</p>
       </div>
 
-      {/* Stats row */}
-      <div className="grid grid-cols-4 gap-2 px-4 mb-4">
+      {/* Stats grid — 2×2 matching dashboard card style */}
+      <div className="grid grid-cols-2 gap-3 px-4 mb-5">
         {stats.map(({ label, value, icon: Icon, color, filter: f }) => (
           <button
             key={label}
             onClick={() => setFilter(f)}
             className={clsx(
-              'flex flex-col items-center gap-1 py-3 rounded-xl border transition-colors',
+              'flex items-center justify-between rounded-xl border p-4 transition-colors text-left',
               filter === f
                 ? 'bg-slate-800 border-slate-600'
                 : 'bg-slate-900 border-slate-800 hover:bg-slate-800/50'
             )}
           >
-            <Icon size={16} className={color} />
-            <span className={clsx('text-lg font-bold leading-none', color)}>{value}</span>
-            <span className="text-[10px] text-slate-400 leading-none">{label}</span>
+            <div>
+              <p className="text-xs text-slate-400 mb-1">{label}</p>
+              <p className={clsx('text-2xl font-bold leading-none', color)}>{value}</p>
+            </div>
+            <div className={clsx('p-2.5 rounded-lg shrink-0', {
+              'bg-blue-500/10':   color.includes('blue'),
+              'bg-red-500/10':    color.includes('red'),
+              'bg-amber-500/10':  color.includes('amber'),
+              'bg-purple-500/10': color.includes('purple'),
+            })}>
+              <Icon size={20} className={color} />
+            </div>
           </button>
         ))}
       </div>
 
       {/* Filter tabs */}
-      <div className="flex gap-2 px-4 mb-4 overflow-x-auto scrollbar-hide">
+      <div className="flex gap-2 px-4 mb-5 overflow-x-auto scrollbar-hide">
         {filters.map(f => (
           <button
             key={f.id}
             onClick={() => setFilter(f.id)}
             className={clsx(
-              'shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
+              'shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-colors',
               filter === f.id
                 ? 'bg-blue-600 text-white'
                 : 'bg-slate-900 text-slate-400 hover:text-slate-200'
@@ -277,7 +286,7 @@ export function TasksPage() {
           >
             {f.label}
             {f.id === 'overdue' && overdue.length > 0 && (
-              <span className="ml-1.5 text-[10px] bg-red-500 text-white px-1 rounded-full font-bold">
+              <span className="ml-1.5 text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded-full font-bold">
                 {overdue.length}
               </span>
             )}
@@ -291,12 +300,12 @@ export function TasksPage() {
           <div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full" />
         </div>
       ) : (
-        <div className="px-4 space-y-4">
+        <div className="px-4 space-y-5">
 
           {/* Recurring groups section */}
           {showRecurring && (
             <div>
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                 <RefreshCw size={11} /> Recurring
               </p>
               <div className="bg-slate-900 rounded-xl overflow-hidden border border-slate-800">
@@ -317,7 +326,7 @@ export function TasksPage() {
           {filter !== 'recurring' && filteredTasks.length > 0 && (
             <div>
               {filter === 'all' && (
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
                   One-time
                 </p>
               )}
