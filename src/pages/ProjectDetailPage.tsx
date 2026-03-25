@@ -163,8 +163,10 @@ function TaskRow({ task }: { task: Task }) {
       {/* Notes panel — full content, all lines */}
       {expanded && task.notes && (
         <div className="px-4 pb-3">
-          <div className="ml-8 text-xs text-slate-300 bg-slate-800/60 rounded-lg px-3 py-2.5 border border-slate-700 whitespace-pre-wrap leading-relaxed">
-            {task.notes}
+          <div className="ml-8 text-xs text-slate-300 bg-slate-800/60 rounded-lg px-3 py-2.5 border border-slate-700 space-y-1">
+            {task.notes.split(/\r?\n/).map((line, i) => (
+              <p key={i} className="leading-relaxed">{line || <span className="select-none">&nbsp;</span>}</p>
+            ))}
           </div>
         </div>
       )}

@@ -139,7 +139,7 @@ function TaskRow({
           value={notes}
           onChange={e => setNotes(e.target.value)}
           placeholder="Notes (optional)"
-          rows={2}
+          rows={4}
           className="w-full bg-slate-700 text-slate-300 text-xs rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 resize-none"
         />
 
