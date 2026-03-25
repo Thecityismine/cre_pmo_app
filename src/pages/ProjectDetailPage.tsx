@@ -92,8 +92,6 @@ function disciplineColor(d: string) {
 // ─── Task Row ─────────────────────────────────────────────────────────────────
 
 function TaskRow({ task }: { task: Task }) {
-  const [expanded, setExpanded] = useState(false)
-
   const toggleComplete = async () => {
     const next = task.status === 'complete' ? 'not-started' : 'complete'
     await updateDoc(doc(db, 'tasks', task.id), { status: next, updatedAt: new Date().toISOString() })
@@ -125,11 +123,8 @@ function TaskRow({ task }: { task: Task }) {
           )}
         </button>
 
-        {/* Title — click to expand notes */}
-        <button
-          className="flex-1 min-w-0 text-left"
-          onClick={() => task.notes ? setExpanded(!expanded) : undefined}
-        >
+        {/* Title */}
+        <div className="flex-1 min-w-0">
           <p className={clsx(
             'text-sm leading-snug',
             task.status === 'complete' ? 'line-through text-slate-400' : 'text-slate-200'
@@ -143,24 +138,20 @@ function TaskRow({ task }: { task: Task }) {
               {isOverdue && ' overdue'}
             </span>
           )}
-        </button>
+          {task.notes && (
+            <p className="text-xs text-slate-400 mt-1.5 bg-slate-900/60 rounded-lg px-3 py-2 border border-slate-800 whitespace-pre-wrap">
+              {task.notes}
+            </p>
+          )}
+        </div>
 
         {/* Discipline badge */}
         {task.assignedTo && (
-          <span className={clsx('shrink-0 text-xs px-2 py-0.5 rounded font-medium hidden sm:inline-flex', disciplineColor(task.assignedTo))}>
+          <span className={clsx('shrink-0 text-xs px-2 py-0.5 rounded font-medium hidden sm:inline-flex self-start mt-0.5', disciplineColor(task.assignedTo))}>
             {task.assignedTo}
           </span>
         )}
       </div>
-
-      {/* Inline notes expand */}
-      {expanded && task.notes && (
-        <div className="px-12 pb-3">
-          <p className="text-xs text-slate-400 bg-slate-900/60 rounded-lg px-3 py-2 border border-slate-800 whitespace-pre-wrap">
-            {task.notes}
-          </p>
-        </div>
-      )}
     </div>
   )
 }
