@@ -221,7 +221,7 @@ function ScoreBar({ label, score, max, detail }: { label: string; score: number;
         </div>
       </div>
       <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
-        <div className={clsx('h-full rounded-full transition-all', barColor)} style={{ width: `${pct}%` }} />
+        <div className={clsx('h-full rounded-full transition-all duration-700', barColor)} style={{ width: `${pct}%` }} />
       </div>
     </div>
   )
@@ -555,7 +555,7 @@ export function ProjectDetailPage() {
           </div>
           <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
             <div
-              className={clsx('h-full rounded-full transition-all', budgetUsed > 90 ? 'bg-red-500' : budgetUsed > 70 ? 'bg-amber-500' : 'bg-emerald-500')}
+              className={clsx('h-full rounded-full transition-all duration-700', budgetUsed > 90 ? 'bg-red-500' : budgetUsed > 70 ? 'bg-amber-500' : 'bg-emerald-500')}
               style={{ width: `${Math.min(100, budgetUsed)}%` }}
             />
           </div>

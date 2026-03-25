@@ -168,7 +168,7 @@ function StatCard({ label, value, sub, icon: Icon, color, onClick }: {
   return (
     <div
       onClick={onClick}
-      className={clsx('bg-slate-900 border border-slate-800 rounded-xl p-5', onClick && 'cursor-pointer hover:border-slate-800 transition-colors')}
+      className={clsx('bg-slate-900 border border-slate-800 rounded-xl p-5 transition-all duration-200', onClick && 'cursor-pointer hover:border-slate-700 hover:shadow-lg hover:shadow-black/20')}
     >
       <div className="flex items-start justify-between">
         <div className="min-w-0">
@@ -215,7 +215,7 @@ function BudgetSummaryBars({ projects }: { projects: Project[] }) {
               </div>
               <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
                 <div
-                  className={clsx('h-full rounded-full transition-all', over ? 'bg-red-500' : pct > 85 ? 'bg-amber-500' : 'bg-emerald-500')}
+                  className={clsx('h-full rounded-full transition-all duration-700', over ? 'bg-red-500' : pct > 85 ? 'bg-amber-500' : 'bg-emerald-500')}
                   style={{ width: `${pct}%` }}
                 />
               </div>

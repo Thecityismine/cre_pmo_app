@@ -138,7 +138,7 @@ export function MilestoneTimeline({ project }: { project: Project }) {
         <div className="px-4 pt-3 pb-1">
           <div className="flex items-center gap-2">
             <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-              <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
+              <div className="h-full bg-emerald-500 rounded-full transition-all duration-700" style={{ width: `${pct}%` }} />
             </div>
             <span className="text-xs text-slate-400 w-12 text-right">{pct}% done</span>
           </div>

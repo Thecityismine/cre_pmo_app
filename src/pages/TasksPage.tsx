@@ -238,8 +238,8 @@ export function TasksPage() {
     <div className="min-h-screen bg-slate-950 pb-24">
       {/* Page header */}
       <div className="px-4 pt-6 pb-5">
-        <h1 className="text-xl font-bold text-slate-100">Tasks</h1>
-        <p className="text-sm text-slate-400 mt-0.5">{projects.length} active project{projects.length !== 1 ? 's' : ''}</p>
+        <h1 className="text-2xl font-bold text-slate-100">Tasks</h1>
+        <p className="text-sm text-slate-400 mt-1">{projects.length} active project{projects.length !== 1 ? 's' : ''}</p>
       </div>
 
       {/* Stats grid — 2×2 matching dashboard card style */}

@@ -324,7 +324,7 @@ export function PunchListTab({ project }: { project: Project }) {
         <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3">
           <div className="flex items-center gap-3">
             <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
-              <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
+              <div className="h-full bg-emerald-500 rounded-full transition-all duration-700" style={{ width: `${pct}%` }} />
             </div>
             <span className="text-xs text-slate-400 shrink-0">{pct}% complete · {completeCount}/{items.length}</span>
           </div>

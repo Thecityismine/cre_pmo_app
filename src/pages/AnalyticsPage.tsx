@@ -53,15 +53,15 @@ function KPI({ icon: Icon, label, value, sub, color }: {
   icon: React.ElementType; label: string; value: string; sub?: string; color: string
 }) {
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+    <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 transition-all duration-200 hover:border-slate-700 hover:shadow-lg hover:shadow-black/20">
       <div className="flex items-start justify-between">
         <div className="min-w-0">
-          <p className="text-slate-400 text-xs uppercase tracking-wide font-medium">{label}</p>
-          <p className="text-xl font-bold text-slate-100 mt-1 truncate">{value}</p>
-          {sub && <p className="text-xs text-slate-400 mt-0.5">{sub}</p>}
+          <p className="text-slate-400 text-xs font-medium uppercase tracking-wide">{label}</p>
+          <p className="text-2xl font-bold text-slate-100 mt-1 truncate">{value}</p>
+          {sub && <p className="text-sm text-slate-400 mt-1">{sub}</p>}
         </div>
-        <div className={clsx('p-2 rounded-lg shrink-0 ml-2', color)}>
-          <Icon size={16} className="text-white" />
+        <div className={clsx('p-2.5 rounded-lg shrink-0', color)}>
+          <Icon size={20} className="text-white" />
         </div>
       </div>
     </div>
@@ -436,10 +436,10 @@ Format your response exactly like this:
 
       {/* Off-Track Summary */}
       {offTrack.length > 0 && (
-        <div className="bg-red-900/20 border border-red-800/40 rounded-xl p-4">
+        <div className="bg-red-900/20 border border-red-800/40 rounded-xl p-5">
           <div className="flex items-center gap-2 mb-3">
-            <AlertTriangle size={15} className="text-red-400" />
-            <h2 className="text-sm font-semibold text-red-300">Off-Track Projects ({offTrack.length})</h2>
+            <AlertTriangle size={15} className="text-red-400 animate-pulse" />
+            <h2 className="text-sm font-semibold text-red-300 uppercase tracking-wide">Off-Track Projects ({offTrack.length})</h2>
             <span className="text-xs text-slate-400">Health &lt; 60 or over budget</span>
           </div>
           <div className="space-y-2">

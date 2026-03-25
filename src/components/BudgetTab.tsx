@@ -742,7 +742,7 @@ function ContingencyTracker({ items, coApproved }: { items: ExtBudgetItem[]; coA
       </div>
       <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
         <div
-          className={clsx('h-full rounded-full transition-all', drawdownPct >= 100 ? 'bg-red-500' : drawdownPct >= 75 ? 'bg-amber-500' : 'bg-slate-500')}
+          className={clsx('h-full rounded-full transition-all duration-700', drawdownPct >= 100 ? 'bg-red-500' : drawdownPct >= 75 ? 'bg-amber-500' : 'bg-slate-500')}
           style={{ width: `${drawdownPct}%` }}
         />
       </div>
@@ -919,11 +919,11 @@ export function BudgetTab({ project }: { project: Project }) {
             {/* Two-layer bar: forecast fill + paid overlay */}
             <div className="h-3 bg-slate-700 rounded-full overflow-hidden relative">
               {/* Forecast committed */}
-              <div className={clsx('absolute h-full rounded-full transition-all opacity-40', barColor)}
+              <div className={clsx('absolute h-full rounded-full transition-all duration-700 opacity-40', barColor)}
                 style={{ width: `${forecastPct}%` }} />
               {/* Actually paid */}
               {paidPct > 0 && (
-                <div className={clsx('absolute h-full rounded-full transition-all', barColor)}
+                <div className={clsx('absolute h-full rounded-full transition-all duration-700', barColor)}
                   style={{ width: `${paidPct}%` }} />
               )}
             </div>

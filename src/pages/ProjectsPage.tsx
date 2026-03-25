@@ -147,7 +147,7 @@ function ProjectCard({ project, taskStat, insightSeverity, onClick }: { project:
             <span className={clsx(atRisk && 'text-red-400')}>{fmt(project.actualCost)} / {fmt(project.totalBudget)}</span>
           </div>
           <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
-            <div className={clsx('h-full rounded-full transition-all', barColor)} style={{ width: `${budgetPct}%` }} />
+            <div className={clsx('h-full rounded-full transition-all duration-700', barColor)} style={{ width: `${budgetPct}%` }} />
           </div>
           {atRisk && (
             <p className="text-xs text-red-400">Forecast {fmt(project.forecastCost)} — over budget</p>
@@ -166,7 +166,7 @@ function ProjectCard({ project, taskStat, insightSeverity, onClick }: { project:
           </div>
           <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
             <div
-              className={clsx('h-full rounded-full transition-all', taskStat.pct === 100 ? 'bg-emerald-500' : taskStat.pct >= 60 ? 'bg-blue-500' : 'bg-slate-500')}
+              className={clsx('h-full rounded-full transition-all duration-700', taskStat.pct === 100 ? 'bg-emerald-500' : taskStat.pct >= 60 ? 'bg-blue-500' : 'bg-slate-500')}
               style={{ width: `${taskStat.pct}%` }}
             />
           </div>
