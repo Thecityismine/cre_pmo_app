@@ -772,41 +772,48 @@ export function PhotosTab({ project }: Props) {
     const now = new Date().toISOString()
     let done = 0
 
-    await Promise.all(files.map(async (file, i) => {
-      const path = `projects/${project.id}/site-visits/${visitId}/${Date.now()}-${i}-${file.name}`
-      const storageRef = sRef(storage, path)
-      const task = uploadBytesResumable(storageRef, file)
+    try {
+      await Promise.all(files.map(async (file, i) => {
+        const path = `projects/${project.id}/site-visits/${visitId}/${Date.now()}-${i}-${file.name}`
+        const storageRef = sRef(storage, path)
+        const task = uploadBytesResumable(storageRef, file)
 
-      await new Promise<void>((resolve, reject) => {
-        task.on(
-          'state_changed',
-          snap => {
-            const filePct = snap.bytesTransferred / snap.totalBytes
-            setProgress(Math.round(((done + filePct) / files.length) * 100))
-          },
-          reject,
-          async () => {
-            const url = await getDownloadURL(task.snapshot.ref)
-            await addDoc(
-              collection(db, 'projects', project.id, 'siteVisits', visitId, 'photos'),
-              { url, storagePath: path, caption: '', order: baseOrder + i, uploadedBy: displayName, uploadedAt: now },
-            )
-            // Update photoCount + coverUrl on first photo
-            const visitRef = doc(db, 'projects', project.id, 'siteVisits', visitId)
-            await updateDoc(visitRef, {
-              photoCount: increment(1),
-              ...(baseOrder + i === 0 ? { coverUrl: url } : {}),
-              updatedAt: now,
-            })
-            done++
-            resolve()
-          },
-        )
-      })
-    }))
-
-    setUploading(false)
-    setProgress(0)
+        await new Promise<void>((resolve, reject) => {
+          task.on(
+            'state_changed',
+            snap => {
+              const filePct = snap.bytesTransferred / snap.totalBytes
+              setProgress(Math.round(((done + filePct) / files.length) * 100))
+            },
+            reject,
+            async () => {
+              try {
+                const url = await getDownloadURL(task.snapshot.ref)
+                await addDoc(
+                  collection(db, 'projects', project.id, 'siteVisits', visitId, 'photos'),
+                  { url, storagePath: path, caption: '', order: baseOrder + i, uploadedBy: displayName, uploadedAt: now },
+                )
+                const visitRef = doc(db, 'projects', project.id, 'siteVisits', visitId)
+                await updateDoc(visitRef, {
+                  photoCount: increment(1),
+                  ...(baseOrder + i === 0 ? { coverUrl: url } : {}),
+                  updatedAt: now,
+                })
+                done++
+                resolve()
+              } catch (err) {
+                reject(err)
+              }
+            },
+          )
+        })
+      }))
+    } catch (err) {
+      console.error('Photo upload failed:', err)
+    } finally {
+      setUploading(false)
+      setProgress(0)
+    }
   }, [project.id, user])
 
   // ── Create new visit ──────────────────────────────────────────────────────
