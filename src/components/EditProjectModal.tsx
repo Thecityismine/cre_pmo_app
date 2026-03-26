@@ -89,6 +89,7 @@ export function EditProjectModal({ project, onClose }: Props) {
     address:              project.address,
     city:                 project.city,
     state:                project.state,
+    zipCode:              project.zipCode ?? '',
     country:              project.country,
     rsf:                  project.rsf ? String(project.rsf) : '',
     totalBudget:          project.totalBudget ? String(project.totalBudget) : '',
@@ -121,6 +122,7 @@ export function EditProjectModal({ project, onClose }: Props) {
         address:              form.address,
         city:                 form.city,
         state:                form.state,
+        zipCode:              form.zipCode,
         country:              form.country,
         rsf:                  form.rsf ? Number(form.rsf) : null,
         totalBudget:          Number(form.totalBudget) || 0,
@@ -207,18 +209,23 @@ export function EditProjectModal({ project, onClose }: Props) {
             </Field>
 
             <Field label="Address">
-              <input value={form.address} onChange={e => set('address', e.target.value)} className={inp()} />
+              <input value={form.address} onChange={e => set('address', e.target.value)} placeholder="Street address" className={inp()} />
             </Field>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-5 gap-2">
               <div className="col-span-2">
                 <Field label="City">
                   <input value={form.city} onChange={e => set('city', e.target.value)} className={inp()} />
                 </Field>
               </div>
               <Field label="State">
-                <input value={form.state} onChange={e => set('state', e.target.value)} className={inp()} />
+                <input value={form.state} onChange={e => set('state', e.target.value)} placeholder="FL" className={inp()} />
               </Field>
+              <div className="col-span-2">
+                <Field label="Zip Code">
+                  <input value={form.zipCode} onChange={e => set('zipCode', e.target.value)} placeholder="33301" className={inp()} />
+                </Field>
+              </div>
             </div>
 
             {/* Budget section */}

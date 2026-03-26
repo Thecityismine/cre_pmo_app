@@ -489,7 +489,7 @@ export function ProjectDetailPage() {
         </div>
         <div className="flex items-center gap-1.5 text-slate-400 text-sm">
           <MapPin size={13} />
-          <span>{[project.address, project.city, project.state].filter(Boolean).join(', ')}</span>
+          <span>{[project.address, project.city, [project.state, project.zipCode].filter(Boolean).join(' ')].filter(Boolean).join(', ')}</span>
         </div>
 
         {/* Project vitals strip */}

@@ -32,6 +32,7 @@ export interface Project {
   address: string
   city: string
   state: string
+  zipCode?: string
   country: string
   lat?: number
   lng?: number
