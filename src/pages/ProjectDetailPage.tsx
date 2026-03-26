@@ -26,6 +26,7 @@ import { PunchListTab } from '@/components/PunchListTab'
 import { ScheduleTab } from '@/components/ScheduleTab'
 import { MeetingNotesTab } from '@/components/MeetingNotesTab'
 import { TasksTab } from '@/components/TasksTab'
+import { PhotosTab } from '@/components/PhotosTab'
 import { useRaidLog } from '@/hooks/useRaidLog'
 import { useProjectTasks } from '@/hooks/useProjectTasks'
 import { useRiskEngine } from '@/hooks/useRiskEngine'
@@ -269,7 +270,7 @@ function HealthScorecard({ project, taskCompletionPct, raidItems, milestoneItems
 }
 
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
-type Tab = 'overview' | 'checklist' | 'schedule' | 'budget' | 'cos' | 'rfis' | 'submittals' | 'bids' | 'punch' | 'raid' | 'meetings' | 'team' | 'docs' | 'tasks' | 'ai'
+type Tab = 'overview' | 'checklist' | 'schedule' | 'budget' | 'cos' | 'rfis' | 'submittals' | 'bids' | 'punch' | 'raid' | 'meetings' | 'team' | 'docs' | 'photos' | 'tasks' | 'ai'
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export function ProjectDetailPage() {
@@ -446,6 +447,7 @@ export function ProjectDetailPage() {
     { id: 'meetings', label: 'Meetings' },
     { id: 'team', label: 'Team' },
     { id: 'docs', label: 'Docs' },
+    { id: 'photos', label: 'Photos' },
     { id: 'ai', label: '✦ AI' },
   ]
 
@@ -1311,6 +1313,8 @@ export function ProjectDetailPage() {
       {tab === 'meetings' && <MeetingNotesTab project={project} />}
 
       {tab === 'docs' && <DocumentsTab project={project} />}
+
+      {tab === 'photos' && <PhotosTab project={project} />}
 
       {tab === 'ai' && (
         <AITab
