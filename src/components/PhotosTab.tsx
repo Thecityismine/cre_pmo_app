@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { clsx } from 'clsx'
 import {
   Camera, Plus, Download, Pencil, Trash2, X,
   ChevronLeft, ChevronRight, Loader2, ImageIcon,
@@ -471,7 +470,7 @@ function EditVisitModal({
 function VisitDetailSheet({
   visit,
   photos,
-  project,
+  project: _project,
   onClose,
   onAddPhotos,
   onDeletePhoto,
