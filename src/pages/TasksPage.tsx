@@ -235,15 +235,15 @@ export function TasksPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-slate-950 pb-24">
+    <div className="space-y-5">
       {/* Page header */}
-      <div className="px-4 pt-6 pb-5">
+      <div>
         <h1 className="text-2xl font-bold text-slate-100">Tasks</h1>
         <p className="text-sm text-slate-400 mt-1">{projects.length} active project{projects.length !== 1 ? 's' : ''}</p>
       </div>
 
       {/* Stats grid — 2×2 matching dashboard card style */}
-      <div className="grid grid-cols-2 gap-3 px-4 mb-5">
+      <div className="grid grid-cols-2 gap-3">
         {stats.map(({ label, value, icon: Icon, color, filter: f }) => (
           <button
             key={label}
@@ -272,7 +272,7 @@ export function TasksPage() {
       </div>
 
       {/* Filter tabs */}
-      <div className="flex gap-2 px-4 mb-5 overflow-x-auto scrollbar-hide">
+      <div className="flex gap-2 overflow-x-auto scrollbar-hide">
         {filters.map(f => (
           <button
             key={f.id}
@@ -300,7 +300,7 @@ export function TasksPage() {
           <div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full" />
         </div>
       ) : (
-        <div className="px-4 space-y-5">
+        <div className="space-y-5">
 
           {/* Recurring groups section */}
           {showRecurring && (

@@ -223,8 +223,6 @@ function CategoryGroup({
   onDelete: (id: string) => void
 }) {
   const [collapsed, setCollapsed] = useState(true)
-  const withNotes = tasks.filter(t => t.notes?.trim()).length
-  const notesPct = tasks.length > 0 ? Math.round((withNotes / tasks.length) * 100) : 0
 
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden mb-3">
@@ -236,12 +234,6 @@ function CategoryGroup({
           {collapsed ? <ChevronRight size={15} className="text-slate-400" /> : <ChevronDown size={15} className="text-slate-400" />}
           <span className="text-slate-100 font-medium text-sm">{category}</span>
           <span className="text-xs text-slate-400 bg-slate-700 px-2 py-0.5 rounded-full">{tasks.length}</span>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <div className="w-20 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-            <div className="h-full bg-blue-500 rounded-full transition-all duration-700 bar-fill" style={{ width: `${notesPct}%` }} />
-          </div>
-          <span className="text-xs text-slate-400 w-8 text-right">{notesPct}%</span>
         </div>
       </button>
 
