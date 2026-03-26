@@ -517,10 +517,7 @@ export function ProjectDetailPage() {
                   <DollarSign size={11} /> {fmtShort(variance)} {over ? 'over' : 'under'}
                 </span>
               )}
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-slate-700/40 bg-slate-800/40 text-xs font-medium text-slate-300">
-                <CheckSquare size={11} /> {totalPct}% checklist
-              </span>
-              {overdueTaskCount > 0 && (
+{overdueTaskCount > 0 && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-amber-700/40 bg-amber-900/30 text-xs font-medium text-amber-400">
                   <Clock size={11} /> {overdueTaskCount} overdue
                 </span>
