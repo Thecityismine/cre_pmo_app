@@ -429,12 +429,12 @@ function EditVisitModal({
 
   return (
     <div className="fixed inset-0 z-40 bg-black/70 flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="bg-slate-900 border border-slate-700 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
+      <div className="bg-slate-900 border border-slate-700 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800 shrink-0">
           <h3 className="font-semibold text-slate-100">Edit Site Visit</h3>
           <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-200 rounded-lg"><X size={18} /></button>
         </div>
-        <div className="p-5 space-y-4">
+        <div className="p-5 space-y-4 overflow-y-auto flex-1">
           <div>
             <label className="text-xs font-medium text-slate-400 uppercase tracking-wide">Visit Date</label>
             <input type="date" value={visitDate} onChange={e => setVisitDate(e.target.value)}
@@ -453,7 +453,7 @@ function EditVisitModal({
               className="mt-1.5 w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-slate-100 text-sm placeholder:text-slate-600 focus:outline-none focus:border-blue-500 resize-none" />
           </div>
         </div>
-        <div className="flex gap-3 px-5 pb-5">
+        <div className="flex gap-3 px-5 py-4 border-t border-slate-800 shrink-0">
           <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-slate-700 text-slate-300 text-sm font-medium hover:bg-slate-800 transition-colors">Cancel</button>
           <button onClick={handleSave} disabled={saving}
             className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium transition-colors flex items-center justify-center gap-2">
@@ -500,7 +500,7 @@ function VisitDetailSheet({
     <>
       <div className="fixed inset-0 z-30 bg-slate-950 flex flex-col">
         {/* Header */}
-        <div className="flex items-center gap-3 px-4 py-4 border-b border-slate-800 bg-slate-900 shrink-0">
+        <div className="flex items-center gap-3 px-4 py-4 border-b border-slate-800 bg-slate-900 shrink-0" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
           <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-200 rounded-lg transition-colors">
             <ChevronLeft size={20} />
           </button>
