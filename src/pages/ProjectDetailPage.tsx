@@ -455,17 +455,16 @@ export function ProjectDetailPage() {
     <div className="space-y-4 max-w-5xl mx-auto">
 
       {/* Back + header */}
-      <div className="flex items-start gap-3">
-        <button
-          onClick={() => navigate(-1)}
-          className="mt-1 p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-900 rounded-lg transition-colors shrink-0"
-        >
-          <ArrowLeft size={18} />
-        </button>
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-2 mb-1">
-            <h1 className="text-xl md:text-2xl font-bold text-slate-100 truncate">{project.projectName}</h1>
-            <div className="ml-auto flex items-center gap-2 shrink-0">
+      <div>
+        <div className="flex items-center gap-3 mb-1">
+          <button
+            onClick={() => navigate(-1)}
+            className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-900 rounded-lg transition-colors shrink-0"
+          >
+            <ArrowLeft size={18} />
+          </button>
+          <h1 className="text-xl md:text-2xl font-bold text-slate-100 truncate flex-1 min-w-0">{project.projectName}</h1>
+          <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => exportProjectPdf(project, tasks, budgetItems, {
                   milestones,
@@ -487,54 +486,53 @@ export function ProjectDetailPage() {
                 <Pencil size={13} /> Edit
               </button>
             </div>
-          </div>
-          <div className="flex items-center gap-1.5 text-slate-400 text-sm">
-            <MapPin size={13} />
-            <span>{[project.address, project.city, project.state].filter(Boolean).join(', ')}</span>
-          </div>
-
-          {/* Project vitals strip */}
-          {(() => {
-            const h = computeHealth(project, { taskCompletionPct: totalPct, raidItems })
-            const healthColor = h.total >= 80
-              ? 'text-emerald-400 bg-emerald-900/30 border-emerald-700/40'
-              : h.total >= 60 ? 'text-amber-400 bg-amber-900/30 border-amber-700/40'
-              : 'text-red-400 bg-red-900/30 border-red-700/40'
-            const variance = project.totalBudget - project.forecastCost
-            const over = project.totalBudget > 0 && variance < 0
-            const fmtShort = (n: number) =>
-              Math.abs(n) >= 1_000_000 ? `$${(Math.abs(n) / 1_000_000).toFixed(1)}M`
-              : Math.abs(n) >= 1_000 ? `$${(Math.abs(n) / 1_000).toFixed(0)}K`
-              : fmt(Math.abs(n))
-            return (
-              <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
-                <span className={clsx('inline-flex items-center gap-1 px-2.5 py-1 rounded-full border text-xs font-semibold', healthColor)}>
-                  <Activity size={11} /> Health {h.total}/100
-                </span>
-                {project.totalBudget > 0 && (
-                  <span className={clsx('inline-flex items-center gap-1 px-2.5 py-1 rounded-full border text-xs font-medium',
-                    over ? 'text-red-400 bg-red-900/30 border-red-700/40' : 'text-emerald-400 bg-emerald-900/30 border-emerald-700/40'
-                  )}>
-                    <DollarSign size={11} /> {fmtShort(variance)} {over ? 'over' : 'under'}
-                  </span>
-                )}
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-slate-700/40 bg-slate-800/40 text-xs font-medium text-slate-300">
-                  <CheckSquare size={11} /> {totalPct}% checklist
-                </span>
-                {overdueTaskCount > 0 && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-amber-700/40 bg-amber-900/30 text-xs font-medium text-amber-400">
-                    <Clock size={11} /> {overdueTaskCount} overdue
-                  </span>
-                )}
-                {openRfis > 0 && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-slate-700/40 bg-slate-800/40 text-xs font-medium text-slate-400">
-                    <FileText size={11} /> {openRfis} RFI{openRfis > 1 ? 's' : ''}
-                  </span>
-                )}
-              </div>
-            )
-          })()}
         </div>
+        <div className="flex items-center gap-1.5 text-slate-400 text-sm">
+          <MapPin size={13} />
+          <span>{[project.address, project.city, project.state].filter(Boolean).join(', ')}</span>
+        </div>
+
+        {/* Project vitals strip */}
+        {(() => {
+          const h = computeHealth(project, { taskCompletionPct: totalPct, raidItems })
+          const healthColor = h.total >= 80
+            ? 'text-emerald-400 bg-emerald-900/30 border-emerald-700/40'
+            : h.total >= 60 ? 'text-amber-400 bg-amber-900/30 border-amber-700/40'
+            : 'text-red-400 bg-red-900/30 border-red-700/40'
+          const variance = project.totalBudget - project.forecastCost
+          const over = project.totalBudget > 0 && variance < 0
+          const fmtShort = (n: number) =>
+            Math.abs(n) >= 1_000_000 ? `$${(Math.abs(n) / 1_000_000).toFixed(1)}M`
+            : Math.abs(n) >= 1_000 ? `$${(Math.abs(n) / 1_000).toFixed(0)}K`
+            : fmt(Math.abs(n))
+          return (
+            <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
+              <span className={clsx('inline-flex items-center gap-1 px-2.5 py-1 rounded-full border text-xs font-semibold', healthColor)}>
+                <Activity size={11} /> Health {h.total}/100
+              </span>
+              {project.totalBudget > 0 && (
+                <span className={clsx('inline-flex items-center gap-1 px-2.5 py-1 rounded-full border text-xs font-medium',
+                  over ? 'text-red-400 bg-red-900/30 border-red-700/40' : 'text-emerald-400 bg-emerald-900/30 border-emerald-700/40'
+                )}>
+                  <DollarSign size={11} /> {fmtShort(variance)} {over ? 'over' : 'under'}
+                </span>
+              )}
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-slate-700/40 bg-slate-800/40 text-xs font-medium text-slate-300">
+                <CheckSquare size={11} /> {totalPct}% checklist
+              </span>
+              {overdueTaskCount > 0 && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-amber-700/40 bg-amber-900/30 text-xs font-medium text-amber-400">
+                  <Clock size={11} /> {overdueTaskCount} overdue
+                </span>
+              )}
+              {openRfis > 0 && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-slate-700/40 bg-slate-800/40 text-xs font-medium text-slate-400">
+                  <FileText size={11} /> {openRfis} RFI{openRfis > 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
+          )
+        })()}
       </div>
 
       {/* Stage gate progress */}
