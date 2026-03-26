@@ -279,13 +279,24 @@ function NewVisitModal({
   const [title, setTitle]         = useState('')
   const [notes, setNotes]         = useState('')
   const [files, setFiles]         = useState<File[]>([])
+  const [saving, setSaving]       = useState(false)
+  const [error, setError]         = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
 
   const previews = files.map(f => URL.createObjectURL(f))
 
   const handleSubmit = async () => {
-    await onCreate(files, { visitDate, title: title || undefined, notes: notes || undefined })
-    onClose()
+    setSaving(true)
+    setError('')
+    try {
+      await onCreate(files, { visitDate, title: title || undefined, notes: notes || undefined })
+      onClose()
+    } catch (err) {
+      console.error('Create visit failed:', err)
+      setError('Failed to create visit. Please try again.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -396,12 +407,13 @@ function NewVisitModal({
           </button>
           <button
             onClick={handleSubmit}
-            disabled={uploading}
+            disabled={uploading || saving}
             className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium transition-colors flex items-center justify-center gap-2"
           >
-            {uploading ? <><Loader2 size={15} className="animate-spin" /> Uploading…</> : 'Create Visit'}
+            {saving || uploading ? <><Loader2 size={15} className="animate-spin" /> {uploading ? 'Uploading…' : 'Saving…'}</> : 'Create Visit'}
           </button>
         </div>
+        {error && <p className="px-5 pb-3 text-xs text-red-400">{error}</p>}
       </div>
     </div>
   )
