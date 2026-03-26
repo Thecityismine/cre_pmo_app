@@ -189,7 +189,7 @@ function StatCard({ label, value, sub, icon: Icon, color, valueColor, onClick }:
 
 function SectionLabel({ label }: { label: string }) {
   return (
-    <div className="flex items-center gap-3 -mb-2">
+    <div className="flex items-center gap-3">
       <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest shrink-0">{label}</p>
       <div className="flex-1 h-px bg-slate-800" />
     </div>

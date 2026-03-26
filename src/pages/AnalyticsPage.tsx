@@ -71,7 +71,7 @@ function KPI({ icon: Icon, label, value, sub, color }: {
 
 function SectionLabel({ label }: { label: string }) {
   return (
-    <div className="flex items-center gap-3 -mb-1">
+    <div className="flex items-center gap-3">
       <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest shrink-0">{label}</p>
       <div className="flex-1 h-px bg-slate-800" />
     </div>
