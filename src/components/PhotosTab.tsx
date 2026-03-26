@@ -293,7 +293,7 @@ function NewVisitModal({
       onClose()
     } catch (err) {
       console.error('Create visit failed:', err)
-      setError('Failed to create visit. Please try again.')
+      setError(err instanceof Error ? err.message : 'Failed to create visit. Please try again.')
     } finally {
       setSaving(false)
     }
