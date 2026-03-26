@@ -161,7 +161,7 @@ export function EditProjectModal({ project, onClose }: Props) {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="overflow-y-auto flex-1">
+        <form id="edit-project-form" onSubmit={handleSubmit} className="overflow-y-auto flex-1">
           <div className="p-6 space-y-5">
             {error && (
               <div className="bg-red-900/40 border border-red-700 text-red-300 text-sm rounded-lg px-4 py-3">{error}</div>
@@ -328,16 +328,17 @@ export function EditProjectModal({ project, onClose }: Props) {
             )}
           </div>
 
-          {/* Footer */}
-          <div className="px-6 py-4 border-t border-slate-800 flex gap-3 bg-slate-900 sticky bottom-0">
-            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-lg border border-slate-800 text-slate-300 text-sm hover:bg-slate-900 transition-colors">
-              Cancel
-            </button>
-            <button type="submit" disabled={saving} className="flex-1 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors disabled:opacity-50">
-              {saving ? 'Saving...' : 'Save Changes'}
-            </button>
-          </div>
         </form>
+
+        {/* Footer — outside form so it's always visible */}
+        <div className="px-6 py-4 border-t border-slate-800 flex gap-3 bg-slate-900 shrink-0 rounded-b-2xl">
+          <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-lg border border-slate-800 text-slate-300 text-sm hover:bg-slate-900 transition-colors">
+            Cancel
+          </button>
+          <button type="submit" form="edit-project-form" disabled={saving} className="flex-1 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors disabled:opacity-50">
+            {saving ? 'Saving...' : 'Save Changes'}
+          </button>
+        </div>
       </div>
     </div>
   )
