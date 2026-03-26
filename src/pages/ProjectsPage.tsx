@@ -352,6 +352,42 @@ export function ProjectsPage() {
         </div>
       </div>
 
+      {/* ── Portfolio quick stats ── */}
+      {projects.length > 0 && (() => {
+        const active = projects.filter(p => p.isActive)
+        const totalBudget = active.reduce((s, p) => s + (p.totalBudget || 0), 0)
+        const overBudget  = active.filter(p => p.totalBudget > 0 && p.forecastCost > p.totalBudget)
+        const fmtShort = (n: number) =>
+          n >= 1_000_000 ? `$${(n / 1_000_000).toFixed(1)}M`
+          : n >= 1_000 ? `$${(n / 1_000).toFixed(0)}K`
+          : `$${n}`
+        return (
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="text-slate-400">
+              <span className="font-semibold text-slate-200">{active.length}</span> active
+            </span>
+            <span className="text-slate-700">·</span>
+            <span className="text-slate-400">
+              <span className="font-semibold text-slate-200">{projects.length - active.length}</span> inactive
+            </span>
+            {totalBudget > 0 && (
+              <>
+                <span className="text-slate-700">·</span>
+                <span className="text-slate-400">
+                  <span className="font-semibold text-blue-300">{fmtShort(totalBudget)}</span> total budget
+                </span>
+              </>
+            )}
+            {overBudget.length > 0 && (
+              <>
+                <span className="text-slate-700">·</span>
+                <span className="text-red-400 font-medium">{overBudget.length} over budget</span>
+              </>
+            )}
+          </div>
+        )
+      })()}
+
       {/* ── Filter bar ── */}
       <div className="space-y-2">
         {/* Row 1: search + view toggle */}

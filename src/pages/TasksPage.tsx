@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CheckCircle2, Circle, ChevronDown, ChevronRight, RefreshCw, AlertTriangle, Clock, ListTodo, FolderKanban } from 'lucide-react'
+import { CheckCircle2, Circle, ChevronDown, ChevronRight, RefreshCw, AlertTriangle, Clock, ListTodo, FolderKanban, BarChart2 } from 'lucide-react'
 import { clsx } from 'clsx'
 import { useAllProjectTasks } from '@/hooks/useAllProjectTasks'
 import { useProjects } from '@/hooks/useProjects'
@@ -342,6 +342,57 @@ export function TasksPage() {
               </div>
             </div>
           )}
+
+          {/* By Project breakdown — shown in All view */}
+          {filter === 'all' && tasks.length > 0 && (() => {
+            const byProject = projects
+              .map(p => {
+                const open    = tasks.filter(t => t.projectId === p.id)
+                const overdue = open.filter(t => isOverdue(t.dueDate))
+                return { project: p, open: open.length, overdue: overdue.length }
+              })
+              .filter(r => r.open > 0)
+              .sort((a, b) => b.overdue - a.overdue || b.open - a.open)
+            if (byProject.length === 0) return null
+            const maxOpen = Math.max(...byProject.map(r => r.open))
+            return (
+              <div>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                  <BarChart2 size={11} /> By Project
+                </p>
+                <div className="bg-slate-900 rounded-xl overflow-hidden border border-slate-800">
+                  {byProject.map(({ project, open, overdue }) => (
+                    <button
+                      key={project.id}
+                      onClick={() => navigate(`/projects/${project.id}?tab=tasks`)}
+                      className="w-full flex items-center gap-3 px-4 py-3 border-b border-slate-800/60 last:border-0 hover:bg-slate-800/40 transition-colors text-left"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-sm text-slate-200 font-medium truncate">{project.projectName}</p>
+                          <div className="flex items-center gap-2 shrink-0 ml-2">
+                            {overdue > 0 && (
+                              <span className="text-xs text-red-400 flex items-center gap-0.5 font-medium">
+                                <AlertTriangle size={10} /> {overdue}
+                              </span>
+                            )}
+                            <span className="text-xs text-slate-400">{open} open</span>
+                          </div>
+                        </div>
+                        <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
+                          <div
+                            className={clsx('h-full rounded-full transition-all duration-700 bar-fill', overdue > 0 ? 'bg-red-500' : 'bg-blue-500')}
+                            style={{ width: `${Math.round((open / maxOpen) * 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                      <ChevronRight size={13} className="text-slate-600 shrink-0" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )
+          })()}
 
           {/* Empty state */}
           {!showRecurring && filteredTasks.length === 0 && (

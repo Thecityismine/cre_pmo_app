@@ -53,7 +53,8 @@ function KPI({ icon: Icon, label, value, sub, color }: {
   icon: React.ElementType; label: string; value: string; sub?: string; color: string
 }) {
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 transition-all duration-200 hover:border-slate-700 hover:shadow-lg hover:shadow-black/20">
+    <div className="relative bg-slate-900 border border-slate-800 rounded-xl p-5 overflow-hidden transition-all duration-200 hover:border-slate-700 hover:shadow-lg hover:shadow-black/20">
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-600/50 to-transparent" />
       <div className="flex items-start justify-between">
         <div className="min-w-0">
           <p className="text-slate-400 text-xs font-medium uppercase tracking-wide">{label}</p>
@@ -64,6 +65,15 @@ function KPI({ icon: Icon, label, value, sub, color }: {
           <Icon size={20} className="text-white" />
         </div>
       </div>
+    </div>
+  )
+}
+
+function SectionLabel({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3 -mb-1">
+      <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest shrink-0">{label}</p>
+      <div className="flex-1 h-px bg-slate-800" />
     </div>
   )
 }
@@ -473,6 +483,8 @@ Format your response exactly like this:
         </div>
       )}
 
+      <SectionLabel label="Health & Risk" />
+
       {/* Portfolio Health Matrix */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
         <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
@@ -598,6 +610,8 @@ Format your response exactly like this:
         )}
       </div>
 
+      <SectionLabel label="Budget" />
+
       {/* Budget by Project */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
         <div className="flex items-baseline justify-between mb-4">
@@ -649,6 +663,8 @@ Format your response exactly like this:
         )}
       </div>
 
+      <SectionLabel label="Portfolio Breakdown" />
+
       {/* Stage + Profile breakdown */}
       <div className="grid md:grid-cols-2 gap-4">
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
@@ -660,7 +676,7 @@ Format your response exactly like this:
                 <span className="text-slate-300 text-sm flex-1">{STATUS_LABEL[status] ?? status}</span>
                 <div className="flex items-center gap-2">
                   <div className="w-20 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-                    <div className={clsx('h-full rounded-full', STATUS_COLORS[status] ?? 'bg-slate-500')}
+                    <div className={clsx('h-full rounded-full transition-all duration-700 bar-fill', STATUS_COLORS[status] ?? 'bg-slate-500')}
                       style={{ width: `${(count / projects.length) * 100}%` }} />
                   </div>
                   <span className="text-slate-400 text-xs w-4 text-right">{count}</span>
@@ -685,7 +701,7 @@ Format your response exactly like this:
                   <span className="text-slate-400 text-sm">{data.count} project{data.count !== 1 ? 's' : ''}</span>
                 </div>
                 <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
-                  <div className={clsx('h-full rounded-full', profileColors[profile] ?? 'bg-slate-500')}
+                  <div className={clsx('h-full rounded-full transition-all duration-700 bar-fill', profileColors[profile] ?? 'bg-slate-500')}
                     style={{ width: `${(data.count / projects.length) * 100}%` }} />
                 </div>
                 <p className="text-xs text-slate-400 mt-1">Budget: {fmtM(data.budget)}</p>
@@ -694,6 +710,8 @@ Format your response exactly like this:
           </div>
         </div>
       </div>
+
+      <SectionLabel label="Budget Summary" />
 
       {/* Portfolio Budget Summary */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
@@ -710,6 +728,8 @@ Format your response exactly like this:
           />
         </div>
       </div>
+
+      <SectionLabel label="Reporting" />
 
       {/* ── 5.1 Auto Weekly Report ── */}
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
