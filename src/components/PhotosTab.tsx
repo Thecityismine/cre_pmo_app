@@ -43,18 +43,27 @@ interface SitePhoto {
 // ─── PDF helpers ───────────────────────────────────────────────────────────────
 
 async function toDataUrl(url: string): Promise<string | null> {
-  try {
-    const res = await fetch(url)
-    const blob = await res.blob()
-    return await new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onloadend = () => resolve(reader.result as string)
-      reader.onerror = reject
-      reader.readAsDataURL(blob)
-    })
-  } catch {
-    return null
-  }
+  // Try canvas approach (works better with Firebase Storage CORS)
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas')
+        canvas.width = img.naturalWidth
+        canvas.height = img.naturalHeight
+        const ctx = canvas.getContext('2d')
+        if (!ctx) { resolve(null); return }
+        ctx.drawImage(img, 0, 0)
+        resolve(canvas.toDataURL('image/jpeg', 0.85))
+      } catch {
+        resolve(null)
+      }
+    }
+    img.onerror = () => resolve(null)
+    // Cache-bust to avoid opaque responses
+    img.src = url + (url.includes('?') ? '&' : '?') + '_cb=' + Date.now()
+  })
 }
 
 const PDF_BG   = [15,  23,  42 ] as [number, number, number]
@@ -208,11 +217,11 @@ function Lightbox({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/95 flex flex-col"
+      className="fixed inset-0 z-[70] bg-black/95 flex flex-col"
       onClick={onClose}
     >
       {/* Top bar */}
-      <div className="flex items-center justify-between px-4 py-3 shrink-0" onClick={e => e.stopPropagation()}>
+      <div className="flex items-center justify-between px-4 py-3 shrink-0" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }} onClick={e => e.stopPropagation()}>
         <span className="text-slate-400 text-sm">{idx + 1} / {photos.length}</span>
         <button onClick={onClose} className="p-2 text-slate-400 hover:text-white transition-colors">
           <X size={20} />
@@ -280,7 +289,7 @@ function NewVisitModal({
   }
 
   return (
-    <div className="fixed inset-0 z-40 bg-black/70 flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div className="fixed inset-0 z-[60] bg-black/70 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div className="bg-slate-900 border border-slate-700 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800 shrink-0">
@@ -298,7 +307,7 @@ function NewVisitModal({
               type="date"
               value={visitDate}
               onChange={e => setVisitDate(e.target.value)}
-              className="mt-1.5 w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-blue-500"
+              className="mt-1.5 w-full max-w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-blue-500"
             />
           </div>
 
@@ -427,7 +436,7 @@ function EditVisitModal({
   }
 
   return (
-    <div className="fixed inset-0 z-40 bg-black/70 flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div className="fixed inset-0 z-[60] bg-black/70 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div className="bg-slate-900 border border-slate-700 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[90vh] flex flex-col">
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800 shrink-0">
           <h3 className="font-semibold text-slate-100">Edit Site Visit</h3>
@@ -497,7 +506,7 @@ function VisitDetailSheet({
 
   return (
     <>
-      <div className="fixed inset-0 z-30 bg-slate-950 flex flex-col">
+      <div className="fixed inset-0 z-[60] bg-slate-950 flex flex-col">
         {/* Header */}
         <div className="flex items-center gap-3 px-4 py-4 border-b border-slate-800 bg-slate-900 shrink-0" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
           <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-200 rounded-lg transition-colors">
