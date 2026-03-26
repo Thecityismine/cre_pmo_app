@@ -282,16 +282,16 @@ function NewVisitModal({
 
   return (
     <div className="fixed inset-0 z-40 bg-black/70 flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="bg-slate-900 border border-slate-700 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto">
+      <div className="bg-slate-900 border border-slate-700 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800 shrink-0">
           <h3 className="font-semibold text-slate-100">New Site Visit</h3>
           <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-200 rounded-lg">
             <X size={18} />
           </button>
         </div>
 
-        <div className="p-5 space-y-4">
+        <div className="p-5 space-y-4 overflow-y-auto flex-1">
           {/* Date */}
           <div>
             <label className="text-xs font-medium text-slate-400 uppercase tracking-wide">Visit Date</label>
@@ -379,7 +379,7 @@ function NewVisitModal({
         </div>
 
         {/* Footer */}
-        <div className="flex gap-3 px-5 pb-5">
+        <div className="flex gap-3 px-5 py-4 border-t border-slate-800 shrink-0">
           <button
             onClick={onClose}
             className="flex-1 py-2.5 rounded-xl border border-slate-700 text-slate-300 text-sm font-medium hover:bg-slate-800 transition-colors"
