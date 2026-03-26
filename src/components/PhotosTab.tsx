@@ -289,7 +289,10 @@ function NewVisitModal({
     setSaving(true)
     setError('')
     try {
-      await onCreate(files, { visitDate, title: title || undefined, notes: notes || undefined })
+      const data: { visitDate: string; title?: string; notes?: string } = { visitDate }
+      if (title.trim()) data.title = title.trim()
+      if (notes.trim()) data.notes = notes.trim()
+      await onCreate(files, data)
       onClose()
     } catch (err) {
       console.error('Create visit failed:', err)
