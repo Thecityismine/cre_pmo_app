@@ -275,7 +275,6 @@ function NewVisitModal({
   const previews = files.map(f => URL.createObjectURL(f))
 
   const handleSubmit = async () => {
-    if (files.length === 0) return
     await onCreate(files, { visitDate, title: title || undefined, notes: notes || undefined })
     onClose()
   }
@@ -388,7 +387,7 @@ function NewVisitModal({
           </button>
           <button
             onClick={handleSubmit}
-            disabled={files.length === 0 || uploading}
+            disabled={uploading}
             className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium transition-colors flex items-center justify-center gap-2"
           >
             {uploading ? <><Loader2 size={15} className="animate-spin" /> Uploading…</> : 'Create Visit'}
@@ -824,7 +823,7 @@ export function PhotosTab({ project }: Props) {
       collection(db, 'projects', project.id, 'siteVisits'),
       { ...data, photoCount: 0, coverUrl: null, createdBy: displayName, createdAt: now, updatedAt: now },
     )
-    await uploadPhotos(visitRef.id, files, 0)
+    if (files.length > 0) await uploadPhotos(visitRef.id, files, 0)
   }
 
   // ── Delete photo ─────────────────────────────────────────────────────────
