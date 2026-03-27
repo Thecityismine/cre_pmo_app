@@ -585,49 +585,6 @@ export function ProjectDetailPage() {
         />
       </div>
 
-      {/* Milestone Mini-Timeline */}
-      {milestoneScheduleItems.filter(m => m.startDate || m.endDate || m.baselineStart || m.baselineEnd).length > 0 && (() => {
-        const dated = milestoneScheduleItems.filter(m => m.startDate || m.endDate || m.baselineStart || m.baselineEnd)
-        const today = new Date()
-        const parseLocal = (d: string) => { const [y,mo,day] = d.split('-').map(Number); return new Date(y, mo-1, day) }
-        return (
-          <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-            <div className="px-4 py-3 border-b border-slate-800">
-              <p className="text-sm font-semibold text-slate-100">Milestone Timeline</p>
-            </div>
-            <div className="overflow-x-auto">
-              <div className="flex gap-0 px-4 py-4 min-w-max">
-                {dated.slice(0, 8).map((m, idx) => {
-                  const isComplete = m.percentComplete === 100
-                  const targetDate = m.startDate || m.endDate || m.baselineStart || m.baselineEnd
-                  const tDate = parseLocal(targetDate)
-                  const isNear = !isComplete && Math.abs(tDate.getTime() - today.getTime()) <= 14 * 24 * 60 * 60 * 1000
-                  const dotColor = isComplete ? 'bg-emerald-500 border-emerald-400' : isNear ? 'bg-blue-500 border-blue-400' : 'bg-slate-600 border-slate-500'
-                  const textColor = isComplete ? 'text-emerald-400' : isNear ? 'text-blue-300' : 'text-slate-400'
-                  return (
-                    <div key={m.id} className="flex items-start" style={{ minWidth: 120 }}>
-                      <div className="flex flex-col items-center">
-                        <div className={clsx('w-3 h-3 rounded-full border-2 shrink-0 mt-0.5', dotColor)} />
-                        {idx < dated.slice(0, 8).length - 1 && (
-                          <div className="w-px flex-1 bg-slate-700 mt-1 min-h-[16px]" />
-                        )}
-                      </div>
-                      <div className="ml-2 pb-4">
-                        <p className={clsx('text-xs font-medium leading-tight', textColor)}>{m.name}</p>
-                        <p className="text-[10px] text-slate-400 mt-0.5">
-                          {tDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                        </p>
-                      </div>
-                      {idx < dated.slice(0, 8).length - 1 && <div className="flex-1 h-px bg-slate-700 mt-1.5 min-w-[16px]" />}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-        )
-      })()}
-
       {/* Budget bar */}
       {project.totalBudget > 0 && (
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
@@ -999,6 +956,64 @@ export function ProjectDetailPage() {
           )
         })()}
 
+
+        {/* ── Milestone Mini-Timeline ───────────────────────────────────── */}
+        {(() => {
+          const dated = milestoneScheduleItems.filter(m => m.startDate || m.endDate || m.baselineStart || m.baselineEnd)
+          const today = new Date()
+          const parseLocal = (d: string) => { const [y,mo,day] = d.split('-').map(Number); return new Date(y, mo-1, day) }
+          if (dated.length === 0) {
+            return (
+              <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex items-center gap-3">
+                <Calendar size={16} className="text-slate-400 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-slate-400">No milestones flagged yet.</p>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Click the{' '}
+                    <span className="text-purple-400">◆</span>
+                    {' '}icon on any Schedule activity to mark it as a milestone.
+                  </p>
+                </div>
+              </div>
+            )
+          }
+          return (
+            <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+              <div className="px-4 py-3 border-b border-slate-800">
+                <p className="text-sm font-semibold text-slate-100">Milestone Timeline</p>
+              </div>
+              <div className="overflow-x-auto">
+                <div className="flex gap-0 px-4 py-4 min-w-max">
+                  {dated.slice(0, 8).map((m, idx) => {
+                    const isComplete = m.percentComplete === 100
+                    const targetDate = m.startDate || m.endDate || m.baselineStart || m.baselineEnd
+                    const tDate = parseLocal(targetDate)
+                    const isNear = !isComplete && Math.abs(tDate.getTime() - today.getTime()) <= 14 * 24 * 60 * 60 * 1000
+                    const dotColor = isComplete ? 'bg-emerald-500 border-emerald-400' : isNear ? 'bg-blue-500 border-blue-400' : 'bg-slate-600 border-slate-500'
+                    const textColor = isComplete ? 'text-emerald-400' : isNear ? 'text-blue-300' : 'text-slate-400'
+                    return (
+                      <div key={m.id} className="flex items-start" style={{ minWidth: 120 }}>
+                        <div className="flex flex-col items-center">
+                          <div className={clsx('w-3 h-3 rounded-full border-2 shrink-0 mt-0.5', dotColor)} />
+                          {idx < dated.slice(0, 8).length - 1 && (
+                            <div className="w-px flex-1 bg-slate-700 mt-1 min-h-[16px]" />
+                          )}
+                        </div>
+                        <div className="ml-2 pb-4">
+                          <p className={clsx('text-xs font-medium leading-tight', textColor)}>{m.name}</p>
+                          <p className="text-[10px] text-slate-400 mt-0.5">
+                            {tDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </p>
+                        </div>
+                        {idx < dated.slice(0, 8).length - 1 && <div className="flex-1 h-px bg-slate-700 mt-1.5 min-w-[16px]" />}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+          )
+        })()}
 
         {/* ── Schedule Activities Summary ───────────────────────────────── */}
         {scheduleItems.length > 0 && (() => {
