@@ -1370,7 +1370,7 @@ export function ProjectDetailPage() {
       {showEdit && <EditProjectModal project={project} onClose={() => setShowEdit(false)} />}
 
       {/* ── Floating Action Button ── */}
-      <div className="fixed bottom-24 right-4 md:bottom-6 md:right-6 z-50 flex flex-col items-end gap-2">
+      <div className="fixed bottom-24 right-4 md:bottom-6 md:right-8 z-[55] flex flex-col items-end gap-2">
         {/* FAB menu */}
         {fabOpen && (
           <div className="flex flex-col gap-2 items-end mb-1">
