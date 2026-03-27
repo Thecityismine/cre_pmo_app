@@ -51,7 +51,14 @@ export function useScheduleItems(projectId: string | undefined) {
     const unsub = onSnapshot(q, (snap) => {
       const sorted = snap.docs
         .map(d => ({ id: d.id, ...d.data() } as ScheduleItem))
-        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .sort((a, b) => {
+          const aDate = a.startDate || a.baselineStart
+          const bDate = b.startDate || b.baselineStart
+          if (aDate && bDate) return aDate.localeCompare(bDate)
+          if (aDate && !bDate) return 1   // undated items first
+          if (!aDate && bDate) return -1
+          return a.sortOrder - b.sortOrder
+        })
       setItems(sorted)
       setLoading(false)
     })
