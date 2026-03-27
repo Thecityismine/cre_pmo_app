@@ -586,8 +586,8 @@ export function ProjectDetailPage() {
       </div>
 
       {/* Milestone Mini-Timeline */}
-      {milestoneScheduleItems.filter(m => m.endDate || m.baselineEnd).length > 0 && (() => {
-        const dated = milestoneScheduleItems.filter(m => m.endDate || m.baselineEnd)
+      {milestoneScheduleItems.filter(m => m.startDate || m.endDate || m.baselineStart || m.baselineEnd).length > 0 && (() => {
+        const dated = milestoneScheduleItems.filter(m => m.startDate || m.endDate || m.baselineStart || m.baselineEnd)
         const today = new Date()
         const parseLocal = (d: string) => { const [y,mo,day] = d.split('-').map(Number); return new Date(y, mo-1, day) }
         return (
@@ -599,7 +599,7 @@ export function ProjectDetailPage() {
               <div className="flex gap-0 px-4 py-4 min-w-max">
                 {dated.slice(0, 8).map((m, idx) => {
                   const isComplete = m.percentComplete === 100
-                  const targetDate = m.endDate || m.baselineEnd
+                  const targetDate = m.startDate || m.endDate || m.baselineStart || m.baselineEnd
                   const tDate = parseLocal(targetDate)
                   const isNear = !isComplete && Math.abs(tDate.getTime() - today.getTime()) <= 14 * 24 * 60 * 60 * 1000
                   const dotColor = isComplete ? 'bg-emerald-500 border-emerald-400' : isNear ? 'bg-blue-500 border-blue-400' : 'bg-slate-600 border-slate-500'
