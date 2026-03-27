@@ -236,16 +236,16 @@ function AddCOForm({
       <textarea value={form.description} onChange={f('description')} placeholder="Description (optional)" rows={2}
         className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 resize-none placeholder-slate-500" />
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         <input value={form.requestedBy} onChange={f('requestedBy')} placeholder="Requested by"
-          className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
+          className="bg-slate-700 text-slate-300 text-base rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
         <select value={form.category} onChange={f('category')}
-          className="bg-slate-700 border border-slate-800 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
+          className="bg-slate-700 border border-slate-800 text-slate-300 text-base rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
           <option value="">Budget Category</option>
           {BUDGET_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
         <input type="date" value={form.date} onChange={f('date')}
-          className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500" />
+          className="w-full bg-slate-700 text-slate-300 text-base rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500" />
       </div>
 
       <div className="flex gap-2 pt-1">
@@ -340,14 +340,14 @@ export function ChangeOrdersTab({ project }: { project: Project }) {
       )}
 
       {/* Toolbar */}
-      <div className="flex items-center gap-2">
-        <div className="flex gap-1 bg-slate-900 border border-slate-800 rounded-lg p-1">
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex gap-1 bg-slate-900 border border-slate-800 rounded-lg p-1 overflow-x-auto">
           {(['all', ...CO_STATUSES] as const).map(s => (
             <button
               key={s}
               onClick={() => setStatusFilter(s)}
               className={clsx(
-                'px-3 py-1 rounded text-xs font-medium transition-colors',
+                'px-3 py-1 rounded text-xs font-medium transition-colors whitespace-nowrap',
                 statusFilter === s
                   ? s === 'all' ? 'bg-blue-600 text-white' : STATUS_CONFIG[s].color
                   : 'text-slate-400 hover:text-slate-300'
@@ -371,7 +371,7 @@ export function ChangeOrdersTab({ project }: { project: Project }) {
 
         <button
           onClick={() => setShowAdd(true)}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shrink-0"
         >
           <Plus size={14} /> New CO
         </button>

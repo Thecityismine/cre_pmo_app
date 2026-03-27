@@ -87,14 +87,14 @@ function PunchForm({
   return (
     <div className="bg-slate-900 border border-blue-600/50 rounded-xl p-4 space-y-3 mb-3">
       <textarea value={form.description} onChange={f('description')} placeholder="Deficiency description *" rows={2} autoFocus
-        className="w-full bg-slate-700 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 resize-none placeholder-slate-500" />
+        className="w-full bg-slate-700 text-slate-100 text-base rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 resize-none placeholder-slate-500" />
 
       <div className="grid grid-cols-2 gap-2">
         <input value={form.location} onChange={f('location')} placeholder="Location / Room"
-          className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
+          className="bg-slate-700 text-slate-300 text-base rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
 
         <select value={form.trade} onChange={f('trade')}
-          className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500">
+          className="bg-slate-700 text-slate-300 text-base rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500">
           <option value="">Trade responsible…</option>
           {TRADES.map(t => <option key={t} value={t}>{t}</option>)}
         </select>
@@ -128,21 +128,22 @@ function PunchForm({
           </select>
         </div>
 
-        <div>
-          <label className="text-xs text-slate-400 mb-1 block">Due Date</label>
-          <input type="date" value={form.dueDate} onChange={f('dueDate')}
-            className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500" />
-        </div>
-
-        <div>
-          <label className="text-xs text-slate-400 mb-1 block">Completed Date</label>
-          <input type="date" value={form.completedDate} onChange={f('completedDate')}
-            className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500" />
+        <div className="col-span-2 grid grid-cols-2 gap-2">
+          <div>
+            <label className="text-xs text-slate-400 mb-1 block">Due Date</label>
+            <input type="date" value={form.dueDate} onChange={f('dueDate')}
+              className="w-full bg-slate-700 text-slate-300 text-base rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500" />
+          </div>
+          <div>
+            <label className="text-xs text-slate-400 mb-1 block">Completed Date</label>
+            <input type="date" value={form.completedDate} onChange={f('completedDate')}
+              className="w-full bg-slate-700 text-slate-300 text-base rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500" />
+          </div>
         </div>
       </div>
 
       <textarea value={form.notes} onChange={f('notes')} placeholder="Notes (optional)" rows={2}
-        className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 resize-none placeholder-slate-500" />
+        className="w-full bg-slate-700 text-slate-300 text-base rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 resize-none placeholder-slate-500" />
 
       <div className="flex gap-2">
         <button onClick={save} disabled={saving || !form.description.trim()}

@@ -129,13 +129,13 @@ function AddNoteForm({
           value={title}
           onChange={e => setTitle(e.target.value)}
           placeholder="Meeting title *"
-          className="bg-slate-700 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500"
+          className="bg-slate-700 text-slate-100 text-base rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500"
         />
         <input
           value={createdBy}
           onChange={e => setCreatedBy(e.target.value)}
           placeholder="Recorded by (optional)"
-          className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500"
+          className="bg-slate-700 text-slate-300 text-base rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500"
         />
       </div>
 
@@ -236,7 +236,7 @@ function NoteCard({
     setEditing(false)
   }
 
-  const inp = 'w-full bg-slate-700 text-slate-200 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500'
+  const inp = 'w-full bg-slate-700 text-slate-200 text-base rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500'
 
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">

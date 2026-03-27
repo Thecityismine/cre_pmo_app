@@ -461,7 +461,7 @@ function EditVisitModal({
           <div>
             <label className="text-xs font-medium text-slate-400 uppercase tracking-wide">Visit Date</label>
             <input type="date" value={visitDate} onChange={e => setVisitDate(e.target.value)}
-              className="mt-1.5 w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-blue-500" />
+              className="mt-1.5 w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 text-slate-100 text-base focus:outline-none focus:border-blue-500" />
           </div>
           <div>
             <label className="text-xs font-medium text-slate-400 uppercase tracking-wide">Title</label>

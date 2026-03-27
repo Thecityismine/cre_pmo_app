@@ -112,25 +112,26 @@ function BidForm({
             className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500" />
         </div>
 
-        <div>
-          <label className="text-xs text-slate-400 mb-1 block">Bid Due Date</label>
-          <input type="date" value={form.bidDueDate} onChange={f('bidDueDate')}
-            className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500" />
-        </div>
-
-        <div>
-          <label className="text-xs text-slate-400 mb-1 block">Submitted Date</label>
-          <input type="date" value={form.submittedDate} onChange={f('submittedDate')}
-            className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500" />
+        <div className="col-span-2 grid grid-cols-2 gap-2">
+          <div>
+            <label className="text-xs text-slate-400 mb-1 block">Bid Due Date</label>
+            <input type="date" value={form.bidDueDate} onChange={f('bidDueDate')}
+              className="w-full bg-slate-700 text-slate-300 text-base rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500" />
+          </div>
+          <div>
+            <label className="text-xs text-slate-400 mb-1 block">Submitted Date</label>
+            <input type="date" value={form.submittedDate} onChange={f('submittedDate')}
+              className="w-full bg-slate-700 text-slate-300 text-base rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500" />
+          </div>
         </div>
 
         <input value={form.contact} onChange={f('contact')} placeholder="Contact name"
-          className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
+          className="bg-slate-700 text-slate-300 text-base rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
 
         <div>
           <label className="text-xs text-slate-400 mb-1 block">Status</label>
           <select value={form.status} onChange={f('status')}
-            className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500">
+            className="w-full bg-slate-700 text-slate-300 text-base rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500">
             {(Object.keys(STATUS_CONFIG) as BidStatus[]).map(s => (
               <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>
             ))}
