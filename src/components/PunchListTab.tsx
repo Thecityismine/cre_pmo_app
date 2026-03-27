@@ -12,15 +12,13 @@ import jsPDF from 'jspdf'
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const STATUS_CONFIG: Record<PunchStatus, { label: string; color: string; bg: string; border: string }> = {
-  'open':        { label: 'Open',        color: 'text-slate-300',   bg: 'bg-slate-700/60',   border: 'border-slate-600' },
-  'in-progress': { label: 'In Progress', color: 'text-blue-300',    bg: 'bg-blue-900/40',    border: 'border-blue-700' },
-  'complete':    { label: 'Complete',    color: 'text-emerald-300', bg: 'bg-emerald-900/40', border: 'border-emerald-700' },
+  'open':   { label: 'Open',   color: 'text-slate-300',   bg: 'bg-slate-700/60',   border: 'border-slate-600' },
+  'closed': { label: 'Closed', color: 'text-emerald-300', bg: 'bg-emerald-900/40', border: 'border-emerald-700' },
 }
 
 const NEXT_STATUS: Record<PunchStatus, PunchStatus> = {
-  'open': 'in-progress',
-  'in-progress': 'complete',
-  'complete': 'open',
+  'open':   'closed',
+  'closed': 'open',
 }
 
 const TRADES = [
@@ -35,7 +33,7 @@ const fmtDate = (d: string) =>
 // ─── PDF Export ───────────────────────────────────────────────────────────────
 
 function exportPunchListPdf(project: Project, items: PunchItem[], punchListDate: string) {
-  const activeItems = items.filter(i => i.status !== 'complete')
+  const activeItems = items.filter(i => i.status !== 'closed')
 
   const pd = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' })
   const W = pd.internal.pageSize.getWidth()
@@ -151,7 +149,7 @@ function exportPunchListPdf(project: Project, items: PunchItem[], punchListDate:
 
       // Status pill
       const statusLabel = STATUS_CONFIG[item.status].label
-      const statusColor: [number, number, number] = item.status === 'in-progress' ? [37, 99, 235] : [80, 100, 130]
+      const statusColor: [number, number, number] = [80, 100, 130]
       pd.setFontSize(6.5); pd.setTextColor(...statusColor)
       pd.text(`[${statusLabel}]`, MX + 18, y + 3.5)
 
@@ -232,14 +230,14 @@ function PunchForm({
       <div>
         <label className="text-xs text-slate-400 mb-1.5 block">Status</label>
         <div className="flex gap-2">
-          {(['open', 'in-progress'] as PunchStatus[]).map(s => (
+          {(['open', 'closed'] as PunchStatus[]).map(s => (
             <button
               key={s} type="button"
               onClick={() => setForm(p => ({ ...p, status: s }))}
               className={clsx(
                 'flex-1 py-2 rounded-lg text-sm font-medium border transition-colors',
                 form.status === s
-                  ? s === 'in-progress' ? 'bg-blue-600 text-white border-blue-500' : 'bg-slate-600 text-white border-slate-500'
+                  ? s === 'closed' ? 'bg-emerald-700 text-white border-emerald-600' : 'bg-slate-600 text-white border-slate-500'
                   : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-slate-200'
               )}
             >
@@ -300,8 +298,7 @@ function PunchRow({ item, projectId, onUpdate, onDelete }: {
         title={`Status: ${cfg.label} — tap to advance`}
         className={clsx('mt-0.5 shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors', cfg.border, cfg.bg)}
       >
-        {item.status === 'in-progress' && <div className="w-2 h-2 rounded-full bg-blue-400" />}
-        {item.status === 'complete' && <Check size={10} className="text-emerald-300" />}
+        {item.status === 'closed' && <Check size={10} className="text-emerald-300" />}
       </button>
 
       {/* Content */}
@@ -359,7 +356,6 @@ function LocationGroup({ location, items, projectId, onUpdate, onDelete }: {
   onDelete: (id: string) => Promise<void>
 }) {
   const [collapsed, setCollapsed] = useState(false)
-  const done = items.filter(i => i.status === 'in-progress').length
 
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden mb-3">
@@ -371,11 +367,6 @@ function LocationGroup({ location, items, projectId, onUpdate, onDelete }: {
           {collapsed ? <ChevronRight size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}
           <span className="text-sm font-semibold text-slate-200">{location}</span>
           <span className="text-xs text-slate-500">{items.length} item{items.length !== 1 ? 's' : ''}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          {items.filter(i => i.status === 'in-progress').length > 0 && (
-            <span className="text-xs text-blue-400">{done} in progress</span>
-          )}
         </div>
       </button>
       {!collapsed && (
@@ -395,7 +386,7 @@ export function PunchListTab({ project }: { project: Project }) {
   const {
     activeItems, archivedItems, loading,
     addItem, updateItem, deleteItem,
-    openCount, inProgCount,
+    openCount,
     punchListDate, savePunchListDate,
   } = usePunchList(project.id)
 
@@ -468,11 +459,6 @@ export function PunchListTab({ project }: { project: Project }) {
           <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-slate-700/60 border border-slate-600 text-slate-300 font-medium">
             {openCount} Open
           </span>
-          {inProgCount > 0 && (
-            <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-blue-900/40 border border-blue-700 text-blue-300 font-medium">
-              {inProgCount} In Progress
-            </span>
-          )}
           {archivedItems.length > 0 && (
             <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-emerald-900/30 border border-emerald-700/50 text-emerald-400 font-medium">
               <Archive size={10} /> {archivedItems.length} Archived
@@ -524,7 +510,7 @@ export function PunchListTab({ project }: { project: Project }) {
           >
             {showArchived ? <ChevronDown size={14} className="text-slate-400" /> : <ChevronRight size={14} className="text-slate-400" />}
             <Archive size={14} className="text-emerald-500" />
-            <span className="text-sm font-medium text-slate-400">Archived — {archivedItems.length} complete</span>
+            <span className="text-sm font-medium text-slate-400">Closed — {archivedItems.length} item{archivedItems.length !== 1 ? 's' : ''}</span>
             <span className="text-xs text-slate-500 ml-1">(not included in PDF)</span>
           </button>
           {showArchived && (

@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { collection, onSnapshot, query, where, addDoc, updateDoc, deleteDoc, doc, getDoc, setDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
-export type PunchStatus = 'open' | 'in-progress' | 'complete'
+export type PunchStatus = 'open' | 'closed'
 
 export interface PunchItem {
   id: string
@@ -71,15 +71,14 @@ export function usePunchList(projectId: string | undefined) {
 
   const deleteItem = (id: string) => deleteDoc(doc(db, 'punchList', id))
 
-  const activeItems   = items.filter(i => i.status !== 'complete')
-  const archivedItems = items.filter(i => i.status === 'complete')
+  const activeItems   = items.filter(i => i.status !== 'closed')
+  const archivedItems = items.filter(i => i.status === 'closed')
   const openCount     = items.filter(i => i.status === 'open').length
-  const inProgCount   = items.filter(i => i.status === 'in-progress').length
 
   return {
     items, activeItems, archivedItems, loading,
     addItem, updateItem, deleteItem,
-    openCount, inProgCount,
+    openCount,
     punchListDate, savePunchListDate,
   }
 }
