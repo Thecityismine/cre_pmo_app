@@ -1,21 +1,17 @@
-import { useEffect, useState } from 'react'
-import { collection, onSnapshot, query, where, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore'
+import { useEffect, useState, useCallback } from 'react'
+import { collection, onSnapshot, query, where, addDoc, updateDoc, deleteDoc, doc, getDoc, setDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
-export type PunchStatus   = 'open' | 'in-progress' | 'complete' | 'disputed'
-export type PunchPriority = 'high' | 'medium' | 'low'
+export type PunchStatus = 'open' | 'in-progress' | 'complete'
 
 export interface PunchItem {
   id: string
   projectId: string
-  number: string     // e.g. PL-001
+  number: string
   description: string
   location: string
   trade: string
   status: PunchStatus
-  priority: PunchPriority
-  dueDate: string
-  completedDate: string
   notes: string
   createdAt: string
   updatedAt: string
@@ -24,6 +20,7 @@ export interface PunchItem {
 export function usePunchList(projectId: string | undefined) {
   const [items, setItems] = useState<PunchItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [punchListDate, setPunchListDateState] = useState('')
 
   useEffect(() => {
     if (!projectId) { setLoading(false); return }
@@ -36,6 +33,19 @@ export function usePunchList(projectId: string | undefined) {
       setLoading(false)
     })
     return unsub
+  }, [projectId])
+
+  useEffect(() => {
+    if (!projectId) return
+    getDoc(doc(db, 'punchListMeta', projectId)).then(snap => {
+      if (snap.exists()) setPunchListDateState(snap.data().date ?? '')
+    })
+  }, [projectId])
+
+  const savePunchListDate = useCallback(async (date: string) => {
+    if (!projectId) return
+    setPunchListDateState(date)
+    await setDoc(doc(db, 'punchListMeta', projectId), { date, projectId }, { merge: true })
   }, [projectId])
 
   const nextNumber = () => {
@@ -61,9 +71,15 @@ export function usePunchList(projectId: string | undefined) {
 
   const deleteItem = (id: string) => deleteDoc(doc(db, 'punchList', id))
 
-  const openCount      = items.filter(i => i.status === 'open' || i.status === 'in-progress').length
-  const completeCount  = items.filter(i => i.status === 'complete').length
-  const highPrioOpen   = items.filter(i => i.priority === 'high' && i.status !== 'complete').length
+  const activeItems   = items.filter(i => i.status !== 'complete')
+  const archivedItems = items.filter(i => i.status === 'complete')
+  const openCount     = items.filter(i => i.status === 'open').length
+  const inProgCount   = items.filter(i => i.status === 'in-progress').length
 
-  return { items, loading, addItem, updateItem, deleteItem, openCount, completeCount, highPrioOpen }
+  return {
+    items, activeItems, archivedItems, loading,
+    addItem, updateItem, deleteItem,
+    openCount, inProgCount,
+    punchListDate, savePunchListDate,
+  }
 }
