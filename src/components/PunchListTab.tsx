@@ -22,9 +22,9 @@ const NEXT_STATUS: Record<PunchStatus, PunchStatus> = {
 }
 
 const TRADES = [
-  '', 'General Contractor', 'Electrical', 'Plumbing', 'HVAC / Mechanical',
-  'Painting', 'Flooring', 'Ceiling / Drywall', 'Millwork / Carpentry',
-  'Doors / Hardware', 'FF&E', 'IT / AV', 'Fire Protection', 'Other',
+  '', 'General Contractor', 'Lighting', 'HVAC', 'Plumbing',
+  'Millwork', 'Door/Hardware', 'AV', 'Security', 'Low Voltage',
+  'Furniture', 'Acoustics', 'GTI Technology', 'Signage', 'Fire Alarm',
 ]
 
 const fmtDate = (d: string) =>
