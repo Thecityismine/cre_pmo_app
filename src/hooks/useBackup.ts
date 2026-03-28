@@ -17,17 +17,22 @@ export function useBackup() {
   const [lastBackup, setLastBackup] = useState<string | null>(
     () => localStorage.getItem(LAST_BACKUP_KEY)
   )
+  const [error, setError] = useState<string | null>(null)
 
   const runBackup = async (silent = false) => {
-    if (!silent) setLoading(true)
+    if (!silent) { setLoading(true); setError(null) }
     try {
       const data: Record<string, object[]> = {}
-      await Promise.all(
-        BACKUP_COLLECTIONS.map(async (col) => {
+
+      // Fetch collections sequentially so one bad collection doesn't abort the rest
+      for (const col of BACKUP_COLLECTIONS) {
+        try {
           const snap = await getDocs(collection(db, col))
           data[col] = snap.docs.map(d => ({ _id: d.id, ...d.data() }))
-        })
-      )
+        } catch {
+          data[col] = [] // skip inaccessible collections rather than failing entirely
+        }
+      }
 
       const payload = {
         exportedAt: new Date().toISOString(),
@@ -35,21 +40,26 @@ export function useBackup() {
         collections: data,
       }
 
-      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+      const json = JSON.stringify(payload, null, 2)
+      const blob = new Blob([json], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
       const dateStr = new Date().toISOString().slice(0, 10)
+      const a = document.createElement('a')
       a.href = url
       a.download = `cre-pmo-backup-${dateStr}.json`
       a.style.display = 'none'
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
-      setTimeout(() => URL.revokeObjectURL(url), 10000)
+      setTimeout(() => URL.revokeObjectURL(url), 30000)
 
       const now = new Date().toISOString()
       localStorage.setItem(LAST_BACKUP_KEY, now)
       setLastBackup(now)
+    } catch (err) {
+      const msg = (err as Error).message ?? 'Backup failed'
+      console.error('[backup]', err)
+      if (!silent) setError(msg)
     } finally {
       if (!silent) setLoading(false)
     }
@@ -66,5 +76,5 @@ export function useBackup() {
     localStorage.setItem(LAST_AUTO_BACKUP_KEY, todayStr)
   }
 
-  return { loading, lastBackup, runBackup, runAutoBackupIfDue }
+  return { loading, lastBackup, error, runBackup, runAutoBackupIfDue }
 }

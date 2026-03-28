@@ -127,7 +127,7 @@ function ProjectTypesSection() {
 // ─── Backup section ───────────────────────────────────────────────────────────
 
 function BackupSection() {
-  const { loading, lastBackup, runBackup } = useBackup()
+  const { loading, lastBackup, error, runBackup } = useBackup()
 
   const lastBackupLabel = lastBackup
     ? new Date(lastBackup).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })
@@ -169,6 +169,10 @@ function BackupSection() {
             <><Download size={14} /> Back Up Now</>
           )}
         </button>
+
+        {error && (
+          <p className="text-xs text-red-400 mt-1">Backup error: {error}</p>
+        )}
       </div>
     </Section>
   )
