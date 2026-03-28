@@ -41,8 +41,11 @@ export function useBackup() {
       const dateStr = new Date().toISOString().slice(0, 10)
       a.href = url
       a.download = `cre-pmo-backup-${dateStr}.json`
+      a.style.display = 'none'
+      document.body.appendChild(a)
       a.click()
-      URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+      setTimeout(() => URL.revokeObjectURL(url), 10000)
 
       const now = new Date().toISOString()
       localStorage.setItem(LAST_BACKUP_KEY, now)
