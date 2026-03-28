@@ -2,6 +2,7 @@ import jsPDF from 'jspdf'
 import type { Project, Task } from '@/types'
 import type { BudgetItem } from '@/hooks/useBudgetItems'
 import type { Milestone } from '@/hooks/useMilestones'
+import type { ScheduleItem } from '@/hooks/useScheduleItems'
 import { computeHealth } from '@/lib/healthScore'
 
 const fmt = (n: number) =>
@@ -400,4 +401,374 @@ export function exportProjectPdf(
 
   const safeName = project.projectName.replace(/[^a-zA-Z0-9]/g, '_').slice(0, 40)
   doc.save(`${safeName}_report_${new Date().toISOString().split('T')[0]}.pdf`)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Gantt PDF Export
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface GanttExportOpts {
+  spi: number | null
+  overallPct: number
+  behindCount: number
+  criticalIds: Set<string>
+}
+
+export function exportGanttPdf(
+  project: Project,
+  items: ScheduleItem[],
+  milestones: Array<{ id: string; name: string; targetDate: string; status: string }>,
+  opts: GanttExportOpts,
+): void {
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' })
+  const W = 215.9
+  const PAGE_H = 279.4
+  const M = 14              // horizontal margin
+  const INNER_W = W - M * 2
+  const LABEL_W = 52        // activity name column width
+  const TL_W = INNER_W - LABEL_W  // timeline width
+  const ROW_H = 7           // mm per activity row
+  const MS_ROW_H = 5.5      // milestone row height
+  const HDR_H = 7           // gantt header (month labels) row
+
+  const BG: [number, number, number]     = [15, 23, 42]
+  const BG2: [number, number, number]    = [22, 33, 55]
+  const DIVIDER: [number, number, number] = [30, 41, 59]
+  const TEXT_DIM: [number, number, number] = [100, 116, 139]
+  const TEXT_MED: [number, number, number] = [148, 163, 184]
+  const TEXT_MAIN: [number, number, number] = [226, 232, 240]
+
+  const BAR: Record<string, [number, number, number]> = {
+    complete:     [16, 185, 129],
+    'in-progress':[59, 130, 246],
+    behind:       [239, 68, 68],
+    upcoming:     [71, 85, 105],
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+
+  const fill = (r: number, g: number, b: number) => doc.setFillColor(r, g, b)
+  const stroke = (r: number, g: number, b: number) => doc.setDrawColor(r, g, b)
+  const color = (r: number, g: number, b: number) => doc.setTextColor(r, g, b)
+  const box = (x: number, y: number, w: number, h: number, style: 'F'|'S'|'FD' = 'F') =>
+    doc.rect(x, y, w, h, style)
+  const ln = (x1: number, y1: number, x2: number, y2: number) => doc.line(x1, y1, x2, y2)
+  const txt = (s: string, x: number, y: number, align: 'left'|'center'|'right' = 'left') =>
+    doc.text(s, x, y, { align })
+
+  function itemStatus(item: ScheduleItem): 'complete'|'in-progress'|'behind'|'upcoming' {
+    if (item.percentComplete === 100) return 'complete'
+    if (!item.endDate) return 'upcoming'
+    const end = new Date(item.endDate)
+    if (end < today) return 'behind'
+    if (!item.startDate) return 'upcoming'
+    if (new Date(item.startDate) <= today) return 'in-progress'
+    return 'upcoming'
+  }
+
+  // ── Date window ────────────────────────────────────────────────────────────
+
+  const today = new Date()
+  const dates: Date[] = []
+  for (const i of items) {
+    if (i.startDate)     dates.push(new Date(i.startDate))
+    if (i.endDate)       dates.push(new Date(i.endDate))
+    if (i.baselineStart) dates.push(new Date(i.baselineStart))
+    if (i.baselineEnd)   dates.push(new Date(i.baselineEnd))
+  }
+  for (const m of milestones) {
+    if (m.targetDate) dates.push(new Date(m.targetDate))
+  }
+
+  if (dates.length === 0) {
+    const s = new Date(today); s.setMonth(s.getMonth() - 1); s.setDate(1)
+    const e = new Date(s); e.setMonth(e.getMonth() + 7)
+    dates.push(s, e)
+  }
+
+  const minDate = new Date(Math.min(...dates.map(d => d.getTime())))
+  const maxDate = new Date(Math.max(...dates.map(d => d.getTime())))
+  const winStart = new Date(minDate); winStart.setDate(winStart.getDate() - 14)
+  const winEnd   = new Date(maxDate); winEnd.setDate(maxDate.getDate() + 14)
+  const totalMs  = winEnd.getTime() - winStart.getTime()
+
+  const todayPct = Math.max(0, Math.min(1, (today.getTime() - winStart.getTime()) / totalMs))
+
+  function pct(dateStr: string): number | null {
+    if (!dateStr) return null
+    const d = new Date(dateStr)
+    return Math.max(0, Math.min(1, (d.getTime() - winStart.getTime()) / totalMs))
+  }
+
+  const months: Array<{ label: string; pct: number }> = []
+  const cur = new Date(winStart); cur.setDate(1)
+  while (cur <= winEnd) {
+    const p = (cur.getTime() - winStart.getTime()) / totalMs
+    if (p >= 0 && p <= 1)
+      months.push({ label: cur.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }), pct: p })
+    cur.setMonth(cur.getMonth() + 1)
+  }
+
+  // ── Page background ────────────────────────────────────────────────────────
+
+  fill(...BG); box(0, 0, W, PAGE_H)
+
+  // ── Header bar ─────────────────────────────────────────────────────────────
+
+  fill(...BG); box(0, 0, W, 30)
+
+  // Accent line
+  fill(59, 130, 246); box(0, 29.5, W, 0.6)
+
+  // Project name
+  color(...TEXT_MAIN)
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(13)
+  txt(project.projectName, M, 11)
+
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(7.5)
+  color(...TEXT_MED)
+  txt(
+    [project.projectNumber, [project.city, project.state].filter(Boolean).join(', ')].filter(Boolean).join('  ·  '),
+    M, 17,
+  )
+  txt(
+    `Schedule Report  ·  ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`,
+    M, 23,
+  )
+
+  // KPI badges (top-right)
+  const kpis = [
+    { label: 'SPI',       value: opts.spi !== null ? opts.spi.toFixed(2) : 'N/A',
+      col: opts.spi === null ? TEXT_DIM : opts.spi >= 1 ? [16,185,129] as [number,number,number] : opts.spi >= 0.8 ? [245,158,11] as [number,number,number] : [239,68,68] as [number,number,number] },
+    { label: 'Progress',  value: `${opts.overallPct}%`, col: [59,130,246] as [number,number,number] },
+    { label: 'Behind',    value: String(opts.behindCount),
+      col: opts.behindCount > 0 ? [239,68,68] as [number,number,number] : [16,185,129] as [number,number,number] },
+    { label: 'Activities',value: String(items.length),  col: TEXT_MED },
+  ]
+  const KPI_W = 24
+  const kpiStartX = W - M - kpis.length * (KPI_W + 1.5)
+  kpis.forEach((k, i) => {
+    const kx = kpiStartX + i * (KPI_W + 1.5)
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(9)
+    color(...k.col); txt(k.value, kx + KPI_W / 2, 11, 'center')
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(5.5)
+    color(...TEXT_DIM); txt(k.label, kx + KPI_W / 2, 16, 'center')
+  })
+
+  let y = 34
+
+  // ── Gantt chart header (month labels row) ──────────────────────────────────
+
+  fill(...BG2); box(M, y, INNER_W, HDR_H)
+
+  // Column divider & "Activity" label
+  stroke(...DIVIDER); doc.setLineWidth(0.3)
+  ln(M + LABEL_W, y, M + LABEL_W, y + HDR_H)
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5)
+  color(...TEXT_MED); txt('Activity', M + 3, y + 4.5)
+
+  // Month tick marks
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(5.5)
+  color(...TEXT_DIM)
+  months.forEach(m => {
+    const mx = M + LABEL_W + m.pct * TL_W
+    stroke(...DIVIDER); doc.setLineWidth(0.2)
+    ln(mx, y, mx, y + HDR_H)
+    txt(m.label, mx + 1, y + 4.5)
+  })
+
+  // Outer border of chart header
+  stroke(...DIVIDER); doc.setLineWidth(0.3)
+  box(M, y, INNER_W, HDR_H, 'S')
+
+  y += HDR_H
+
+  // ── Activity rows ──────────────────────────────────────────────────────────
+
+  const ganttTop = y  // remember for today line later
+
+  items.forEach((item, idx) => {
+    // Alternating row background
+    fill(idx % 2 === 0 ? 15 : 18, idx % 2 === 0 ? 23 : 27, idx % 2 === 0 ? 42 : 50)
+    box(M, y, INNER_W, ROW_H)
+
+    const status = itemStatus(item)
+    const isCrit = opts.criticalIds.has(item.id)
+
+    // Critical path dot
+    if (isCrit) {
+      fill(239, 68, 68)
+      doc.circle(M + 1.8, y + ROW_H / 2, 0.9, 'F')
+    }
+
+    // Activity name (truncated)
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(6)
+    color(...(item.percentComplete === 100 ? TEXT_DIM : TEXT_MAIN))
+    const name = item.name.length > 23 ? item.name.slice(0, 21) + '…' : item.name
+    txt(name, M + 3.5, y + ROW_H / 2 + 1.5)
+
+    // Dividers
+    stroke(...DIVIDER); doc.setLineWidth(0.15)
+    ln(M, y + ROW_H, M + INNER_W, y + ROW_H)
+    ln(M + LABEL_W, y, M + LABEL_W, y + ROW_H)
+
+    // Month grid lines in timeline
+    months.forEach(m => {
+      const mx = M + LABEL_W + m.pct * TL_W
+      stroke(22, 33, 55); doc.setLineWidth(0.1)
+      ln(mx, y, mx, y + ROW_H)
+    })
+
+    const tlX = M + LABEL_W
+    const barTop = y + ROW_H * 0.2
+    const barH   = ROW_H * 0.38
+
+    // Baseline bar (thin, behind actual)
+    const bsP = pct(item.baselineStart ?? '')
+    const beP = pct(item.baselineEnd ?? '')
+    if (bsP !== null && beP !== null && beP > bsP) {
+      fill(51, 65, 85)
+      box(tlX + bsP * TL_W, y + ROW_H * 0.65, (beP - bsP) * TL_W, 1.2)
+    }
+
+    // Actual bar
+    const sP = pct(item.startDate ?? '')
+    const eP = pct(item.endDate ?? '')
+    if (sP !== null && eP !== null && eP > sP) {
+      const [r, g, b] = BAR[status]
+      const bw = (eP - sP) * TL_W
+      // Dark bg of bar (remaining work)
+      fill(r >> 1, g >> 1, b >> 1)
+      box(tlX + sP * TL_W, barTop, bw, barH)
+      // Progress fill (actual completed portion)
+      fill(r, g, b)
+      box(tlX + sP * TL_W, barTop, bw * (item.percentComplete / 100), barH)
+      // Critical path ring
+      if (isCrit) {
+        stroke(239, 68, 68); doc.setLineWidth(0.3)
+        box(tlX + sP * TL_W, barTop, bw, barH, 'S')
+      }
+    }
+
+    y += ROW_H
+  })
+
+  // ── Milestone rows ─────────────────────────────────────────────────────────
+
+  const milestonesWithDates = milestones.filter(m => m.targetDate)
+  if (milestonesWithDates.length > 0) {
+    // Section sub-header
+    fill(...BG2); box(M, y, INNER_W, 5)
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(5.5)
+    color(...TEXT_DIM); txt('MILESTONES', M + 3, y + 3.5)
+    stroke(...DIVIDER); doc.setLineWidth(0.3)
+    ln(M + LABEL_W, y, M + LABEL_W, y + 5)
+    y += 5
+
+    milestonesWithDates.forEach((m, idx) => {
+      fill(idx % 2 === 0 ? 15 : 17, idx % 2 === 0 ? 23 : 26, idx % 2 === 0 ? 42 : 48)
+      box(M, y, INNER_W, MS_ROW_H)
+
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(5.5)
+      color(...TEXT_DIM)
+      const mName = m.name.length > 23 ? m.name.slice(0, 21) + '…' : m.name
+      txt(mName, M + 3, y + MS_ROW_H / 2 + 1.5)
+
+      stroke(...DIVIDER); doc.setLineWidth(0.15)
+      ln(M, y + MS_ROW_H, M + INNER_W, y + MS_ROW_H)
+      ln(M + LABEL_W, y, M + LABEL_W, y + MS_ROW_H)
+
+      months.forEach(mo => {
+        const mx = M + LABEL_W + mo.pct * TL_W
+        stroke(22, 33, 55); doc.setLineWidth(0.1)
+        ln(mx, y, mx, y + MS_ROW_H)
+      })
+
+      // Diamond
+      const mp = pct(m.targetDate)
+      if (mp !== null) {
+        const dx = M + LABEL_W + mp * TL_W
+        const dy = y + MS_ROW_H / 2
+        const d = 2
+        const mCol: [number, number, number] =
+          m.status === 'complete' ? [16, 185, 129]
+          : m.status === 'delayed' ? [239, 68, 68]
+          : [245, 158, 11]
+        fill(...mCol)
+        doc.lines([[d, d], [-d, d], [-d, -d]], dx, dy - d, [1, 1], 'F', true)
+      }
+
+      y += MS_ROW_H
+    })
+  }
+
+  // Outer border of the entire chart body
+  stroke(...DIVIDER); doc.setLineWidth(0.3)
+  box(M, ganttTop, INNER_W, y - ganttTop, 'S')
+
+  // ── Today line (on top of chart) ───────────────────────────────────────────
+
+  const todayX = M + LABEL_W + todayPct * TL_W
+  stroke(245, 158, 11); doc.setLineWidth(0.5)
+  ln(todayX, ganttTop, todayX, y)
+  fill(245, 158, 11)
+  box(todayX - 5, ganttTop - 4, 10, 3.5)
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(5)
+  color(15, 23, 42); txt('Today', todayX, ganttTop - 1.2, 'center')
+
+  y += 6
+
+  // ── Legend ─────────────────────────────────────────────────────────────────
+
+  fill(...BG2); box(M, y, INNER_W, 11)
+
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(5.5)
+  color(...TEXT_DIM); txt('Legend:', M + 2, y + 5)
+
+  const legendItems: Array<{ label: string; type: 'bar'|'base'|'line'|'diamond'; col: [number,number,number] }> = [
+    { label: 'Complete',    type: 'bar',     col: [16, 185, 129] },
+    { label: 'In Progress', type: 'bar',     col: [59, 130, 246] },
+    { label: 'Behind',      type: 'bar',     col: [239, 68, 68]  },
+    { label: 'Upcoming',    type: 'bar',     col: [71, 85, 105]  },
+    { label: 'Baseline',    type: 'base',    col: [51, 65, 85]   },
+    { label: 'Today',       type: 'line',    col: [245, 158, 11] },
+    { label: 'Milestone',   type: 'diamond', col: [245, 158, 11] },
+  ]
+
+  let lx = M + 14
+  legendItems.forEach(li => {
+    const ly = y + 6
+    if (li.type === 'bar') {
+      fill(...li.col); box(lx, ly - 2.2, 7, 2.2)
+    } else if (li.type === 'base') {
+      fill(...li.col); box(lx, ly - 1.2, 7, 1)
+    } else if (li.type === 'line') {
+      stroke(...li.col); doc.setLineWidth(0.5)
+      ln(lx, ly - 1.2, lx + 4, ly - 1.2)
+    } else if (li.type === 'diamond') {
+      fill(...li.col)
+      doc.lines([[2, 2], [-2, 2], [-2, -2]], lx + 3, ly - 3.2, [1, 1], 'F', true)
+    }
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(5.5)
+    color(...TEXT_DIM); txt(li.label, lx + 8.5, ly)
+    lx += li.label.length * 2 + 14
+  })
+
+  y += 15
+
+  // ── Footer ─────────────────────────────────────────────────────────────────
+
+  fill(...BG); box(0, PAGE_H - 8, W, 8)
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(6)
+  color(71, 85, 105)
+  txt('Generated by ProjeX  ·  Confidential', M, PAGE_H - 3)
+  txt(
+    `${project.projectName}  ·  Gantt Report  ·  ${new Date().toISOString().split('T')[0]}`,
+    W - M, PAGE_H - 3, 'right',
+  )
+
+  const safeName = project.projectName.replace(/[^a-zA-Z0-9]/g, '_').slice(0, 40)
+  doc.save(`${safeName}_Gantt_${new Date().toISOString().split('T')[0]}.pdf`)
 }

@@ -3,7 +3,7 @@ import { clsx } from 'clsx'
 import {
   Plus, ChevronDown, ChevronRight, CheckCircle2, AlertTriangle,
   Clock, Calendar, Trash2, Pencil, BarChart2, Flag, Download, Lock,
-  List, GanttChartSquare, Link2, Diamond, TrendingUp,
+  List, GanttChartSquare, Link2, Diamond, TrendingUp, FileText,
 } from 'lucide-react'
 import { doc, updateDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
@@ -12,6 +12,7 @@ import type { ScheduleItem } from '@/hooks/useScheduleItems'
 import { SCurveChart } from './SCurveChart'
 import { useMilestones } from '@/hooks/useMilestones'
 import type { Project } from '@/types'
+import { exportGanttPdf } from '@/lib/exportPdf'
 
 // ─── CSV export ───────────────────────────────────────────────────────────────
 
@@ -1024,6 +1025,14 @@ export function ScheduleTab({ project }: { project: Project }) {
               className="hidden sm:flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-800 px-3 py-1.5 rounded-lg transition-colors"
             >
               <Download size={12} /> Export CSV
+            </button>
+          )}
+          {items.length > 0 && (
+            <button
+              onClick={() => exportGanttPdf(project, items, milestones, { spi, overallPct, behindCount, criticalIds })}
+              className="hidden sm:flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-800 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              <FileText size={12} /> Export PDF
             </button>
           )}
           <button onClick={() => setShowAdd(true)}
