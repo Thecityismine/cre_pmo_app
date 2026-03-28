@@ -35,7 +35,7 @@ export function Sidebar() {
       {/* Logo */}
       <div className="flex items-center justify-center px-4 py-4 border-b border-blue-900/40 overflow-hidden">
         <img
-          src="/App-Logo.png"
+          src="/App-Logo-v2.png"
           alt="ProjeX"
           className={clsx('w-auto object-contain transition-all duration-200', collapsed ? 'h-7' : 'h-8')}
         />

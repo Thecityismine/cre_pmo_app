@@ -68,7 +68,7 @@ export function Topbar({ onAIOpen }: { onAIOpen?: () => void }) {
           </div>
 
           {/* Mobile: app logo */}
-          <img src="/App-Logo.png" alt="ProjeX" className="h-8 w-auto object-contain md:hidden"  />
+          <img src="/App-Logo-v2.png" alt="ProjeX" className="h-8 w-auto object-contain md:hidden" />
 
           {/* Right actions */}
           <div className="flex items-center gap-2 md:gap-3">
