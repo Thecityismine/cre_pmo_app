@@ -874,7 +874,7 @@ function ScheduleRow({
 // ─── Main ScheduleTab ─────────────────────────────────────────────────────────
 
 export function ScheduleTab({ project }: { project: Project }) {
-  const { items, loading, seedDefaults, addItem, updateItem, deleteItem, spi, behindCount, overallPct } =
+  const { items, loading, seeding, seedDefaults, addItem, updateItem, deleteItem, spi, behindCount, overallPct } =
     useScheduleItems(project.id)
   const { milestones } = useMilestones(project.id)
   const [showAdd, setShowAdd] = useState(false)
@@ -1004,9 +1004,9 @@ export function ScheduleTab({ project }: { project: Project }) {
 
         <div className="flex items-center gap-2 ml-auto">
           {items.length === 0 && (
-            <button onClick={seedDefaults}
-              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-800 px-3 py-1.5 rounded-lg transition-colors">
-              <BarChart2 size={12} /> Seed defaults
+            <button onClick={seedDefaults} disabled={seeding}
+              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 border border-slate-800 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50">
+              <BarChart2 size={12} /> {seeding ? 'Seeding…' : 'Seed defaults'}
             </button>
           )}
           {items.length > 0 && (

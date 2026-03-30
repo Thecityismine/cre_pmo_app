@@ -44,6 +44,7 @@ export const DEFAULT_SCHEDULE_ITEMS = [
 export function useScheduleItems(projectId: string | undefined) {
   const [items, setItems] = useState<ScheduleItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [seeding, setSeeding] = useState(false)
 
   useEffect(() => {
     if (!projectId) { setLoading(false); return }
@@ -55,8 +56,8 @@ export function useScheduleItems(projectId: string | undefined) {
           const aDate = a.startDate || a.baselineStart
           const bDate = b.startDate || b.baselineStart
           if (aDate && bDate) return aDate.localeCompare(bDate)
-          if (aDate && !bDate) return 1   // undated items first
-          if (!aDate && bDate) return -1
+          if (aDate && !bDate) return -1  // dated items first
+          if (!aDate && bDate) return 1
           return a.sortOrder - b.sortOrder
         })
       setItems(sorted)
@@ -66,31 +67,40 @@ export function useScheduleItems(projectId: string | undefined) {
   }, [projectId])
 
   const seedDefaults = async () => {
-    const now = new Date().toISOString()
-    // Pull from masterScheduleActivities; fall back to DEFAULT_SCHEDULE_ITEMS if empty
-    const masterSnap = await getDocs(collection(db, 'masterScheduleActivities'))
-    const template = masterSnap.docs.length > 0
-      ? masterSnap.docs.map(d => d.data() as { name: string; sortOrder: number; isWarranty?: boolean })
-          .sort((a, b) => a.sortOrder - b.sortOrder)
-      : DEFAULT_SCHEDULE_ITEMS.map(s => ({ ...s, isWarranty: false }))
+    if (!projectId || seeding) return
+    setSeeding(true)
+    try {
+      const now = new Date().toISOString()
+      // Pull from masterScheduleActivities; fall back to DEFAULT_SCHEDULE_ITEMS if empty
+      const masterSnap = await getDocs(collection(db, 'masterScheduleActivities'))
+      const template = masterSnap.docs.length > 0
+        ? masterSnap.docs.map(d => d.data() as { name: string; sortOrder: number; isWarranty?: boolean })
+            .sort((a, b) => a.sortOrder - b.sortOrder)
+        : DEFAULT_SCHEDULE_ITEMS.map(s => ({ ...s, isWarranty: false }))
 
-    for (const s of template) {
-      await addDoc(collection(db, 'scheduleItems'), {
-        projectId,
-        name: s.name,
-        sortOrder: s.sortOrder,
-        isWarranty: s.isWarranty ?? false,
-        startDate: '',
-        endDate: '',
-        baselineStart: '',
-        baselineEnd: '',
-        percentComplete: 0,
-        isCriticalPath: false,
-        predecessors: [],
-        notes: '',
-        createdAt: now,
-        updatedAt: now,
-      })
+      for (const s of template) {
+        await addDoc(collection(db, 'scheduleItems'), {
+          projectId,
+          name: s.name,
+          sortOrder: s.sortOrder,
+          isWarranty: s.isWarranty ?? false,
+          startDate: '',
+          endDate: '',
+          baselineStart: '',
+          baselineEnd: '',
+          percentComplete: 0,
+          isCriticalPath: false,
+          predecessors: [],
+          notes: '',
+          createdAt: now,
+          updatedAt: now,
+        })
+      }
+    } catch (err) {
+      console.error('seedDefaults failed:', err)
+      alert('Failed to seed schedule. Check console for details.')
+    } finally {
+      setSeeding(false)
     }
   }
 
@@ -151,7 +161,7 @@ export function useScheduleItems(projectId: string | undefined) {
     : 0
 
   return {
-    items, loading,
+    items, loading, seeding,
     seedDefaults, addItem, updateItem, deleteItem,
     spi, behindCount, onTrackCount, overallPct,
   }
