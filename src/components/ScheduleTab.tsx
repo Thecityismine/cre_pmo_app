@@ -730,6 +730,14 @@ function ScheduleRow({
                 <AlertTriangle size={9} /> delays {impactsCount} downstream
               </span>
             )}
+            {status === 'complete' && item.startDate && item.endDate && (() => {
+              const weeks = Math.round((new Date(item.endDate).getTime() - new Date(item.startDate).getTime()) / (7 * 24 * 60 * 60 * 1000));
+              return weeks > 0 ? (
+                <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-900/50 text-emerald-300 border border-emerald-700/50 font-medium">
+                  {weeks} wk{weeks !== 1 ? 's' : ''}
+                </span>
+              ) : null;
+            })()}
           </div>
           {/* Dates row */}
           <div className="flex items-center gap-3 mt-0.5 text-xs text-slate-400 flex-wrap">
