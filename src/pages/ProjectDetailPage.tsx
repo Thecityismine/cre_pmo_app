@@ -28,6 +28,7 @@ import { MeetingNotesTab } from '@/components/MeetingNotesTab'
 import { TasksTab } from '@/components/TasksTab'
 import { PhotosTab } from '@/components/PhotosTab'
 import { PerformanceTab } from '@/components/PerformanceTab'
+import { AddTeamMemberModal } from '@/components/AddTeamMemberModal'
 import { useRaidLog } from '@/hooks/useRaidLog'
 import { useProjectTasks } from '@/hooks/useProjectTasks'
 import { useRiskEngine } from '@/hooks/useRiskEngine'
@@ -281,7 +282,7 @@ export function ProjectDetailPage() {
   const { project, loading: projLoading } = useProject(id)
   const { tasks, loading: tasksLoading } = useTasks(id)
   const { tasks: masterTasks } = useMasterTasks()
-  const { team } = useProjectTeam(id)
+  const { team, addMember, removeMember } = useProjectTeam(id)
   const { items: budgetItems } = useBudgetItems(id)
   const { approvedTotal: coApproved, pendingTotal: coPending } = useChangeOrders(id)
   const { milestones, updateMilestone } = useMilestones(id)
@@ -313,6 +314,7 @@ export function ProjectDetailPage() {
   const [seeding, setSeeding] = useState(false)
   const [fabOpen, setFabOpen] = useState(false)
   const [fabTaskForm, setFabTaskForm] = useState(false)
+  const [showAddMember, setShowAddMember] = useState(false)
 
   // Seed all master tasks (first-time setup)
   const seedFromTemplate = async () => {
@@ -1329,35 +1331,72 @@ export function ProjectDetailPage() {
 
       {tab === 'team' && (
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-          <div className="flex items-center gap-2 mb-4">
-            <Users size={16} className="text-slate-400" />
-            <p className="text-slate-400 text-xs uppercase tracking-wide font-medium">
-              Project Team ({team.length})
-            </p>
+          <div className="flex items-center justify-between gap-2 mb-4">
+            <div className="flex items-center gap-2">
+              <Users size={16} className="text-slate-400" />
+              <p className="text-slate-400 text-xs uppercase tracking-wide font-medium">
+                Project Team ({team.length})
+              </p>
+            </div>
+            <button
+              onClick={() => setShowAddMember(true)}
+              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
+            >
+              <Plus size={13} /> Add Member
+            </button>
           </div>
           {team.length === 0 ? (
-            <p className="text-slate-400 text-sm text-center py-8">No team members added yet.</p>
+            <div className="text-center py-10">
+              <Users size={32} className="mx-auto mb-3 text-slate-700" />
+              <p className="text-slate-400 text-sm">No team members yet.</p>
+              <button
+                onClick={() => setShowAddMember(true)}
+                className="mt-3 text-blue-400 hover:text-blue-300 text-sm"
+              >
+                + Add the first member
+              </button>
+            </div>
           ) : (
-            <div className="space-y-3">
-              {team.map((m) => (
-                <div key={m.id} className="flex items-center gap-3 p-3 bg-slate-900/50 rounded-lg">
-                  <div className="w-10 h-10 rounded-full bg-blue-700 flex items-center justify-center text-white text-sm font-bold shrink-0">
-                    {m.name.charAt(0).toUpperCase()}
+            <div className="space-y-2">
+              {team.map((m) => {
+                const initials = m.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+                const colors = ['bg-blue-700', 'bg-emerald-700', 'bg-purple-700', 'bg-amber-700', 'bg-cyan-700', 'bg-rose-700']
+                const avatarBg = colors[m.name.charCodeAt(0) % colors.length]
+                return (
+                  <div key={m.id} className="flex items-center gap-3 p-3 bg-slate-800/40 rounded-xl group">
+                    <div className={clsx('w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0', avatarBg)}>
+                      {initials}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-slate-200 text-sm font-medium">{m.name}</p>
+                      <p className="text-slate-400 text-xs">{m.company}{m.role ? ` · ${m.role}` : ''}</p>
+                    </div>
+                    {m.email && (
+                      <a href={`mailto:${m.email}`} className="text-blue-400 hover:text-blue-300 text-xs shrink-0 hidden sm:block truncate max-w-[180px]">
+                        {m.email}
+                      </a>
+                    )}
+                    <button
+                      onClick={() => { if (confirm(`Remove ${m.name} from this project?`)) removeMember(m.id) }}
+                      className="p-1.5 text-slate-600 hover:text-red-400 hover:bg-slate-700 rounded-lg transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+                    >
+                      <X size={14} />
+                    </button>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-slate-200 text-sm font-medium">{m.name}</p>
-                    <p className="text-slate-400 text-xs">{m.role} · {m.company}</p>
-                  </div>
-                  {m.email && (
-                    <a href={`mailto:${m.email}`} className="text-blue-400 hover:text-blue-300 text-xs shrink-0 hidden sm:block">
-                      {m.email}
-                    </a>
-                  )}
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
+      )}
+
+      {showAddMember && id && (
+        <AddTeamMemberModal
+          projectId={id}
+          existingNames={new Set(team.map(m => m.name.trim().toLowerCase()))}
+          onAdd={async (member) => { await addMember(member); setShowAddMember(false) }}
+          onClose={() => setShowAddMember(false)}
+        />
       )}
 
       {tab === 'performance' && (
