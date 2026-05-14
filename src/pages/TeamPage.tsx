@@ -186,7 +186,7 @@ function ContactCard({ contact, onDelete, stats }: { contact: Contact; onDelete:
               <p className="text-slate-100 font-medium text-sm truncate">{contact.name}</p>
               <p className="text-slate-400 text-xs truncate">{contact.company}</p>
             </div>
-            <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex gap-1 shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
               <button onClick={() => setEditing(true)} className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-700 rounded-lg">
                 <Pencil size={13} />
               </button>
@@ -229,7 +229,7 @@ function ContactCard({ contact, onDelete, stats }: { contact: Contact; onDelete:
 
           {/* Quick actions — visible on hover */}
           {(contact.email || contact.phone) && (
-            <div className="mt-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="mt-2 flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
               {contact.phone && (
                 <a href={`tel:${contact.phone}`}
                   className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-emerald-400 bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded-md transition-colors"
