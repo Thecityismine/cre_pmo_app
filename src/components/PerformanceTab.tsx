@@ -104,22 +104,25 @@ export function PerformanceTab({ project, team }: Props) {
     const member = team.find(m => m.id === selectedMember)
     if (!member) return
     setSaving(true)
-    await addReview({
-      projectId: project.id,
-      contactName: member.name,
-      contactCompany: member.company,
-      contactRole: member.role,
-      reviewDate,
-      ...metrics,
-      notes,
-      wouldHireAgain,
-    })
-    setSelectedMember('')
-    setMetrics({ qualityOfWork: 0, timeliness: 0, communication: 0, budgetAdherence: 0, safety: 0 })
-    setNotes('')
-    setWouldHireAgain(true)
-    setReviewDate(today)
-    setSaving(false)
+    try {
+      await addReview({
+        projectId: project.id,
+        contactName: member.name,
+        contactCompany: member.company,
+        contactRole: member.role,
+        reviewDate,
+        ...metrics,
+        notes,
+        wouldHireAgain,
+      })
+      setSelectedMember('')
+      setMetrics({ qualityOfWork: 0, timeliness: 0, communication: 0, budgetAdherence: 0, safety: 0 })
+      setNotes('')
+      setWouldHireAgain(true)
+      setReviewDate(today)
+    } finally {
+      setSaving(false)
+    }
   }
 
   // Aggregate per contact

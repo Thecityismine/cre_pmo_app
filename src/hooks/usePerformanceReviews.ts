@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { collection, query, where, onSnapshot, addDoc, deleteDoc, doc, orderBy } from 'firebase/firestore'
+import { collection, query, where, onSnapshot, addDoc, deleteDoc, doc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 
 export interface PerformanceReview {
@@ -30,10 +30,12 @@ export function usePerformanceReviews(projectId: string | undefined) {
     const q = query(
       collection(db, 'performanceReviews'),
       where('projectId', '==', projectId),
-      orderBy('reviewDate', 'desc'),
     )
     const unsub = onSnapshot(q, snap => {
-      setReviews(snap.docs.map(d => ({ id: d.id, ...d.data() } as PerformanceReview)))
+      const sorted = snap.docs
+        .map(d => ({ id: d.id, ...d.data() } as PerformanceReview))
+        .sort((a, b) => b.reviewDate.localeCompare(a.reviewDate))
+      setReviews(sorted)
       setLoading(false)
     }, () => setLoading(false))
     return unsub
