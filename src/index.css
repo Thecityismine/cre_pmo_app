@@ -57,3 +57,12 @@ main.app-main {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* Prevent iOS Safari from zooming on input focus.
+   Safari zooms whenever a focused input has font-size < 16px.
+   Scoped to touch devices so desktop styling is unaffected. */
+@media (hover: none) and (pointer: coarse) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
