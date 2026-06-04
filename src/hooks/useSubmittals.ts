@@ -82,7 +82,7 @@ export function useSubmittals(projectId: string | undefined) {
   const pendingReview = submittals.filter(s => s.status === 'submitted' || s.status === 'in-review').length
   const overdueCount = submittals.filter(s =>
     (s.status === 'submitted' || s.status === 'in-review' || s.status === 'pending') &&
-    s.dueDate && new Date(s.dueDate) < new Date()
+    s.dueDate && new Date(s.dueDate + 'T00:00:00') < new Date()
   ).length
 
   return { submittals, loading, addSubmittal, updateSubmittal, deleteSubmittal, nextNumber, pendingReview, overdueCount }

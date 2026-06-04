@@ -2,8 +2,14 @@ import { useState } from 'react'
 import { clsx } from 'clsx'
 import { Plus, Trash2, Check, ChevronDown, ChevronRight, AlertCircle, Clock } from 'lucide-react'
 import { useSubmittals } from '@/hooks/useSubmittals'
+import { useContacts } from '@/hooks/useContacts'
 import type { Submittal, SubmittalStatus, SubmittalStatusEvent } from '@/hooks/useSubmittals'
 import type { Project } from '@/types'
+
+// Parse a YYYY-MM-DD string as local midnight (not UTC midnight)
+function localDate(dateStr: string): Date {
+  return new Date(dateStr + 'T00:00:00')
+}
 
 // ─── Status Timeline ──────────────────────────────────────────────────────────
 
@@ -102,7 +108,7 @@ function SubmittalRow({
   }
 
   const isOpen = submittal.status === 'pending' || submittal.status === 'submitted' || submittal.status === 'in-review'
-  const isOverdue = isOpen && submittal.dueDate && new Date(submittal.dueDate) < new Date()
+  const isOverdue = isOpen && submittal.dueDate && localDate(submittal.dueDate) < new Date()
 
   if (editing) {
     return (
@@ -115,14 +121,20 @@ function SubmittalRow({
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-          <input value={form.submittedBy} onChange={f('submittedBy')} placeholder="Submitted by"
+          <input value={form.submittedBy} onChange={f('submittedBy')} placeholder="Submitted by (contractor)"
             className="bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
-          <input value={form.reviewer} onChange={f('reviewer')} placeholder="Reviewer"
+          <input value={form.reviewer} onChange={f('reviewer')} placeholder="Reviewer (architect)"
             className="bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
-          <input type="date" value={form.submittedDate} onChange={f('submittedDate')} title="Date Submitted"
-            className="bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500" />
-          <input type="date" value={form.dueDate} onChange={f('dueDate')} title="Review Due Date"
-            className="bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500" />
+          <div>
+            <p className="text-xs text-slate-500 mb-1 px-1">Submitted Date</p>
+            <input type="date" value={form.submittedDate} onChange={f('submittedDate')}
+              className="w-full bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500" />
+          </div>
+          <div>
+            <p className="text-xs text-slate-500 mb-1 px-1">Due Date</p>
+            <input type="date" value={form.dueDate} onChange={f('dueDate')}
+              className="w-full bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500" />
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-2">
@@ -130,8 +142,11 @@ function SubmittalRow({
             className="bg-slate-900 border border-slate-800 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
             {SUBMITTAL_STATUSES.map(s => <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>)}
           </select>
-          <input type="date" value={form.reviewedDate} onChange={f('reviewedDate')} title="Date Reviewed"
-            className="bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500" />
+          <div>
+            <p className="text-xs text-slate-500 mb-1 px-1">Reviewed Date</p>
+            <input type="date" value={form.reviewedDate} onChange={f('reviewedDate')}
+              className="w-full bg-slate-900 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500" />
+          </div>
         </div>
 
         <textarea value={form.notes} onChange={f('notes')} placeholder="Notes / comments" rows={2}
@@ -167,7 +182,7 @@ function SubmittalRow({
             {submittal.dueDate && (
               <span className={clsx('flex items-center gap-0.5', isOverdue ? 'text-red-400' : 'text-slate-400')}>
                 {isOverdue ? <AlertCircle size={10} /> : <Clock size={10} />}
-                Due {new Date(submittal.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                Due {localDate(submittal.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               </span>
             )}
           </div>
@@ -219,16 +234,20 @@ function SubmittalRow({
 function AddSubmittalForm({
   projectId,
   nextNumber,
+  defaultSubmittedBy,
+  defaultReviewer,
   onAdd,
   onCancel,
 }: {
   projectId: string
   nextNumber: string
+  defaultSubmittedBy: string
+  defaultReviewer: string
   onAdd: (data: Omit<Submittal, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>
   onCancel: () => void
 }) {
   const [form, setForm] = useState({
-    title: '', specSection: '', submittedBy: '', reviewer: '',
+    title: '', specSection: '', submittedBy: defaultSubmittedBy, reviewer: defaultReviewer,
     dueDate: '', submittedDate: '', reviewedDate: '', notes: '',
   })
   const [saving, setSaving] = useState(false)
@@ -262,8 +281,11 @@ function AddSubmittalForm({
           className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
         <input value={form.reviewer} onChange={f('reviewer')} placeholder="Reviewer (architect/engineer)"
           className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500 placeholder-slate-500" />
-        <input type="date" value={form.dueDate} onChange={f('dueDate')} title="Review due date"
-          className="bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500" />
+        <div>
+          <p className="text-xs text-slate-500 mb-1 px-1">Due Date</p>
+          <input type="date" value={form.dueDate} onChange={f('dueDate')}
+            className="w-full bg-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 border border-slate-800 focus:outline-none focus:border-blue-500" />
+        </div>
       </div>
 
       <div className="flex gap-2 pt-1">
@@ -282,8 +304,19 @@ function AddSubmittalForm({
 export function SubmittalsTab({ project }: { project: Project }) {
   const { submittals, loading, addSubmittal, updateSubmittal, deleteSubmittal, nextNumber, pendingReview, overdueCount } =
     useSubmittals(project.id)
+  const { contacts } = useContacts()
   const [statusFilter, setStatusFilter] = useState<SubmittalStatus | 'all'>('all')
   const [showAdd, setShowAdd] = useState(false)
+
+  const defaultGC = (
+    contacts.find(c => c.projectId === project.id && c.role === 'general-contractor') ??
+    contacts.find(c => !c.projectId && c.role === 'general-contractor')
+  )?.company ?? ''
+
+  const defaultArchitect = (
+    contacts.find(c => c.projectId === project.id && c.role === 'architect') ??
+    contacts.find(c => !c.projectId && c.role === 'architect')
+  )?.company ?? ''
 
   const filtered = statusFilter === 'all' ? submittals : submittals.filter(s => s.status === statusFilter)
 
@@ -334,7 +367,14 @@ export function SubmittalsTab({ project }: { project: Project }) {
       </div>
 
       {showAdd && (
-        <AddSubmittalForm projectId={project.id} nextNumber={nextNumber} onAdd={addSubmittal} onCancel={() => setShowAdd(false)} />
+        <AddSubmittalForm
+        projectId={project.id}
+        nextNumber={nextNumber}
+        defaultSubmittedBy={defaultGC}
+        defaultReviewer={defaultArchitect}
+        onAdd={addSubmittal}
+        onCancel={() => setShowAdd(false)}
+      />
       )}
 
       {loading ? (
