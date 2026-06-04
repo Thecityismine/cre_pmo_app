@@ -554,7 +554,7 @@ Format your response exactly like this:
   // ─────────────────────────────────────────────────────────────────────────
 
   return (
-    <div className="space-y-5 max-w-5xl mx-auto">
+    <div className="space-y-5">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-slate-100">Analytics</h1>

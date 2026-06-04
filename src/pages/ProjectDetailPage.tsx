@@ -456,7 +456,7 @@ export function ProjectDetailPage() {
   ]
 
   return (
-    <div className="space-y-4 max-w-5xl mx-auto">
+    <div className="space-y-4">
 
       {/* Back + header */}
       <div>
