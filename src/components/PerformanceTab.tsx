@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { clsx } from 'clsx'
-import { Star, Trophy, Trash2, Plus, ChevronDown, ThumbsUp } from 'lucide-react'
+import { Star, Trophy, Trash2, Plus, ChevronDown, ThumbsUp, Pencil, Lock, Unlock, MessageSquare, Send } from 'lucide-react'
 import { usePerformanceReviews } from '@/hooks/usePerformanceReviews'
+import type { PerformanceReview, PerformanceReviewPatch } from '@/hooks/usePerformanceReviews'
+import { useAuthStore } from '@/store/authStore'
 import type { TeamMember } from '@/hooks/useProjectTeam'
 import type { Project } from '@/types'
 
@@ -79,13 +81,256 @@ function avatarColor(name: string) {
   return colors[name.charCodeAt(0) % colors.length]
 }
 
+function fmtDate(iso: string, withTime = false) {
+  // Date-only strings (YYYY-MM-DD) parse as UTC; pin to local noon so the day doesn't shift
+  const d = iso.length === 10 ? new Date(`${iso}T12:00:00`) : new Date(iso)
+  return d.toLocaleDateString('en-US', {
+    month: 'short', day: 'numeric', year: 'numeric',
+    ...(withTime ? { hour: 'numeric', minute: '2-digit' } : {}),
+  })
+}
+
+interface ReviewCardProps {
+  review: PerformanceReview
+  isOpen: boolean
+  onToggle: () => void
+  onUpdate: (patch: PerformanceReviewPatch) => Promise<void>
+  onComment: (text: string) => Promise<void>
+  onDelete: () => void
+}
+
+function ReviewCard({ review: r, isOpen, onToggle, onUpdate, onComment, onDelete }: ReviewCardProps) {
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState<PerformanceReviewPatch>({})
+  const [saving, setSaving] = useState(false)
+  const [comment, setComment] = useState('')
+  const [posting, setPosting] = useState(false)
+
+  const score = avgScore(r)
+  const comments = [...(r.comments ?? [])].sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+  const locked = !!r.finalized
+
+  const startEdit = () => {
+    setDraft({
+      reviewDate: r.reviewDate,
+      qualityOfWork: r.qualityOfWork, timeliness: r.timeliness, communication: r.communication,
+      budgetAdherence: r.budgetAdherence, safety: r.safety,
+      notes: r.notes, wouldHireAgain: r.wouldHireAgain,
+    })
+    setEditing(true)
+  }
+
+  const saveEdit = async () => {
+    setSaving(true)
+    try {
+      await onUpdate(draft)
+      setEditing(false)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const postComment = async () => {
+    const text = comment.trim()
+    if (!text) return
+    setPosting(true)
+    try {
+      await onComment(text)
+      setComment('')
+    } finally {
+      setPosting(false)
+    }
+  }
+
+  return (
+    <div className="border border-slate-800 rounded-lg overflow-hidden">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-800/40 transition-colors text-left"
+      >
+        <div className={clsx('w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0', avatarColor(r.contactName))}>
+          {r.contactName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-slate-200 text-sm font-medium truncate">{r.contactName}</p>
+          <p className="text-slate-500 text-xs truncate">
+            {r.contactCompany} · {fmtDate(r.reviewDate)}
+            {r.updatedAt && <> · Updated {fmtDate(r.updatedAt)}</>}
+          </p>
+        </div>
+        <div className="flex items-center gap-3 shrink-0">
+          {locked
+            ? <span className="hidden sm:flex items-center gap-1 text-xs text-slate-400"><Lock size={11} /> Final</span>
+            : <span className="hidden sm:inline text-xs text-blue-400">In progress</span>}
+          {comments.length > 0 && (
+            <span className="flex items-center gap-1 text-xs text-slate-400"><MessageSquare size={11} /> {comments.length}</span>
+          )}
+          {r.wouldHireAgain && <ThumbsUp size={13} className="text-emerald-400" />}
+          <ScoreBadge score={score} />
+          <ChevronDown size={14} className={clsx('text-slate-500 transition-transform', isOpen && 'rotate-180')} />
+        </div>
+      </button>
+
+      {isOpen && (
+        <div className="px-4 pb-4 border-t border-slate-800 pt-3 space-y-4">
+          {editing ? (
+            <div className="space-y-4">
+              <div className="sm:w-1/2">
+                <label className="text-slate-400 text-xs mb-1.5 block">Review Date</label>
+                <input
+                  type="date"
+                  value={draft.reviewDate ?? ''}
+                  onChange={e => setDraft(d => ({ ...d, reviewDate: e.target.value }))}
+                  className="w-full bg-slate-800 text-slate-100 text-sm rounded-lg px-3 py-2.5 border border-slate-700 focus:outline-none focus:border-blue-500"
+                />
+              </div>
+              <div className="space-y-3">
+                {METRICS.map(({ key, label }) => (
+                  <div key={key} className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-4">
+                    <span className="text-slate-300 text-xs sm:text-sm sm:w-36 shrink-0">{label}</span>
+                    <StarRating value={draft[key] ?? 0} onChange={v => setDraft(d => ({ ...d, [key]: v }))} />
+                  </div>
+                ))}
+              </div>
+              <div>
+                <label className="text-slate-400 text-xs mb-1.5 block">Notes</label>
+                <textarea
+                  value={draft.notes ?? ''}
+                  onChange={e => setDraft(d => ({ ...d, notes: e.target.value }))}
+                  rows={4}
+                  className="w-full bg-slate-800 text-slate-100 text-sm rounded-lg px-3 py-2.5 border border-slate-700 focus:outline-none focus:border-blue-500 placeholder-slate-500 resize-y"
+                />
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={!!draft.wouldHireAgain}
+                    onChange={e => setDraft(d => ({ ...d, wouldHireAgain: e.target.checked }))}
+                    className="w-4 h-4 rounded border-slate-600 bg-slate-800 accent-blue-500"
+                  />
+                  <span className="text-slate-300 text-sm">Would hire again</span>
+                </label>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditing(false)}
+                    className="text-sm text-slate-400 hover:text-slate-200 px-3 py-2"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={saveEdit}
+                    disabled={saving}
+                    className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                  >
+                    {saving ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {METRICS.map(({ key, label }) => (
+                  <MetricPill key={key} label={label} value={r[key]} />
+                ))}
+              </div>
+              {r.notes && (
+                <p className="text-slate-400 text-sm bg-slate-800/40 rounded-lg px-3 py-2 whitespace-pre-wrap">{r.notes}</p>
+              )}
+            </>
+          )}
+
+          {/* Progress Log */}
+          <div>
+            <p className="text-slate-400 text-xs mb-2 font-medium uppercase tracking-wide flex items-center gap-1.5">
+              <MessageSquare size={12} /> Progress Log
+            </p>
+            {comments.length === 0 ? (
+              <p className="text-slate-600 text-xs mb-2">No updates yet.</p>
+            ) : (
+              <ul className="space-y-2 mb-3 border-l border-slate-700 ml-1 pl-3">
+                {comments.map(c => (
+                  <li key={c.id}>
+                    <p className="text-slate-500 text-[11px]">{fmtDate(c.createdAt, true)} · {c.author}</p>
+                    <p className="text-slate-300 text-sm whitespace-pre-wrap">{c.text}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {!locked && (
+              <div className="flex gap-2">
+                <textarea
+                  value={comment}
+                  onChange={e => setComment(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) postComment() }}
+                  placeholder="Add a progress update… (Ctrl+Enter to post)"
+                  rows={2}
+                  className="flex-1 bg-slate-800 text-slate-100 text-sm rounded-lg px-3 py-2 border border-slate-700 focus:outline-none focus:border-blue-500 placeholder-slate-500 resize-y"
+                />
+                <button
+                  type="button"
+                  onClick={postComment}
+                  disabled={posting || !comment.trim()}
+                  className="self-end flex items-center gap-1.5 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white text-sm px-3 py-2 rounded-lg transition-colors"
+                >
+                  <Send size={13} /> Post
+                </button>
+              </div>
+            )}
+          </div>
+
+          {!editing && (
+            <div className="flex items-center justify-between gap-3 pt-1">
+              <span className={clsx('flex items-center gap-1 text-xs', r.wouldHireAgain ? 'text-emerald-400' : 'text-slate-500')}>
+                <ThumbsUp size={11} />
+                {r.wouldHireAgain ? 'Would hire again' : 'Would not hire again'}
+              </span>
+              <div className="flex items-center gap-4">
+                {!locked && (
+                  <button
+                    onClick={startEdit}
+                    className="flex items-center gap-1 text-xs text-slate-400 hover:text-blue-400 transition-colors"
+                  >
+                    <Pencil size={12} /> Edit
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    if (locked || confirm('Mark this review final? Editing and new updates will be locked until reopened.')) {
+                      onUpdate({ finalized: !locked })
+                    }
+                  }}
+                  className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-400 transition-colors"
+                >
+                  {locked ? <><Unlock size={12} /> Reopen</> : <><Lock size={12} /> Mark Final</>}
+                </button>
+                <button
+                  onClick={() => { if (confirm('Delete this review?')) onDelete() }}
+                  className="flex items-center gap-1 text-xs text-slate-500 hover:text-red-400 transition-colors"
+                >
+                  <Trash2 size={12} /> Delete
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 interface Props {
   project: Project
   team: TeamMember[]
 }
 
 export function PerformanceTab({ project, team }: Props) {
-  const { reviews, loading, addReview, deleteReview } = usePerformanceReviews(project.id)
+  const { reviews, loading, addReview, updateReview, addComment, deleteReview } = usePerformanceReviews(project.id)
+  const user = useAuthStore(s => s.user)
   const [selectedMember, setSelectedMember] = useState('')
   const [reviewDate, setReviewDate] = useState(today)
   const [metrics, setMetrics] = useState<Record<MetricKey, number>>({
@@ -271,57 +516,17 @@ export function PerformanceTab({ project, team }: Props) {
             </div>
           ) : (
             <div className="space-y-3">
-              {reviews.map(r => {
-                const score = avgScore(r)
-                const isOpen = expandedId === r.id
-                return (
-                  <div key={r.id} className="border border-slate-800 rounded-lg overflow-hidden">
-                    <button
-                      type="button"
-                      onClick={() => setExpandedId(isOpen ? null : r.id)}
-                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-800/40 transition-colors text-left"
-                    >
-                      <div className={clsx('w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0', avatarColor(r.contactName))}>
-                        {r.contactName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-slate-200 text-sm font-medium truncate">{r.contactName}</p>
-                        <p className="text-slate-500 text-xs">{r.contactCompany} · {new Date(r.reviewDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
-                      </div>
-                      <div className="flex items-center gap-3 shrink-0">
-                        {r.wouldHireAgain && <ThumbsUp size={13} className="text-emerald-400" />}
-                        <ScoreBadge score={score} />
-                        <ChevronDown size={14} className={clsx('text-slate-500 transition-transform', isOpen && 'rotate-180')} />
-                      </div>
-                    </button>
-
-                    {isOpen && (
-                      <div className="px-4 pb-4 border-t border-slate-800 pt-3 space-y-3">
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                          {METRICS.map(({ key, label }) => (
-                            <MetricPill key={key} label={label} value={r[key]} />
-                          ))}
-                        </div>
-                        {r.notes && (
-                          <p className="text-slate-400 text-sm bg-slate-800/40 rounded-lg px-3 py-2">{r.notes}</p>
-                        )}
-                        <div className="flex items-center justify-between">
-                          <span className={clsx('flex items-center gap-1 text-xs', r.wouldHireAgain ? 'text-emerald-400' : 'text-slate-500')}>
-                            <ThumbsUp size={11} />
-                            {r.wouldHireAgain ? 'Would hire again' : 'Would not hire again'}
-                          </span>
-                          <button
-                            onClick={() => { if (confirm('Delete this review?')) deleteReview(r.id) }}
-                            className="flex items-center gap-1 text-xs text-slate-500 hover:text-red-400 transition-colors"
-                          >
-                            <Trash2 size={12} /> Delete
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
+              {reviews.map(r => (
+                <ReviewCard
+                  key={r.id}
+                  review={r}
+                  isOpen={expandedId === r.id}
+                  onToggle={() => setExpandedId(expandedId === r.id ? null : r.id)}
+                  onUpdate={patch => updateReview(r.id, patch)}
+                  onComment={text => addComment(r.id, text, user?.displayName || user?.email || 'Unknown')}
+                  onDelete={() => deleteReview(r.id)}
+                />
+              ))}
             </div>
           )}
         </div>
