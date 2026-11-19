@@ -13,7 +13,7 @@ html, body {
 body {
   margin: 0;
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
-  background: #0f172a;
+  background: #020617; /* slate-950 — matches the app shell so no strip shows */
   color: #f1f5f9;
   -webkit-font-smoothing: antialiased;
 }
@@ -21,6 +21,7 @@ body {
 #root {
   height: 100vh;
   height: 100dvh; /* dynamic viewport height for mobile browsers */
+  height: calc(100dvh + var(--ios-gap, 0px)); /* see lib/iosViewportFix.ts */
   overflow-y: auto; /* lets non-app pages (e.g. login) scroll */
 }
 
@@ -29,9 +30,15 @@ header.topbar {
   padding-top: env(safe-area-inset-top);
 }
 
-/* Fixed bottom nav clears iOS home indicator */
+/* App shell fills the real screen, incl. the iOS standalone viewport gap */
+.app-shell {
+  height: calc(100dvh + var(--ios-gap, 0px));
+}
+
+/* Fixed bottom nav clears iOS home indicator and sits on the true bottom edge */
 nav.fixed.bottom-0 {
   padding-bottom: env(safe-area-inset-bottom);
+  bottom: calc(-1 * var(--ios-gap, 0px));
 }
 
 /* Main scroll area: clear bottom nav + iOS home indicator (mobile only) */

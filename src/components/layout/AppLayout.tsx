@@ -16,7 +16,7 @@ export function AppLayout() {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-slate-950">
+    <div className="app-shell flex h-dvh overflow-hidden bg-slate-950">
       <Sidebar />
       <div className="flex flex-col flex-1 overflow-hidden">
         <Topbar onAIOpen={() => setAiOpen(true)} />
