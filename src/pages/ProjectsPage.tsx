@@ -274,7 +274,7 @@ export function ProjectsPage() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [profileFilter, setProfileFilter] = useState<string>('all')
   const { types: projectTypes } = useProjectTypes()
-  const [activeOnly, setActiveOnly] = useState(false)
+  const [activeOnly, setActiveOnly] = useState(true)  // default: hide closed/inactive projects
   const [sort, setSort] = useState('name-asc')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [showNew, setShowNew] = useState(false)
@@ -312,13 +312,13 @@ export function ProjectsPage() {
   }, [projects, search, statusFilter, profileFilter, activeOnly, sort])
 
   const atRiskCount = projects.filter(p => p.forecastCost > p.totalBudget && isProjectActive(p)).length
-  const hasActiveFilter = search || statusFilter !== 'all' || profileFilter !== 'all' || activeOnly
+  const hasActiveFilter = search || statusFilter !== 'all' || profileFilter !== 'all' || !activeOnly
 
   const clearFilters = () => {
     setSearch('')
     setStatusFilter('all')
     setProfileFilter('all')
-    setActiveOnly(false)
+    setActiveOnly(true)
   }
 
   return (
@@ -467,7 +467,13 @@ export function ProjectsPage() {
           {/* Status dropdown on mobile, pills on desktop for common statuses */}
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={(e) => {
+              const v = e.target.value
+              // Picking "Closed" shows closed projects; leaving it restores the active-only default
+              if (v === 'closed') setActiveOnly(false)
+              else if (statusFilter === 'closed') setActiveOnly(true)
+              setStatusFilter(v)
+            }}
             className="bg-slate-900 border border-slate-800 text-slate-400 text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-500"
           >
             {STATUSES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
