@@ -4,6 +4,12 @@
   box-sizing: border-box;
 }
 
+html, body {
+  height: 100%;
+  overflow: hidden;            /* app scrolls inside <main>, never the page */
+  overscroll-behavior: none;   /* stop iOS/Android rubber-band dragging fixed bars */
+}
+
 body {
   margin: 0;
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
@@ -13,8 +19,9 @@ body {
 }
 
 #root {
-  min-height: 100vh;
-  min-height: 100dvh; /* dynamic viewport height for mobile browsers */
+  height: 100vh;
+  height: 100dvh; /* dynamic viewport height for mobile browsers */
+  overflow-y: auto; /* lets non-app pages (e.g. login) scroll */
 }
 
 /* Topbar: push below iOS notch / status bar */
@@ -27,9 +34,11 @@ nav.fixed.bottom-0 {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* Main scroll area: clear bottom nav + iOS home indicator */
-main.app-main {
-  padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+/* Main scroll area: clear bottom nav + iOS home indicator (mobile only) */
+@media (max-width: 767px) {
+  main.app-main {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+  }
 }
 
 /* Hide scrollbar but keep scrollability */

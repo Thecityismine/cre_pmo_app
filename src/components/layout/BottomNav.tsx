@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { LayoutDashboard, FolderKanban, BarChart3, Users, ListTodo } from 'lucide-react'
 import { clsx } from 'clsx'
@@ -10,7 +11,34 @@ const navItems = [
   { to: '/tasks', label: 'Tasks', icon: ListTodo },
 ]
 
+/** True while the on-screen keyboard is open (visual viewport shrinks well below the layout viewport). */
+function useKeyboardOpen() {
+  const [open, setOpen] = useState(false)
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+    const baseline = { h: window.innerHeight }
+    const update = () => {
+      // Android shrinks innerHeight with the keyboard; iOS only shrinks visualViewport.
+      const focusedField = document.activeElement?.matches('input, textarea, select, [contenteditable="true"]') ?? false
+      if (!focusedField) baseline.h = Math.max(window.innerHeight, vv.height)
+      setOpen(focusedField && baseline.h - vv.height > 150)
+    }
+    vv.addEventListener('resize', update)
+    window.addEventListener('focusin', update)
+    window.addEventListener('focusout', update)
+    return () => {
+      vv.removeEventListener('resize', update)
+      window.removeEventListener('focusin', update)
+      window.removeEventListener('focusout', update)
+    }
+  }, [])
+  return open
+}
+
 export function BottomNav() {
+  const keyboardOpen = useKeyboardOpen()
+  if (keyboardOpen) return null
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-slate-950 border-t border-slate-800/60 flex md:hidden">
       {navItems.map(({ to, label, icon: Icon, end }) => (
