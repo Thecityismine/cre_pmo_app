@@ -3,6 +3,7 @@ import { clsx } from 'clsx'
 import { X, Sparkles, Send, Loader2, Copy, Check, Trash2, ChevronDown } from 'lucide-react'
 import { streamClaude, hasClaudeKey, CRE_SYSTEM_PROMPT } from '@/lib/claude'
 import { useProjects } from '@/hooks/useProjects'
+import { isProjectActive } from '@/lib/healthScore'
 import { usePortfolioTasks } from '@/hooks/usePortfolioTasks'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -75,7 +76,7 @@ function buildPortfolioContext(
   const fmt = (n: number) =>
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
 
-  const active = projects.filter(p => p.isActive)
+  const active = projects.filter(isProjectActive)
   const projectSummaries = active.map(p => {
     const variance = p.totalBudget - p.forecastCost
     const overBudget = variance < 0

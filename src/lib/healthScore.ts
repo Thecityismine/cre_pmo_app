@@ -205,3 +205,8 @@ export function healthBg(score: number) {
 export function healthBorder(score: number) {
   return score >= 80 ? 'border-emerald-700/40' : score >= 60 ? 'border-amber-700/40' : 'border-red-700/40'
 }
+
+/** A project counts as active only if flagged active and not closed. */
+export function isProjectActive(p: Project): boolean {
+  return p.isActive && p.status !== 'closed'
+}

@@ -5,7 +5,7 @@ import { clsx } from 'clsx'
 import { useNavigate } from 'react-router-dom'
 import { NewProjectModal } from '@/components/NewProjectModal'
 import { exportProjectsCsv } from '@/lib/exportCsv'
-import { computeHealth, healthColor, healthBg } from '@/lib/healthScore'
+import { computeHealth, healthColor, healthBg, isProjectActive } from '@/lib/healthScore'
 import { usePortfolioTaskStats, type ProjectTaskStat } from '@/hooks/usePortfolioTaskStats'
 import { usePortfolioInsights } from '@/hooks/useAIInsights'
 import { useProjectTypes } from '@/hooks/useProjectTypes'
@@ -290,7 +290,7 @@ export function ProjectsPage() {
         (p.projectManager || '').toLowerCase().includes(q)
       const matchStatus = statusFilter === 'all' || p.status === statusFilter
       const matchProfile = profileFilter === 'all' || p.profile === profileFilter
-      const matchActive = !activeOnly || p.isActive
+      const matchActive = !activeOnly || isProjectActive(p)
       return matchSearch && matchStatus && matchProfile && matchActive
     })
 
@@ -311,7 +311,7 @@ export function ProjectsPage() {
     return list
   }, [projects, search, statusFilter, profileFilter, activeOnly, sort])
 
-  const atRiskCount = projects.filter(p => p.forecastCost > p.totalBudget && p.isActive).length
+  const atRiskCount = projects.filter(p => p.forecastCost > p.totalBudget && isProjectActive(p)).length
   const hasActiveFilter = search || statusFilter !== 'all' || profileFilter !== 'all' || activeOnly
 
   const clearFilters = () => {
@@ -354,7 +354,7 @@ export function ProjectsPage() {
 
       {/* ── Portfolio quick stats ── */}
       {projects.length > 0 && (() => {
-        const active = projects.filter(p => p.isActive)
+        const active = projects.filter(isProjectActive)
         const totalBudget = active.reduce((s, p) => s + (p.totalBudget || 0), 0)
         const overBudget  = active.filter(p => p.totalBudget > 0 && p.forecastCost > p.totalBudget)
         const fmtShort = (n: number) =>

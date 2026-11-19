@@ -5,7 +5,7 @@ import { usePortfolioTaskStats } from '@/hooks/usePortfolioTaskStats'
 import { usePortfolioTasks } from '@/hooks/usePortfolioTasks'
 import { usePortfolioMilestones } from '@/hooks/usePortfolioMilestones'
 import { usePortfolioInsights } from '@/hooks/useAIInsights'
-import { computeHealth, healthColor } from '@/lib/healthScore'
+import { computeHealth, healthColor, isProjectActive } from '@/lib/healthScore'
 import { hasClaudeKey, streamClaude } from '@/lib/claude'
 import { clsx } from 'clsx'
 import {
@@ -351,7 +351,7 @@ export function AnalyticsPage() {
   const navigate = useNavigate()
   const { projects } = useProjects()
 
-  const active = projects.filter(p => p.isActive)
+  const active = projects.filter(isProjectActive)
   const activeIds = active.map(p => p.id)
   const projectMap = Object.fromEntries(projects.map(p => [p.id, p.projectName]))
 

@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import { useNavigate } from 'react-router-dom'
-import { computeHealth, healthBg, healthColor } from '@/lib/healthScore'
+import { computeHealth, healthBg, healthColor, isProjectActive } from '@/lib/healthScore'
 import { hasClaudeKey, callClaude } from '@/lib/claude'
 import type { Project } from '@/types'
 import type { AIInsight } from '@/hooks/useAIInsights'
@@ -446,7 +446,7 @@ export function DashboardPage() {
 
   const { pendingCOs, openRfis, overdueRfis, pendingCOTotal } = usePortfolioPendingItems()
 
-  const active = projects.filter(p => p.isActive)
+  const active = projects.filter(isProjectActive)
   const closed = projects.filter(p => p.status === 'closed')
   const atRisk = active.filter(p => p.forecastCost > p.totalBudget)
   const totalBudget = active.reduce((s, p) => s + (p.totalBudget || 0), 0)
@@ -538,7 +538,7 @@ export function DashboardPage() {
         <StatCard
           label="Active Projects"
           value={active.length}
-          sub={`${projects.length} total`}
+          sub={closed.length > 0 ? `${closed.length} closed · ${projects.length} total` : `${projects.length} total`}
           icon={FolderOpen}
           color="bg-blue-600"
           valueColor="text-blue-300"
@@ -1034,19 +1034,76 @@ export function DashboardPage() {
       </div>
 
       {/* Closed projects summary */}
-      {closed.length > 0 && (
-        <div className="flex items-center justify-between px-4 py-3 bg-slate-900/50 border border-slate-800 rounded-xl">
-          <div className="flex items-center gap-2">
-            <CheckCircle size={15} className="text-emerald-500" />
-            <span className="text-sm text-slate-400">
-              <span className="text-slate-200 font-medium">{closed.length}</span> project{closed.length !== 1 ? 's' : ''} closed
-            </span>
+      {closed.length > 0 && (() => {
+        const finalCost = (p: Project) => p.actualCost || p.forecastCost || 0
+        const closedBudget = closed.reduce((s, p) => s + (p.totalBudget || 0), 0)
+        const closedFinal  = closed.reduce((s, p) => s + finalCost(p), 0)
+        const closedVar    = closedBudget - closedFinal
+        const closedDate = (p: Project) => {
+          const d = p.actualCompletionDate || p.targetCompletionDate
+          return d ? new Date(d.slice(0, 10) + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '—'
+        }
+        return (
+          <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <CheckCircle size={16} className="text-emerald-500" />
+                <h2 className="text-slate-100 font-semibold">Closed Projects</h2>
+                <span className="text-xs text-slate-400">{closed.length}</span>
+              </div>
+              <button onClick={() => navigate('/projects')} className="text-blue-400 hover:text-blue-300 text-sm flex items-center gap-1">
+                View all <ChevronRight size={14} />
+              </button>
+            </div>
+
+            {/* Totals */}
+            <div className="grid grid-cols-3 gap-3 px-5 py-4 border-b border-slate-800">
+              <div>
+                <p className="text-xs text-slate-400">Total Budget</p>
+                <p className="text-slate-100 font-semibold">{fmtM(closedBudget)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-400">Final Cost</p>
+                <p className="text-slate-100 font-semibold">{fmtM(closedFinal)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-400">{closedVar >= 0 ? 'Under Budget' : 'Over Budget'}</p>
+                <p className={clsx('font-semibold', closedVar >= 0 ? 'text-emerald-400' : 'text-red-400')}>{fmtM(Math.abs(closedVar))}</p>
+              </div>
+            </div>
+
+            {/* Rows */}
+            <div className="divide-y divide-slate-800">
+              {closed.map(p => {
+                const v = (p.totalBudget || 0) - finalCost(p)
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => navigate(`/projects/${p.id}`)}
+                    className="w-full flex items-center justify-between gap-3 px-5 py-3 text-left hover:bg-slate-800/40 transition-colors"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-slate-200 text-sm font-medium truncate">{p.projectName}</p>
+                      <p className="text-xs text-slate-400 truncate">
+                        {[p.projectNumber, p.city && `${p.city}${p.state ? `, ${p.state}` : ''}`].filter(Boolean).join(' · ')}
+                        {' · '}Closed {closedDate(p)}
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-sm text-slate-200">{fmt(finalCost(p))} <span className="text-slate-500">/ {fmt(p.totalBudget || 0)}</span></p>
+                      {p.totalBudget > 0 && (
+                        <p className={clsx('text-xs', v >= 0 ? 'text-emerald-400' : 'text-red-400')}>
+                          {fmt(Math.abs(v))} {v >= 0 ? 'under' : 'over'}
+                        </p>
+                      )}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
           </div>
-          <button onClick={() => navigate('/projects')} className="text-blue-400 hover:text-blue-300 text-xs flex items-center gap-1">
-            View <ChevronRight size={12} />
-          </button>
-        </div>
-      )}
+        )
+      })()}
     </div>
   )
 }

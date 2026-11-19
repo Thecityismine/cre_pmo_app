@@ -133,7 +133,7 @@ export function EditProjectModal({ project, onClose }: Props) {
         startDate:            form.startDate,
         targetCompletionDate: form.targetCompletionDate,
         hasMER:               form.hasMER,
-        isActive:             form.isActive,
+        isActive:             form.isActive && form.status !== 'closed',
         updatedAt:            new Date().toISOString(),
       })
       onClose()
