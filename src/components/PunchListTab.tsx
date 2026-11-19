@@ -25,6 +25,8 @@ const TRADES = [
   '', 'General Contractor', 'Lighting', 'HVAC', 'Plumbing',
   'Millwork', 'Door/Hardware', 'AV', 'Security', 'Low Voltage',
   'Furniture', 'Acoustics', 'GTI Technology', 'Signage', 'Fire Alarm',
+  'Facilities Team', 'Pantry Equipment Vendor', 'Moving Company', 'Move Management',
+  'Change Management', 'Landlord', 'Owner',
 ]
 
 const fmtDate = (d: string) =>
