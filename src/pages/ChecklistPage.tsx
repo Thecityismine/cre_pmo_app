@@ -48,12 +48,13 @@ function TaskRow({
       updatedAt: now,
     })
 
-    // Propagate notes to all seeded project tasks with the same masterTaskId
+    // Propagate title and notes to all seeded project tasks with the same masterTaskId
     const seededSnap = await getDocs(query(collection(db, 'tasks'), where('masterTaskId', '==', task.id)))
-    if (!seededSnap.empty) {
+    const CHUNK = 400
+    for (let i = 0; i < seededSnap.docs.length; i += CHUNK) {
       const batch = writeBatch(db)
-      seededSnap.docs.forEach(d => {
-        batch.update(d.ref, { notes: notes.trim(), updatedAt: now })
+      seededSnap.docs.slice(i, i + CHUNK).forEach(d => {
+        batch.update(d.ref, { title: title.trim(), notes: notes.trim(), updatedAt: now })
       })
       await batch.commit()
     }
