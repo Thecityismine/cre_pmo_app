@@ -21,7 +21,6 @@ body {
 #root {
   height: 100vh;
   height: 100dvh; /* dynamic viewport height for mobile browsers */
-  height: calc(100dvh + var(--ios-gap, 0px)); /* see lib/iosViewportFix.ts */
   overflow-y: auto; /* lets non-app pages (e.g. login) scroll */
 }
 
@@ -30,21 +29,23 @@ header.topbar {
   padding-top: env(safe-area-inset-top);
 }
 
-/* App shell fills the real screen, incl. the iOS standalone viewport gap */
-.app-shell {
-  height: calc(100dvh + var(--ios-gap, 0px));
+/* Home-indicator clearance still needed below the bottom nav.
+   In iOS standalone apps the layout viewport already stops --ios-gap short of
+   the screen edge (and nothing can paint there), so that gap counts toward the
+   home-indicator clearance. See lib/iosViewportFix.ts. */
+:root {
+  --nav-safe-bottom: max(0px, calc(env(safe-area-inset-bottom) - var(--ios-gap, 0px)));
 }
 
-/* Fixed bottom nav clears iOS home indicator and sits on the true bottom edge */
+/* Fixed bottom nav clears the iOS home indicator */
 nav.fixed.bottom-0 {
-  padding-bottom: env(safe-area-inset-bottom);
-  bottom: calc(-1 * var(--ios-gap, 0px));
+  padding-bottom: var(--nav-safe-bottom);
 }
 
 /* Main scroll area: clear bottom nav + iOS home indicator (mobile only) */
 @media (max-width: 767px) {
   main.app-main {
-    padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+    padding-bottom: calc(5rem + var(--nav-safe-bottom));
   }
 }
 

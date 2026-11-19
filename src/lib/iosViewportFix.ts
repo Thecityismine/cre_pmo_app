@@ -7,8 +7,9 @@
  * `window.innerHeight` can still report the full screen in this state, so we
  * measure the real layout viewport with an invisible fixed probe and compare
  * it to the screen height. The difference is exposed as `--ios-gap`, which
- * the CSS uses to stretch the app shell and push the bottom nav to the true
- * bottom edge. On every other browser/device the gap is 0 and nothing changes.
+ * the CSS subtracts from the bottom nav's home-indicator padding (nothing can
+ * paint inside the gap, so the nav can't move into it — but the gap already
+ * clears the home indicator). On every other browser/device the gap is 0.
  */
 export function installIosViewportFix() {
   const nav = window.navigator as Navigator & { standalone?: boolean }
