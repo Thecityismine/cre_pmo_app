@@ -37,7 +37,7 @@ export function Topbar({ onAIOpen }: { onAIOpen?: () => void }) {
   const totalCount = overdue.length + upcoming.length
 
   return (
-    <header className="topbar bg-slate-950 shrink-0"><div className="h-14 flex items-center justify-between px-4 md:px-6">
+    <header className="topbar sticky top-0 z-40 bg-slate-950 shrink-0"><div className="h-14 flex items-center justify-between px-4 md:px-6">
 
       {/* Mobile: search overlay toggle / Desktop: inline search */}
       {searchOpen ? (

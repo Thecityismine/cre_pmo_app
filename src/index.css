@@ -4,24 +4,26 @@
   box-sizing: border-box;
 }
 
-html, body {
-  height: 100%;
-  overflow: hidden;            /* app scrolls inside <main>, never the page */
-  overscroll-behavior: none;   /* stop iOS/Android rubber-band dragging fixed bars */
+html {
+  color-scheme: dark;
+  /* Never bounce — this is an app, not a document. */
+  overscroll-behavior: none;
 }
 
 body {
   margin: 0;
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
-  background: #020617; /* slate-950 — matches the app shell so no strip shows */
+  background: #020617; /* slate-950 — matches the app shell */
   color: #f1f5f9;
   -webkit-font-smoothing: antialiased;
 }
 
+/* The page itself scrolls (no locked full-height container). A locked
+   `overflow: hidden` shell trips an iOS home-screen-app bug that leaves the
+   viewport short of the screen and the bottom nav floating above the edge. */
 #root {
-  height: 100vh;
-  height: 100dvh; /* dynamic viewport height for mobile browsers */
-  overflow-y: auto; /* lets non-app pages (e.g. login) scroll */
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 /* Topbar: push below iOS notch / status bar */
@@ -29,20 +31,19 @@ header.topbar {
   padding-top: env(safe-area-inset-top);
 }
 
-/* Home-indicator clearance still needed below the bottom nav.
-   In iOS standalone apps the layout viewport already stops --ios-gap short of
-   the screen edge (and nothing can paint there), so that gap counts toward the
-   home-indicator clearance. See lib/iosViewportFix.ts. */
+/* Bottom nav must clear the home indicator. iOS reports a 34pt inset sized
+   for edge-to-edge content; the nav already has its own height, so paying
+   the full inset back leaves a dead band under the labels. Trim 12px — the
+   remaining ~22pt still clears the home indicator. */
 :root {
-  --nav-safe-bottom: max(0px, calc(env(safe-area-inset-bottom) - var(--ios-gap, 0px)));
+  --nav-safe-bottom: max(env(safe-area-inset-bottom, 0px) - 12px, 0px);
 }
 
-/* Fixed bottom nav clears the iOS home indicator */
 nav.fixed.bottom-0 {
   padding-bottom: var(--nav-safe-bottom);
 }
 
-/* Main scroll area: clear bottom nav + iOS home indicator (mobile only) */
+/* Content clears the bottom nav + home indicator (mobile only) */
 @media (max-width: 767px) {
   main.app-main {
     padding-bottom: calc(5rem + var(--nav-safe-bottom));
